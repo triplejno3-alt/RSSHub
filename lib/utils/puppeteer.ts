@@ -4,7 +4,9 @@ import type { Browser, Page } from 'rebrowser-puppeteer';
 import puppeteer from 'rebrowser-puppeteer';
 
 // Always use @sparticuz/chromium in Vercel-like environments
-const isVercel = !!(process.env.VERCEL || process.env.LAMBDA_TASK_ROOT || process.env.VERCEL_ENV || process.env.VERCEL_URL || process.env.FORCE_VERCEL_CHROMIUM);
+// Note: FORCE_VERCEL_CHROMIUM is only for testing, should not be used in production
+const isVercel = !!(process.env.VERCEL || process.env.LAMBDA_TASK_ROOT || process.env.VERCEL_ENV || process.env.VERCEL_URL) ||
+                 (process.env.FORCE_VERCEL_CHROMIUM && process.platform === 'linux');
 
 // Cache the Chromium executable path to avoid re-downloading on subsequent requests
 let cachedExecutablePath: string | null = null;
