@@ -27,14 +27,10 @@ async function getChromiumPath(): Promise<string | null> {
 
     // Prevent concurrent downloads by reusing the same promise
     if (!downloadPromise) {
-        const chromium = (await import('@sparticuz/chromium-min')).default;
-        // URL to the Chromium binary package hosted in /src for Vercel
-        const CHROMIUM_PACK_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
-            ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/chromium-pack.tar`
-            : `https://github.com/gabenunez/puppeteer-on-vercel/raw/refs/heads/main/example/chromium-dont-use-in-prod.tar`;
+        const chromium = (await import('@sparticuz/chromium')).default;
 
         downloadPromise = chromium
-            .executablePath(CHROMIUM_PACK_URL)
+            .executablePath()
             .then((path) => {
                 cachedExecutablePath = path;
                 logger.debug(`Chromium path resolved: ${path}`);
@@ -94,20 +90,17 @@ const outPuppeteer = async () => {
         logger.info(`Using Vercel-compatible Chromium in outPuppeteer (isVercel: ${isVercel})`);
         try {
             // @ts-ignore
-            const { default: chromium } = await import('@sparticuz/chromium');
+            const chromium = await import('@sparticuz/chromium');
             // @ts-ignore
             const { default: puppeteerCore } = await import('puppeteer-core');
 
-            const executablePath = await getChromiumPath();
-            if (!executablePath) {
-                throw new Error('Failed to get Chromium executable path');
-            }
+            const executablePath = await chromium.default.executablePath();
             logger.debug(`Chromium executable path: ${executablePath}`);
 
             // @ts-ignore
             browser = await puppeteerCore.launch({
                 executablePath,
-                args: [...chromium.args, ...options.args],
+                args: [...chromium.default.args, ...options.args],
                 headless: options.headless,
                 // @ts-ignore
                 ignoreHTTPSErrors: options.ignoreHTTPSErrors,
