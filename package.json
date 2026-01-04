@@ -243,12 +243,14 @@
             "hasown": "npm:@nolyfill/hasown@^1",
             "is-core-module": "npm:@nolyfill/is-core-module@^1",
             "js-beautify@1.15.4>glob": "^10.5.0",
+            "nan": "^2.18.0",
             "rss-parser@3.13.0>entities": "^7.0.0",
             "rss-parser@3.13.0>xml2js": "^0.6.2",
             "safe-buffer": "npm:@nolyfill/safe-buffer@^1",
             "safer-buffer": "npm:@nolyfill/safer-buffer@^1",
             "side-channel": "npm:@nolyfill/side-channel@^1"
         },
+
         "patchedDependencies": {
             "rss-parser@3.13.0": "patches/rss-parser@3.13.0.patch"
         }

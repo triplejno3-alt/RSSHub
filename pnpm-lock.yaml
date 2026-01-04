@@ -13,6 +13,7 @@ overrides:
   hasown: npm:@nolyfill/hasown@^1
   is-core-module: npm:@nolyfill/is-core-module@^1
   js-beautify@1.15.4>glob: ^10.5.0
+  nan: ^2.18.0
   rss-parser@3.13.0>entities: ^7.0.0
   rss-parser@3.13.0>xml2js: ^0.6.2
   safe-buffer: npm:@nolyfill/safe-buffer@^1
@@ -4996,9 +4997,6 @@ packages:
     resolution: {integrity: sha512-WWdIxpyjEn+FhQJQQv9aQAYlHoNVdzIzUySNV1gHUPDSdZJ3yZn7pAAbQcV7B56Mvu881q9FZV+0Vx2xC44VWA==}
     engines: {node: ^18.17.0 || >=20.5.0}
 
-  nan@1.8.4:
-    resolution: {integrity: sha512-609zQ1h3ApgH/94qmbbEklSrjcYYXCHnsWk4MAojq4OUk3tidhDYhPaMasMFKsZPZ96r4eQA1hbR2W4H7/77XA==}
-
   nan@2.23.1:
     resolution: {integrity: sha512-r7bBUGKzlqk8oPBDYxt6Z0aEdF1G1rwlMcLk8LCOMbOzf0mG+JUfUzG4fIMWwHWP0iyaLWEQZJmtB7nOHEm/qw==}
 
@@ -9372,7 +9370,7 @@ snapshots:
   bufferutil@1.1.0:
     dependencies:
       bindings: 1.2.1
-      nan: 1.8.4
+      nan: 2.23.1
     optional: true
 
   bufferutil@4.0.9:
@@ -11525,9 +11523,6 @@ snapshots:
 
   mute-stream@2.0.0: {}
 
-  nan@1.8.4:
-    optional: true
-
   nan@2.23.1:
     optional: true
 
@@ -12870,7 +12865,7 @@ snapshots:
   utf-8-validate@1.1.0:
     dependencies:
       bindings: 1.2.1
-      nan: 1.8.4
+      nan: 2.23.1
     optional: true
 
   utf-8-validate@5.0.10:
