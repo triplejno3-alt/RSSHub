@@ -60,7 +60,7 @@ export const route: Route = {
             }
 
             // Wait for content to load - try multiple approaches
-            await page.waitForTimeout(3000); // Give extra time for dynamic content
+            await new Promise((resolve) => setTimeout(resolve, 3000)); // Give extra time for dynamic content
 
             // Try to wait for common selectors
             await page.waitForSelector('article, .article-card, .post-item, .card, .story-card, a[href*="/article/"]', { timeout: 15000 }).catch(() => {
@@ -71,7 +71,7 @@ export const route: Route = {
             await page.evaluate(() => {
                 window.scrollTo(0, document.body.scrollHeight / 2);
             });
-            await page.waitForTimeout(2000);
+            await new Promise((resolve) => setTimeout(resolve, 2000));
 
             const content = await page.content();
             logger.info(`Page content length: ${content.length}`);
