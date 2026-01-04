@@ -236,6 +236,7 @@
             "wrangler"
         ],
         "overrides": {
+            "bufferutil": "^4.0.9",
             "difflib": "https://codeload.github.com/postlight/difflib.js/tar.gz/32e8e38c7fcd935241b9baab71bb432fd9b166ed",
             "es-set-tostringtag": "npm:@nolyfill/es-set-tostringtag@^1",
             "google-play-scraper>got": "^14.6.4",
@@ -249,7 +250,8 @@
             "rss-parser@3.13.0>xml2js": "^0.6.2",
             "safe-buffer": "npm:@nolyfill/safe-buffer@^1",
             "safer-buffer": "npm:@nolyfill/safer-buffer@^1",
-            "side-channel": "npm:@nolyfill/side-channel@^1"
+            "side-channel": "npm:@nolyfill/side-channel@^1",
+            "utf-8-validate": "^5.0.10"
         },
 
         "patchedDependencies": {
