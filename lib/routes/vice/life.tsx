@@ -43,17 +43,39 @@ export const route: Route = {
             const link = 'https://www.vice.com/en/category/life';
             logger.http(`Requesting ${link}`);
 
-            await page.goto(link, {
-                waitUntil: 'networkidle2',
-                timeout: 30000,
+            try {
+                await page.goto(link, {
+                    waitUntil: 'networkidle2',
+                    timeout: 30000,
+                });
+                logger.info('Successfully navigated to VICE website');
+            } catch (error: any) {
+                logger.error('Failed to navigate to VICE website:', error.message);
+                // If navigation fails, try with simpler options
+                await page.goto(link, {
+                    waitUntil: 'domcontentloaded',
+                    timeout: 20000,
+                });
+                logger.info('Fallback navigation successful');
+            }
+
+            // Wait for content to load - try multiple approaches
+            await page.waitForTimeout(3000); // Give extra time for dynamic content
+
+            // Try to wait for common selectors
+            await page.waitForSelector('article, .article-card, .post-item, .card, .story-card, a[href*="/article/"]', { timeout: 15000 }).catch(() => {
+                logger.warn('No common selectors found, continuing anyway');
             });
 
-            // Wait for content to load
-            await page.waitForSelector('article, .article-card, .post-item', { timeout: 10000 }).catch(() => {
-                logger.warn('Selector not found, continuing anyway');
+            // Scroll down to trigger lazy loading
+            await page.evaluate(() => {
+                window.scrollTo(0, document.body.scrollHeight / 2);
             });
+            await page.waitForTimeout(2000);
 
             const content = await page.content();
+            logger.info(`Page content length: ${content.length}`);
+
             const $ = load(content);
 
             // Try multiple selectors for articles
