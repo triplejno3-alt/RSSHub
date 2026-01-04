@@ -1,9 +1,7 @@
 import { load } from 'cheerio';
 
 import type { Route } from '@/types';
-import cache from '@/utils/cache';
 import logger from '@/utils/logger';
-import { parseDate } from '@/utils/parse-date';
 import puppeteer from '@/utils/puppeteer';
 
 export const route: Route = {
@@ -24,87 +22,109 @@ export const route: Route = {
     maintainers: ['DIYgod'],
     handler: async () => {
         const browser = await puppeteer();
-        const page = await browser.newPage();
-        await page.setRequestInterception(true);
-        page.on('request', (request) => {
-            request.resourceType() === 'document' ? request.continue() : request.abort();
-        });
+        let page;
+        try {
+            page = await browser.newPage();
 
-        const link = 'https://www.vice.com/en/category/life';
-        logger.http(`Requesting ${link}`);
-        await page.goto(link, {
-            waitUntil: 'domcontentloaded',
-        });
-        const response = await page.content();
-        page.close();
+            // Set user agent to avoid bot detection
+            await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
-        const $ = load(response);
+            // Block unnecessary resources
+            await page.setRequestInterception(true);
+            page.on('request', (request) => {
+                const resourceType = request.resourceType();
+                if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
+                    request.abort();
+                } else {
+                    request.continue();
+                }
+            });
 
-        const list = $('li.wp-block-post')
-            .toArray()
-            .map((item) => {
-                const $item = $(item);
-                const title = $item.find('h3.wp-block-post-title a').text().trim();
-                const link = $item.find('h3.wp-block-post-title a').attr('href');
-                const description = $item.find('.wp-block-savage-platform-post-subheadline p').text().trim();
-                const pubDate = $item.find('.wp-block-post-date time').attr('datetime');
-                const author = $item.find('.wp-block-savage-platform-post-byline a').text().trim();
+            const link = 'https://www.vice.com/en/category/life';
+            logger.http(`Requesting ${link}`);
 
-                return {
-                    title,
-                    link: link || '',
-                    description,
-                    pubDate: pubDate ? parseDate(pubDate) : undefined,
-                    author,
-                    category: ['Life'] as string[],
-                };
-            })
-            .filter((item) => item.title && item.link);
+            await page.goto(link, {
+                waitUntil: 'networkidle2',
+                timeout: 30000,
+            });
 
-        const items = await Promise.all(
-            list.map((item) =>
-                cache.tryGet(item.link, async () => {
-                    // 重用浏览器实例并打开新标签页
-                    const page = await browser.newPage();
-                    // 设置请求拦截，仅允许 HTML 请求
-                    await page.setRequestInterception(true);
-                    page.on('request', (request) => {
-                        request.resourceType() === 'document' ? request.continue() : request.abort();
+            // Wait for content to load
+            await page.waitForSelector('article, .article-card, .post-item', { timeout: 10000 }).catch(() => {
+                logger.warn('Selector not found, continuing anyway');
+            });
+
+            const content = await page.content();
+            const $ = load(content);
+
+            // Try multiple selectors for articles
+            const articles: any[] = [];
+
+            // Selector 1: Common article selectors
+            $('article, .article-card, .post-item, .card, .story-card').each((_, element) => {
+                const $el = $(element);
+                const title = $el.find('h1, h2, h3, .title, .headline').first().text().trim() || $el.find('a').first().text().trim();
+                const link = $el.find('a').first().attr('href');
+                const description = $el.find('p, .excerpt, .summary, .teaser').first().text().trim();
+
+                if (title && link) {
+                    articles.push({
+                        title,
+                        link: link.startsWith('http') ? link : `https://www.vice.com${link}`,
+                        description: description || title,
+                        category: ['Life'] as string[],
                     });
+                }
+            });
 
-                    logger.http(`Requesting ${item.link}`);
-                    await page.goto(item.link, {
-                        waitUntil: 'domcontentloaded',
-                    });
-                    const response = await page.content();
-                    // 获取 HTML 内容后关闭标签页
-                    page.close();
+            // If no articles found, try a more generic approach
+            if (articles.length === 0) {
+                logger.warn('No articles found with standard selectors, trying fallback');
 
-                    const $ = load(response);
+                // Fallback: Look for any links that might be articles
+                $('a[href*="/article/"], a[href*="/story/"]').each((_, element) => {
+                    const $el = $(element);
+                    const title = $el.text().trim();
+                    const link = $el.attr('href');
 
-                    // Extract full content from article
-                    const articleContent: string[] = [];
-                    $('.entry-content p').each((_, el) => {
-                        const $el = $(el);
-                        if ($el.text().trim()) {
-                            articleContent.push(`${String($el.html())}`);
-                        }
-                    });
+                    if (title && link && title.length > 10) {
+                        // Avoid short link texts
+                        articles.push({
+                            title,
+                            link: link.startsWith('http') ? link : `https://www.vice.com${link}`,
+                            description: title,
+                            category: ['Life'] as string[],
+                        });
+                    }
+                });
+            }
 
-                    item.description = articleContent.map((content) => `<p>${content}</p>`).join('') || item.description;
+            // Remove duplicates and limit to first 20
+            const uniqueArticles = articles.filter((article, index, self) => index === self.findIndex((a) => a.link === article.link)).slice(0, 20);
 
-                    return item;
-                })
-            )
-        );
+            logger.info(`Found ${uniqueArticles.length} articles`);
 
-        // 所有请求完成后关闭浏览器实例
-        browser.close();
-
-        return {
-            title: 'VICE | Life articles',
-            link: 'https://www.vice.com/en/category/life',
-            item: items,
-        };
+            return {
+                title: 'VICE | Life articles',
+                link: 'https://www.vice.com/en/category/life',
+                item: uniqueArticles,
+                description: 'Latest life articles from VICE',
+            };
+        } catch (error) {
+            logger.error('Error in vice/life handler:', error);
+            throw error;
+        } finally {
+            if (page) {
+                try {
+                    await page.close();
+                } catch (error) {
+                    logger.warn('Error closing page:', error);
+                }
+            }
+            try {
+                await browser.close();
+            } catch (error) {
+                logger.warn('Error closing browser:', error);
+            }
+        }
     },
 };
