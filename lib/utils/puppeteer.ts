@@ -1,16 +1,10 @@
+/* eslint-disable unicorn/prefer-ternary */
 import { anonymizeProxy } from 'proxy-chain';
 import type { Browser, Page } from 'rebrowser-puppeteer';
 import puppeteer from 'rebrowser-puppeteer';
 
 // Conditional imports for Vercel
 const isVercel = process.env.VERCEL || process.env.LAMBDA_TASK_ROOT;
-let chromium: any, puppeteerCore: any;
-if (isVercel) {
-    // @ts-ignore
-    chromium = (await import('@sparticuz/chromium')).default;
-    // @ts-ignore
-    puppeteerCore = (await import('puppeteer-core')).default;
-}
 
 import { config } from '@/config';
 
@@ -152,12 +146,18 @@ export const getPuppeteerPage = async (
         });
     } else {
         // Vercel-compatible launch
+        // eslint-disable-next-line unicorn/prefer-ternary
         if (isVercel) {
+            // @ts-ignore
+            const { default: chromium } = await import('@sparticuz/chromium');
+            // @ts-ignore
+            const { default: puppeteerCore } = await import('puppeteer-core');
             // @ts-ignore
             browser = await puppeteerCore.launch({
                 executablePath: await chromium.executablePath(),
                 args: [...chromium.args, ...options.args],
                 headless: options.headless,
+                // @ts-ignore
                 ignoreHTTPSErrors: options.ignoreHTTPSErrors,
             });
         } else {
