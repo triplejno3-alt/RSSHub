@@ -83,18 +83,45 @@ const outPuppeteer = async () => {
             options.args.push(`--proxy-server=${currentProxy.uri.replace('socks5h://', 'socks5://').replace('socks4a://', 'socks4://')}`);
         }
     }
-    const browser = await (config.puppeteerWSEndpoint
-        ? insidePuppeteer.connect({
-              browserWSEndpoint: config.puppeteerWSEndpoint,
-          })
-        : insidePuppeteer.launch(
-              config.chromiumExecutablePath
-                  ? {
-                        executablePath: config.chromiumExecutablePath,
-                        ...options,
-                    }
-                  : options
-          ));
+    let browser: Browser;
+    if (config.puppeteerWSEndpoint) {
+        browser = await insidePuppeteer.connect({
+            browserWSEndpoint: config.puppeteerWSEndpoint,
+        });
+    } else if (isVercel) {
+        logger.info(`Using Vercel-compatible Chromium in outPuppeteer (isVercel: ${isVercel})`);
+        try {
+            // @ts-ignore
+            const { default: chromium } = await import('@sparticuz/chromium');
+            // @ts-ignore
+            const { default: puppeteerCore } = await import('puppeteer-core');
+
+            const executablePath = await getChromiumPath();
+            logger.info(`Chromium executable path: ${executablePath}`);
+
+            // @ts-ignore
+            browser = await puppeteerCore.launch({
+                executablePath,
+                args: [...chromium.args, ...options.args],
+                headless: options.headless,
+                // @ts-ignore
+                ignoreHTTPSErrors: options.ignoreHTTPSErrors,
+            });
+            logger.info('Vercel Chromium browser launched successfully in outPuppeteer');
+        } catch (error) {
+            logger.error('Failed to launch Vercel Chromium in outPuppeteer:', error);
+            throw error;
+        }
+    } else {
+        browser = await insidePuppeteer.launch(
+            config.chromiumExecutablePath
+                ? {
+                      executablePath: config.chromiumExecutablePath,
+                      ...options,
+                  }
+                : options
+        );
+    }
     setTimeout(async () => {
         await browser.close();
     }, 30000);
