@@ -82,11 +82,8 @@ importers:
       '@sentry/node':
         specifier: 10.32.1
         version: 10.32.1
-      '@sparticuz/chromium':
-        specifier: ^131.0.1
-        version: 131.0.1
       '@sparticuz/chromium-min':
-        specifier: ^141.0.0
+        specifier: 141.0.0
         version: 141.0.0
       aes-js:
         specifier: 3.1.2
@@ -323,6 +320,9 @@ importers:
       '@microsoft/eslint-formatter-sarif':
         specifier: 3.1.0
         version: 3.1.0
+      '@sparticuz/chromium':
+        specifier: 141.0.0
+        version: 141.0.0
       '@stylistic/eslint-plugin':
         specifier: 5.6.1
         version: 5.6.1(eslint@9.39.2(jiti@2.6.1))
@@ -2512,9 +2512,9 @@ packages:
     resolution: {integrity: sha512-1EAR1NBrY4sa0hysDUCxCSI+9xc88/LYB3YjWFqMMu3CF82ATp8FzOeu7icwGxI02NAPcwzb0Uf1kIzsfH7Eiw==}
     engines: {node: '>=20.11.0'}
 
-  '@sparticuz/chromium@131.0.1':
-    resolution: {integrity: sha512-VfmHkQmb/Px0zjwdSQwjRMwFw63Qfj+g4Giumz4jiAGEpXHgIZk6xEwlUz6yiUHVDveK2TEgMR2MR6I3okOE7w==}
-    engines: {node: '>= 16'}
+  '@sparticuz/chromium@141.0.0':
+    resolution: {integrity: sha512-JsTp4AqgStkqKki4dUpEM0GoisAjQhsqZ1lQTNMSKK5A9pw6BbIuIvv2HVYMYzSZGyDdQNJYBPPDg2eggCkezA==}
+    engines: {node: '>=20.11.0'}
 
   '@speed-highlight/core@1.2.14':
     resolution: {integrity: sha512-G4ewlBNhUtlLvrJTb88d2mdy2KRijzs4UhnlrOSRT4bmjh/IqNElZa3zkrZ+TC47TwtlDWzVLFADljF1Ijp5hA==}
@@ -8717,7 +8717,7 @@ snapshots:
       - bare-buffer
       - debug
 
-  '@sparticuz/chromium@131.0.1':
+  '@sparticuz/chromium@141.0.0':
     dependencies:
       follow-redirects: 1.15.11
       tar-fs: 3.1.1
