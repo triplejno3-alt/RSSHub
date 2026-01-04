@@ -5,7 +5,7 @@
     "functions": {
         "src/server.mjs": {
             "maxDuration": 30,
-            "includeFiles": "./src/templates/**/*.art,./src/chromium-pack.tar",
+            "includeFiles": ["./src/templates/**/*.art", "./src/chromium-pack.tar"],
             "excludeFiles": "./src/templates/**,./src/assets/**"
         }
     },
