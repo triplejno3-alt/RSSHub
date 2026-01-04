@@ -1,3 +1,6 @@
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+
 import { Hono } from 'hono';
 import { compress } from 'hono/compress';
 import { jsxRenderer } from 'hono/jsx-renderer';
@@ -43,6 +46,19 @@ app.use(header);
 app.use(antiHotlink);
 app.use(parameter);
 app.use(cache);
+
+// Serve chromium-pack.tar for Vercel Puppeteer
+app.get('/chromium-pack.tar', async (c) => {
+    try {
+        const filePath = path.join(__dirname, 'chromium-pack.tar');
+        const fileBuffer = await readFile(filePath);
+        c.header('Content-Type', 'application/x-tar');
+        return c.body(fileBuffer);
+    } catch (error) {
+        logger.error('Error serving chromium-pack.tar:', error);
+        return c.text('Chromium pack not found', 404);
+    }
+});
 
 app.route('/', registry);
 app.route('/api', api);
