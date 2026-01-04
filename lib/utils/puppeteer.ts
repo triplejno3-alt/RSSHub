@@ -94,17 +94,17 @@ const outPuppeteer = async () => {
         logger.info(`Using Vercel-compatible Chromium in outPuppeteer (isVercel: ${isVercel})`);
         try {
             // @ts-ignore
-            const chromium = await import('@sparticuz/chromium');
+            const chromium = (await import('@sparticuz/chromium-min')).default;
             // @ts-ignore
             const { default: puppeteerCore } = await import('puppeteer-core');
 
-            const executablePath = await chromium.default.executablePath();
+            const executablePath = await getChromiumPath();
             logger.debug(`Chromium executable path: ${executablePath}`);
 
             // @ts-ignore
             browser = await puppeteerCore.launch({
                 executablePath,
-                args: [...chromium.default.args, ...options.args],
+                args: [...chromium.args, ...options.args],
                 headless: options.headless,
                 // @ts-ignore
                 ignoreHTTPSErrors: options.ignoreHTTPSErrors,
