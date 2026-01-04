@@ -1,0 +1,8 @@
+import{t as e}from"./ofetch-uhy-qh6X.mjs";import"./config-Cc-zZ5p-.mjs";import"./logger-_vmdpChp.mjs";import{t}from"./cache-DLkCV5c7.mjs";import{load as n}from"cheerio";import r from"p-map";const i={path:`/news`,categories:[`programming`],example:`/anthropic/news`,parameters:{},radar:[{source:[`www.anthropic.com/news`,`www.anthropic.com`]}],name:`News`,maintainers:[`etShaw-zh`,`goestav`],handler:a,url:`www.anthropic.com/news`};async function a(i){let a=`https://www.anthropic.com/news`,o=n(await e(a)),s=i.req.query(`limit`)?Number.parseInt(i.req.query(`limit`),10):20;return{title:`Anthropic News`,link:a,description:`Latest news from Anthropic`,item:await r(o(`.contentFadeUp a`).toArray().slice(0,s).map(e=>{let t=o(e),n=t.find(`h3`).text().trim(),r=t.attr(`href`)??``,i=t.find(`p.detail-m.agate`).text().trim()||t.find(`div[class^="PostList_post-date__"]`).text().trim();return{title:n,link:r.startsWith(`http`)?r:`https://www.anthropic.com${r}`,pubDate:i}}),r=>t.tryGet(r.link,async()=>{let t=n(await e(r.link)),i=t(`#main-content`);return t(`
+                    [class^="PostDetail_post-heading"],
+                    [class^="ArticleDetail_sidebar-container"],
+                    [class^="QuoteCarousel_carousel-controls"],
+                    [class^="PostDetail_b-social-share"],
+                    [class^="LandingPageSection_root"],
+                    [class^="CodeBlock_controls"]
+                `).remove(),i.find(`img`).each((e,n)=>{let r=t(n);r.removeAttr(`style srcset`);let i=r.attr(`src`),a=new URLSearchParams(i).get(`/_next/image?url`);a&&r.attr(`src`,a)}),r.description=i.html()??void 0,r}),{concurrency:5})}}export{i as route};

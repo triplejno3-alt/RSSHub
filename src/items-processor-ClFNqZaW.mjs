@@ -1,0 +1,1 @@
+function e(e){return e(`.category-list li`).toArray().map(t=>{t=e(t);let n=t.find(`h2`).text(),r=t.find(`a`).attr(`href`),i=t.find(`p`).text();return{title:n,link:r,description:`<img src="${t.find(`picture img`).attr(`src`)}" alt="${n}">`,author:i}})}export{e as t};

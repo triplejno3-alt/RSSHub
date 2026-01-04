@@ -1,0 +1,1 @@
+import e from"node:crypto";function t(t){return e.createHash(`md5`).update(t).digest(`hex`)}export{t};

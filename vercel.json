@@ -4,7 +4,12 @@
     "outputDirectory": "src",
     "functions": {
         "src/server.mjs": {
-            "includeFiles": "./src/templates/**/*.art"
+            "includeFiles": "./src/templates/**/*.art",
+            "excludeFiles": [
+                "./src/templates/**",
+                "./src/assets/**",
+                "./src/chromium-pack.tar"
+            ]
         }
     },
     "rewrites": [

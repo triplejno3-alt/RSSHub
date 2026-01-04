@@ -1,0 +1,1 @@
+import e from"crypto-js";const t=`https://www.cls.cn`,n={appName:`CailianpressWeb`,os:`web`,sv:`7.7.5`},r=t=>{let r=new URLSearchParams({...n,...t});return r.sort(),r.append(`sign`,e.MD5(e.SHA1(r.toString()).toString()).toString()),r};export{t as n,r as t};

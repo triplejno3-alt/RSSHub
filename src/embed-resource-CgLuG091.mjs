@@ -1,0 +1,1 @@
+import{load as e}from"cheerio";function t(t,n){let r=e(n);return r(`div.wp_pdf_player`).each(function(){let e=r(this),n=e.attr(`pdfsrc`)||``,i=`<p><a href=${new URL(n,t).href} target="_blank">点击下载 PDF 文件资源</a></p>`;e.replaceWith(i)}),r.html()}export{t};

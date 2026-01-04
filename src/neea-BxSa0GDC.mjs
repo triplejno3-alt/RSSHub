@@ -1,0 +1,14 @@
+import"./ofetch-uhy-qh6X.mjs";import"./config-Cc-zZ5p-.mjs";import"./logger-_vmdpChp.mjs";import{t as e}from"./cache-DLkCV5c7.mjs";import"./helpers-C9wXLK0V.mjs";import{t}from"./parse-date-DjdQS_Nt.mjs";import{t as n}from"./got-CKQ7C9HX.mjs";import{t as r}from"./timezone-CrV-DT8S.mjs";import{load as i}from"cheerio";function a(t){return e.tryGet(t,async()=>{let e=i((await n.get(t)).data);return{title:e(`#Content1 > div > ul > li > h1`).text(),description:e(`#ReportIDtext`).html(),link:t}})}async function o(e){let o=e.req.param(`type`),c=`https://${o}.neea.edu.cn${s[o].url}`,l=(await n({method:`get`,url:c})).data,u=i(l),d=u(`#ReportIDname > a`).parent().parent().toArray(),f=await Promise.all(d.map(async e=>{let n=u(e).find(`#ReportIDname > a`),i=u(e).find(`#ReportIDIssueTime`),s=`https://${o}.neea.edu.cn`+u(n).attr(`href`),c=i.text(),l={title:u(n).text(),link:s,guid:s,pubDate:r(t(c),8)},d=await a(String(s));return Object.assign({},l,d)}));return{title:`${s[String(o)].title}动态`,link:c,description:`${s[String(o)].title}动态 `,item:f}}const s={gaokao:{url:`/html1/category/1507/1945-1.htm`,title:`普通高考`},chengkao:{url:`/html1/category/1507/1960-1.htm`,title:`成人高考`},yankao:{url:`/html1/category/1507/2005-1.htm`,title:`研究生考试`},zikao:{url:`/html1/category/1508/1403-1.htm`,title:`自学考试`},ntce:{url:`/html1/category/1507/1148-1.htm`,title:`中小学教师资格考试`},tdxl:{url:`/html1/category/2210/313-1.htm`,title:`同等学力申请硕士学位考试`},cet:{url:`/html1/category/16093/1124-1.htm`,title:`全国四六级考试（CET）`},ncre:{url:`/html1/category/1507/872-1.htm`,title:`全国计算机等级考试（NCRE）`},nit:{url:`/html1/category/1507/1630-1.htm`,title:`全国计算机应用水平考试（NIT）`},pets:{url:`/html1/category/1507/1570-1.htm`,title:`全国英语等级考试（PETS）`},wsk:{url:`/html1/category/1507/1646-1.htm`,title:`全国外语水平考试（WSK）`},ccpt:{url:`/html1/category/1507/2035-1.htm`,title:`书画等级考试（CCPT）`}},c={path:`/local/:type`,name:`国内考试动态`,url:`www.neea.edu.cn`,maintainers:[`SunShinenny`],example:`/neea/local/cet`,parameters:{type:`考试项目，见下表`},categories:[`study`],features:{supportRadar:!0},radar:Object.entries(s).map(([e,t])=>({title:`${t.title}动态`,source:[`${e}.neea.edu.cn`,`${e}.neea.cn`],target:`/local/${e}`})),handler:o,description:`|              | 考试项目                      | type     |
+| ------------ | ----------------------------- | -------- |
+| 国家教育考试 | 普通高考                      | gaokao   |
+|              | 成人高考                      | chengkao |
+|              | 研究生考试                    | yankao   |
+|              | 自学考试                      | zikao    |
+|              | 中小学教师资格考试            | ntce     |
+|              | 同等学力申请硕士学位考试      | tdxl     |
+| 社会证书考试 | 全国四六级考试（CET）         | cet      |
+|              | 全国计算机等级考试（NCRE）    | ncre     |
+|              | 全国计算机应用水平考试（NIT） | nit      |
+|              | 全国英语等级考试（PETS）      | pets     |
+|              | 全国外语水平考试（WSK）       | wsk      |
+|              | 书画等级考试（CCPT）          | ccpt     |`};export{c as route};

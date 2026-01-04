@@ -1,0 +1,1 @@
+import"./ofetch-uhy-qh6X.mjs";import"./config-Cc-zZ5p-.mjs";import"./logger-_vmdpChp.mjs";import"./cache-DLkCV5c7.mjs";import"./parse-date-DjdQS_Nt.mjs";import{t as e}from"./common-DZ_YkbsY.mjs";const t={path:`/special/1192`,parameters:{id:`分类 id，见下表，可在对应分类页 URL 中找到`},name:`专题`,example:`/jiemian/special/1192`,maintainers:[`nczitzk`],handler:e};export{t as route};

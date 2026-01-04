@@ -1,0 +1,1 @@
+import{Fragment as e,jsx as t,jsxs as n}from"hono/jsx/jsx-runtime";import{renderToString as r}from"hono/jsx/dom/server";import{raw as i}from"hono/html";const a=({head:a,rendered:o})=>r(n(e,{children:[a.og_image?.length?a.og_image.map(e=>t(`img`,{src:e.url.split(`?`)[0]})):null,a.og_image?.length?t(`br`,{}):null,i(o)]}));export{a as t};

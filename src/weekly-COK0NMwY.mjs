@@ -1,0 +1,12 @@
+import{t as e}from"./types-Bl_lnefZ.mjs";const t=e=>{let{id:t}=e.req.param(),n=Number.parseInt(e.req.query(`limit`)??`20`,10);e.set(`redirect`,`/iresearch/report/3${t?`/${t}`:``}?limit=${n}`)},n={path:`/weekly/:id?`,name:`周度市场观察`,url:`www.iresearch.com.cn`,maintainers:[`nczitzk`],handler:t,example:`/iresearch/weekly`,parameters:{id:{description:`行业 ID，默认为全部，即全部行业，可在对应行业页 URL 中找到`,options:[{label:`全部`,value:``},{label:`家电行业`,value:`1`},{label:`服装行业`,value:`2`},{label:`美妆行业`,value:`3`},{label:`食品饮料行业`,value:`4`},{label:`酒行业`,value:`5`}]}},description:`:::tip
+订阅 [家电行业](https://www.iresearch.com.cn/report.shtml?type=3&classId=1)，其源网址为 \`https://www.iresearch.com.cn/report.shtml?type=3&classId=1\`，请参考该 URL 指定部分构成参数，此时路由为 [\`/iresearch/weekly/家电行业\`](https://rsshub.app/iresearch/weekly/家电行业) 或 [\`/iresearch/weekly/1\`](https://rsshub.app/iresearch/weekly/1)。
+:::
+
+| 名称                                                                       | ID                                           |
+| -------------------------------------------------------------------------- | -------------------------------------------- |
+| [家电行业](https://www.iresearch.com.cn/report.shtml?type=3&classId=1)     | [1](https://rsshub.app/iresearch/report/3/1) |
+| [服装行业](https://www.iresearch.com.cn/report.shtml?type=3&classId=2)     | [2](https://rsshub.app/iresearch/report/3/2) |
+| [美妆行业](https://www.iresearch.com.cn/report.shtml?type=3&classId=3)     | [3](https://rsshub.app/iresearch/report/3/3) |
+| [食品饮料行业](https://www.iresearch.com.cn/report.shtml?type=3&classId=4) | [4](https://rsshub.app/iresearch/report/3/4) |
+| [酒行业](https://www.iresearch.com.cn/report.shtml?type=3&classId=5)       | [5](https://rsshub.app/iresearch/report/3/5) |
+`,categories:[`other`],features:{requireConfig:!1,requirePuppeteer:!1,antiCrawler:!1,supportRadar:!0,supportBT:!1,supportPodcast:!1,supportScihub:!1},radar:[{source:[`www.iresearch.com.cn/report.shtml`],target:(e,t)=>{let n=new URL(t),r=n.searchParams.get(`classId`)??n.searchParams.get(`channelId`)??n.searchParams.get(`cid`)??void 0;return`/iresearch/weekly${r?`/${r}`:``}`}},{title:`家电行业`,source:[`www.iresearch.com.cn/report.shtml`],target:`/weekly/1`},{title:`服装行业`,source:[`www.iresearch.com.cn/report.shtml`],target:`/weekly/2`},{title:`美妆行业`,source:[`www.iresearch.com.cn/report.shtml`],target:`/weekly/3`},{title:`食品饮料行业`,source:[`www.iresearch.com.cn/report.shtml`],target:`/weekly/4`},{title:`酒行业`,source:[`www.iresearch.com.cn/report.shtml`],target:`/weekly/5`}],view:e.Articles};export{t as handler,n as route};

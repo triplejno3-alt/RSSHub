@@ -1,0 +1,11 @@
+import"./ofetch-uhy-qh6X.mjs";import"./config-Cc-zZ5p-.mjs";import"./logger-_vmdpChp.mjs";import{t as e}from"./cache-DLkCV5c7.mjs";import"./helpers-C9wXLK0V.mjs";import{t}from"./parse-date-DjdQS_Nt.mjs";import{t as n}from"./got-CKQ7C9HX.mjs";import{t as r}from"./timezone-CrV-DT8S.mjs";import{Fragment as i,jsx as a,jsxs as o}from"hono/jsx/jsx-runtime";import{load as s}from"cheerio";import{renderToString as c}from"hono/jsx/dom/server";import{raw as l}from"hono/html";const u={path:`/:category?`,categories:[`new-media`],example:`/simpleinfo`,parameters:{category:`分类名`},features:{requireConfig:!1,requirePuppeteer:!1,antiCrawler:!1,supportBT:!1,supportPodcast:!1,supportScihub:!1},radar:[{source:[`blog.simpleinfo.cc/blog/:category`],target:`/:category`}],name:`志祺七七`,maintainers:[`haukeng`],handler:d,description:`| 夥伴聊聊 | 專案設計 |
+| -------- | -------- |
+| work     | talk     |
+
+| 國內外新聞 | 政治百分百 | 社會觀察家 | 心理與哲學            |
+| ---------- | ---------- | ---------- | --------------------- |
+| news       | politics   | society    | psychology-philosophy |
+
+| 科學大探索 | 環境與健康         | ACG 快樂聊 | 好書籍分享   | 其它主題     |
+| ---------- | ------------------ | ---------- | ------------ | ------------ |
+| science    | environment-health | acg        | book-sharing | other-topics |`};async function d(i){let a=i.req.param(`category`),o=`https://blog.simpleinfo.cc${a?a===`work`||a===`talk`?`/blog/${a}`:`/shasha77?category=${a}`:`/shasha77`}`,c=s((await n(o)).data),l=`${c(`.-active`).text()} - 簡訊設計`;c(`.-ad`).remove();let u=c(`.article-item`).toArray().map(e=>(e=c(e),{title:e.find(`.title`).text(),link:e.find(`a`).first().attr(`href`),category:e.find(`.category`).text()}));return{title:l,link:o,language:`zh-tw`,item:await Promise.all(u.map(i=>e.tryGet(i.link,async()=>{let e=s((await n(i.link)).data);return i.author=e(`meta[property="article:author"]`).attr(`content`),i.pubDate=r(t(e(`meta[property="article:published_time"]`).attr(`content`)),8),i.description=f({image:e(`meta[property="og:image"]`).attr(`content`),description:e(`.article-content`).first().html()}),i})))}}const f=({image:e,description:t})=>c(o(i,{children:[e?a(`img`,{src:e}):null,t?a(i,{children:l(t)}):null]}));export{u as route};

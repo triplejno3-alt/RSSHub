@@ -1,0 +1,1 @@
+let e=function(e){return e.English=`en`,e.Japanese=`jp`,e.Korean=`kr`,e.Chinese=`zh`,e.ChineseTaiwan=`zh-tw`,e.Spanish=`es`,e.French=`fr`,e.German=`de`,e}({}),t=function(e){return e.Limit=`limit`,e.Language=`language`,e}({});const n=Object.values(e);export{t as n,n as r,e as t};

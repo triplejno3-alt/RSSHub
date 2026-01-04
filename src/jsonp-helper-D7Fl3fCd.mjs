@@ -1,0 +1,1 @@
+function e(e){try{let t=e.indexOf(`({`),n=e.lastIndexOf(`})`),r=e.substring(t+1,n+1);return r=r.replaceAll(String.raw`\'`,`'`),JSON.parse(r)}catch(e){throw Error(`Failed to convert jsonp to json. ${e.message}`)}}export{e as t};

@@ -1,0 +1,11 @@
+import"./ofetch-uhy-qh6X.mjs";import"./config-Cc-zZ5p-.mjs";import"./logger-_vmdpChp.mjs";import{t as e}from"./cache-DLkCV5c7.mjs";import"./helpers-C9wXLK0V.mjs";import{t}from"./got-CKQ7C9HX.mjs";import{load as n}from"cheerio";const r={path:`/search/:keyword?/:company?/:sort?/:period?`,categories:[`journal`],example:`/telecompaper/search/Nokia`,parameters:{keyword:`Keyword`,company:`Company name, empty by default`,sort:"Sorting, see table below, `Date Descending` by default",period:`Date selection, Last 12 months by default`},features:{requireConfig:!1,requirePuppeteer:!1,antiCrawler:!1,supportBT:!1,supportPodcast:!1,supportScihub:!1},name:`Search`,maintainers:[`nczitzk`],handler:i,description:`Sorting
+
+| Date Ascending | Date Descending |
+| -------------- | --------------- |
+| 1              | 2               |
+
+  Date selection
+
+| 1 month | 3 months | 6 months | 12 months | 24 months |
+| ------- | -------- | -------- | --------- | --------- |
+| 1       | 3        | 6        | 12        | 24        |`};async function i(r){let i=r.req.param(`keyword`)||``,a=r.req.param(`company`)||``,o=r.req.param(`sort`)||`2`,s=r.req.param(`period`)||`12`,c=`https://www.telecompaper.com/search/index.aspx?search=${i}`,l=await t({method:`get`,url:c}),u=n(l.data);l=await t({method:`post`,url:c,data:JSON.stringify({__EVENTTARGET:``,__EVENTARGUMENT:``,__VSTATE:u(`#__VSTATE`).attr(`value`),__VIEWSTATE:``,ctl00$header$searchText:`Search keywords`,ctl00$header$searchTextMobile:`Search keywords`,ctl00$MainPlaceHolder$SearchText:i,ctl00$MainPlaceHolder$CompanyText:a,ctl00$MainPlaceHolder$Sort:Number.parseInt(o),ctl00$MainPlaceHolder$Results:20,ctl00$MainPlaceHolder$Date:`Timeframe1`,ctl00$MainPlaceHolder$Period:Number.parseInt(s),ctl00$MainPlaceHolder$txtStartDate:``,ctl00$MainPlaceHolder$txtEndDate:``,ctl00$MainPlaceHolder$chkEnglish:`on`,ctl00$MainPlaceHolder$Submit:`Search`})}),u=n(l.data);let d=u(`table.details_rows tbody tr`).slice(0,15).toArray().map(e=>{e=u(e);let t=e.find(`a`);return{title:t.text(),link:t.attr(`href`),pubDate:new Date(e.find(`span.source`).text().split(` | `)[0]+` GMT+1`).toUTCString()}}),f=await Promise.all(d.map(r=>e.tryGet(r.link,async()=>(r.description=n((await t({method:`get`,url:r.link})).data)(`#pageContainer`).html(),r))));return{title:`Telecompaper Search - ${i}`,link:c,item:f}}export{r as route};

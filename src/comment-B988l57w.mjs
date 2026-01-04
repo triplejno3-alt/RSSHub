@@ -1,0 +1,1 @@
+import{Fragment as e,jsx as t,jsxs as n}from"hono/jsx/jsx-runtime";import{renderToString as r}from"hono/jsx/dom/server";import{raw as i}from"hono/html";const a=({rating:a,text:o})=>r(n(e,{children:[a,`/5.0`,t(`br`,{}),o?i(o):null]}));export{a as t};

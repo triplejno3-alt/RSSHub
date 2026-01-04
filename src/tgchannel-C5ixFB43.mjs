@@ -1,0 +1,13 @@
+import"./ofetch-uhy-qh6X.mjs";import"./config-Cc-zZ5p-.mjs";import"./logger-_vmdpChp.mjs";import"./cache-DLkCV5c7.mjs";import"./helpers-C9wXLK0V.mjs";import"./parse-date-DjdQS_Nt.mjs";import{t as e}from"./got-CKQ7C9HX.mjs";import{n as t}from"./wechat-mp-HNgcLN2K.mjs";import{load as n}from"cheerio";const r={path:`/tgchannel/:id/:mpName?/:searchQueryType?`,categories:[`new-media`],example:`/wechat/tgchannel/lifeweek`,parameters:{id:`公众号绑定频道 id`,mpName:`欲筛选的公众号全名（URL-encoded，精确匹配），在频道订阅了多个公众号时可选用`,searchQueryType:`搜索查询类型，见下表`},features:{requireConfig:!1,requirePuppeteer:!1,antiCrawler:!1,supportBT:!1,supportPodcast:!1,supportScihub:!1},name:`公众号（Telegram 频道来源）`,maintainers:[`LogicJake`,`Rongronggg9`],handler:i,description:`| 搜索查询类型 | 将使用的搜索关键字 |            适用于           |
+| :----------: | :----------------: | :-------------------------: |
+|      \`0\`     |     (禁用搜索)     |       所有情况 (默认)       |
+|      \`1\`     |     公众号全名     | 未启用 efb-patch-middleware |
+|      \`2\`     |     #公众号全名    | 已启用 efb-patch-middleware |
+
+::: tip
+  启用搜索有助于在订阅了过多公众号的频道里有效筛选，不易因为大量公众号同时推送导致一些公众号消息被遗漏，但必须正确选择搜索查询类型，否则会搜索失败。
+:::
+
+::: warning
+  该方法需要通过 efb 进行频道绑定，具体操作见 [https://github.com/DIYgod/RSSHub/issues/2172](https://github.com/DIYgod/RSSHub/issues/2172)
+:::`};async function i(r){let i=r.req.param(`id`),a=r.req.param(`mpName`)??``,o=r.req.param(`searchQueryType`)??`0`;o!==`0`&&o!==`1`&&o!==`2`&&(o=`0`),o=+o;let s=`https://t.me/s/${i}`,c=a&&o?o===2?`?q=%23${a}`:`?q=${a}`:``,{data:l}=await e.get(`${s}${c}`),u=n(l),d=u(`.tgme_widget_message_wrap`).slice(-20),f=await Promise.all(d.toArray().map(async e=>{if(e=u(e),c){let t=e.find(`mark.highlight`).toArray();if(t){for(let e of t){e=u(e);let t=e.html();e.replaceWith(t)}e=u(e.html())}}let n=``,r=!1,i=e.find(`.tgme_widget_message_text > br:nth-of-type(1)`).get(0),o=i&&i.prev,s=o&&o.prev;if(o&&o.type===`text`){s&&s.type===`tag`&&s.name===`a`&&s.attribs.href&&s.attribs.href.startsWith(`?q=%23`)&&(r=!0,n+=u(s).text());let e=o.data.indexOf(` `),t=o.data.indexOf(`:`);if(o.data.length>1&&t!==-1&&(e!==-1||r)){let i=r?0:e+1;n+=o.data.slice(i,t)}n.startsWith(`#`)&&(n=n.slice(1))}let l=r?3:2,d=e.find(`.tgme_widget_message_text > a:nth-of-type(${l})`);if(d.length===0)return;let f=d.text(),p=d.attr(`href`);if(a&&n!==a)return;!a&&n&&(f=n+`: `+f);let m=new Date(e.find(`.tgme_widget_message_date time`).attr(`datetime`)).toUTCString(),h={title:f,pubDate:m,link:p};if(p!==void 0)try{return await t(h)}catch{h.description=e.find(`.tgme_widget_message_text`).html()}return h}));return f.reverse(),{title:a||u(`.tgme_channel_info_header_title`).text(),link:`https://t.me/s/${i}`,item:f.filter(Boolean),allowEmpty:!!a}}export{r as route};

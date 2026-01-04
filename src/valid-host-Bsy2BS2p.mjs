@@ -1,0 +1,1 @@
+const e=e=>typeof e==`string`?/^[\dA-Za-z]([\dA-Za-z-]{0,61}[\dA-Za-z])?$/.test(e):!1;export{e as t};

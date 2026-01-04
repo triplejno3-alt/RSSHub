@@ -1,0 +1,1 @@
+const e={path:`/daily`,categories:[`finance`],example:`/nbd/daily`,parameters:{},features:{requireConfig:!1,requirePuppeteer:!1,antiCrawler:!1,supportBT:!1,supportPodcast:!1,supportScihub:!1},radar:[{source:[`nbd.com.cn/`,`nbd.com.cn/columns/332`]}],name:`重磅原创`,maintainers:[`yuuow`],handler:t,url:`nbd.com.cn/`};function t(e){e.set(`redirect`,`/nbd/332`)}export{e as route};

@@ -1,0 +1,1 @@
+import{Fragment as e,jsx as t,jsxs as n}from"hono/jsx/jsx-runtime";import{renderToString as r}from"hono/jsx/dom/server";const i=({singer:i,album:a,date:o,picUrl:s})=>r(n(e,{children:[`歌手：`,i,t(`br`,{}),`专辑：`,a,t(`br`,{}),o?n(e,{children:[`发行日期：`,o,t(`br`,{})]}):null,t(`img`,{src:s})]}));export{i as t};

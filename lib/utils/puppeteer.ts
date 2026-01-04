@@ -6,6 +6,43 @@ import puppeteer from 'rebrowser-puppeteer';
 // Always use @sparticuz/chromium in Vercel-like environments
 const isVercel = !!(process.env.VERCEL || process.env.LAMBDA_TASK_ROOT || process.env.VERCEL_ENV || process.env.VERCEL_URL || process.env.FORCE_VERCEL_CHROMIUM);
 
+// Cache the Chromium executable path to avoid re-downloading on subsequent requests
+let cachedExecutablePath: string | null = null;
+let downloadPromise: Promise<string> | null = null;
+
+/**
+ * Downloads and caches the Chromium executable path.
+ * Uses a download promise to prevent concurrent downloads.
+ */
+async function getChromiumPath(): Promise<string> {
+    // Return cached path if available
+    if (cachedExecutablePath) return cachedExecutablePath;
+
+    // Prevent concurrent downloads by reusing the same promise
+    if (!downloadPromise) {
+        const chromium = (await import('@sparticuz/chromium')).default;
+        // URL to the Chromium binary package hosted in /src for Vercel
+        const CHROMIUM_PACK_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
+            ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/chromium-pack.tar`
+            : undefined;
+
+        downloadPromise = chromium
+            .executablePath(CHROMIUM_PACK_URL)
+            .then((path) => {
+                cachedExecutablePath = path;
+                console.log('Chromium path resolved:', path);
+                return path;
+            })
+            .catch((error) => {
+                console.error('Failed to get Chromium path:', error);
+                downloadPromise = null; // Reset on error to allow retry
+                throw error;
+            });
+    }
+
+    return downloadPromise;
+}
+
 import { config } from '@/config';
 
 import logger from './logger';
@@ -155,7 +192,7 @@ export const getPuppeteerPage = async (
                 // @ts-ignore
                 const { default: puppeteerCore } = await import('puppeteer-core');
 
-                const executablePath = await chromium.executablePath();
+                const executablePath = await getChromiumPath();
                 logger.info(`Chromium executable path: ${executablePath}`);
 
                 // @ts-ignore

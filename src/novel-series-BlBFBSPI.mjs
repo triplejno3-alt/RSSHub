@@ -1,0 +1,20 @@
+import"./ofetch-uhy-qh6X.mjs";import{t as e}from"./config-Cc-zZ5p-.mjs";import"./logger-_vmdpChp.mjs";import{t}from"./cache-DLkCV5c7.mjs";import"./helpers-C9wXLK0V.mjs";import"./parse-date-DjdQS_Nt.mjs";import{t as n}from"./got-CKQ7C9HX.mjs";import{t as r}from"./config-not-found-DGyG6Tbz.mjs";import{i,n as a,r as o,t as s}from"./utils-BI_C1viF.mjs";import{n as c,t as l}from"./sfw-DmO1rDIf.mjs";import{load as u}from"cheerio";import d from"query-string";const f=`https://www.pixiv.net`;async function p(e,t,n){return(await o(`https://app-api.pixiv.net/v2/novel/series`,{headers:{...i,Authorization:`Bearer `+n},searchParams:d.stringify({series_id:e,last_order:t})})).data}async function m(n,l=10){if(l>30&&(l=30),!e.pixiv||!e.pixiv.refreshToken)throw new r(`This user is an R18 creator, PIXIV_REFRESHTOKEN is required.
+pixiv RSS is disabled due to the lack of relevant config.
+該用戶爲 R18 創作者，需要 PIXIV_REFRESHTOKEN。`);let u=await a(t.tryGet);if(!u)throw new r(`pixiv not login`);let d=(await o(`${f}/ajax/novel/series/${n}`,{headers:{...i,Authorization:`Bearer `+u}})).data,m=d.body.total-l;m<0&&(m=0);let h=await p(n,m,u),g=await Promise.all(h.novels.map(async e=>{let t=await c(e.id,u);return{title:e.title,description:`
+                    <img src="${s.getProxiedImageUrl(t.coverUrl)}" />
+                    <div>
+                    <p>${t.description}</p>
+                    <hr>
+                    ${t.content}
+                    </div>
+                `,link:`${f}/novel/show.php?id=${e.id}`,pubDate:e.create_date,author:e.user.name,category:t.tags}}));return{title:h.novel_series_detail.title,description:h.novel_series_detail.caption,link:`${f}/novel/series/${n}`,image:s.getProxiedImageUrl(d.body.cover.urls.original),item:g}}const h=`https://www.pixiv.net`;async function g(e,t=10){let r=u((await n(`${h}/novel/series/${e}`)).data),i=r(`meta[property="og:title"]`).attr(`content`)||``,a=r(`meta[property="og:description"]`).attr(`content`)||``,o=r(`meta[property="og:image"]`).attr(`content`)||``,c=(await n(`${h}/ajax/novel/series/${e}/content_titles`,{headers:{referer:`${h}/novel/series/${e}`}})).data;if(c.error)throw Error(c.message||`Failed to get series data`);let d=c.body.slice(-Math.abs(t)),f=Math.max(c.body.length-t+1,1),p=await Promise.all(d.map(async(e,t)=>{if(!e.available)return{title:`#${f+t} ${e.title}`,description:`PIXIV_REFRESHTOKEN is required to view the full content.<br>需要 PIXIV_REFRESHTOKEN 才能查看完整內文。`,link:`${h}/novel/show.php?id=${e.id}`};let n=await l(e.id);return{title:`#${f+t} ${n.title}`,description:`
+                    <img src="${s.getProxiedImageUrl(n.coverUrl)}" />
+                    <div>
+                    <p>${n.description}</p>
+                    <hr>
+                    ${n.content}
+                    </div>
+                `,link:`${h}/novel/show.php?id=${n.id}`,pubDate:n.createDate,author:n.userName||`User ID: ${n.userId}`,category:n.tags}}).toReversed());return{title:i,description:a,image:s.getProxiedImageUrl(o),link:`${h}/novel/series/${e}`,item:p}}const _={path:`/novel/series/:id`,categories:[`social-media`],example:`/pixiv/novel/series/11586857`,parameters:{id:`Series id, can be found in URL`},features:{requireConfig:[{name:`PIXIV_REFRESHTOKEN`,optional:!0,description:`
+refresh_token after Pixiv login, required for accessing R18 novels
+Pixiv 登錄後的 refresh_token，用於獲取 R18 小說
+[https://docs.rsshub.app/deploy/config#pixiv](https://docs.rsshub.app/deploy/config#pixiv)`}],requirePuppeteer:!1,antiCrawler:!1,supportBT:!1,supportPodcast:!1,supportScihub:!1,nsfw:!0},name:`Novel Series`,maintainers:[`SnowAgar25`,`keocheung`],handler:y,radar:[{source:[`www.pixiv.net/novel/series/:id`],target:`/novel/series/:id`}]},v=()=>!!(e.pixiv&&e.pixiv.refreshToken);async function y(e){let t=e.req.param(`id`),{limit:r}=e.req.query();return(await n(`https://www.pixiv.net/ajax/novel/series/${t}`)).data.body.xRestrict>0||v()?await m(t,r):await g(t,r)}export{_ as route};

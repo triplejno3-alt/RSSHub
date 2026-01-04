@@ -1,0 +1,1 @@
+import{t as e}from"./parse-date-DjdQS_Nt.mjs";import t from"title";const n=e=>t(e),r=/\s+/,i=/\s+/g,a=e=>e&&r.test(e)?e.replaceAll(i,` `).trim():e,o=t=>t&&(typeof t!=`object`&&(t=e(t)),t.toISOString()),s=e=>e.req.path.replace(/\/[^/]*/,``)||`/`;export{n as i,o as n,s as r,a as t};

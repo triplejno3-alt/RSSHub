@@ -1,0 +1,7 @@
+import"./ofetch-uhy-qh6X.mjs";import"./config-Cc-zZ5p-.mjs";import"./logger-_vmdpChp.mjs";import"./helpers-C9wXLK0V.mjs";import"./parse-date-DjdQS_Nt.mjs";import{t as e}from"./got-CKQ7C9HX.mjs";import{t}from"./invalid-parameter-DGZgOgO2.mjs";import{t as n}from"./valid-host-Bsy2BS2p.mjs";import{i as r,r as i}from"./utils-cMJuIYwm.mjs";import{load as a}from"cheerio";const o={path:`/category_url/:url?/:language?`,categories:[`multimedia`],example:`/pornhub/category_url/video%3Fc%3D15%26o%3Dmv%26t%3Dw%26cc%3Djp`,parameters:{language:`language, see below`,url:"relative path after `pornhub.com/`, need to be URL encoded"},features:{requireConfig:!1,requirePuppeteer:!1,antiCrawler:!0,supportBT:!1,supportPodcast:!1,supportScihub:!1,nsfw:!0},name:`Video List`,maintainers:[`I2IMk`,`queensferryme`],handler:s,description:`**\`language\`**
+
+  Refer to [Pornhub F.A.Qs](https://help.pornhub.com/hc/en-us/articles/360044327034-How-do-I-change-the-language-), English by default. For example:
+
+  -   \`cn\` (Chinese), for Pornhub in China [https://cn.pornhub.com](https://cn.pornhub.com)；
+
+  -   \`jp\` (Japanese), for Pornhub in Japan [https://jp.pornhub.com](https://jp.pornhub.com) etc.`};async function s(o){let{language:s=`www`,url:c=`video`}=o.req.param(),l=`https://${s}.pornhub.com/${c}`;if(!n(s))throw new t(`Invalid language`);let{data:u}=await e(l,{headers:i}),d=a(u),f=d(`#videoCategory .videoBox`).toArray().map(e=>r(d(e)));return{title:d(`title`).first().text(),link:l,language:d(`html`).attr(`lang`),item:f}}export{o as route};

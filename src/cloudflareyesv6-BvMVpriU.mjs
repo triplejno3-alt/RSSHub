@@ -1,0 +1,1 @@
+const e={path:`/cloudflareyesv6`,name:`Unknown`,maintainers:[],handler:t};function t(e){e.set(`redirect`,`/hostmonit/cloudflareyes/v6`)}export{e as route};

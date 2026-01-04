@@ -1,0 +1,1 @@
+const e={path:`/itnews/:channel`,name:`Unknown`,maintainers:[],handler:t};function t(e){let{channel:t}=e.req.param(),n=`/liulinblog/${t}`;e.set(`redirect`,n)}export{e as route};

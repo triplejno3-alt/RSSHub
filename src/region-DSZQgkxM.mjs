@@ -1,0 +1,1 @@
+const e={path:`/:region/:type?`,name:`Unknown`,maintainers:[],handler:t};function t(e){let t={news:`press-release`,blog:`article`},{region:n=`en`,type:r=`news`}=e.req.param(),i=`/aqara/${n}/category/${t[r]}`;e.set(`redirect`,i)}export{e as route};
