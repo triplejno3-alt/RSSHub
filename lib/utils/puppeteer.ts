@@ -4,7 +4,7 @@ import type { Browser, Page } from 'rebrowser-puppeteer';
 import puppeteer from 'rebrowser-puppeteer';
 
 // Conditional imports for Vercel
-const isVercel = process.env.VERCEL || process.env.LAMBDA_TASK_ROOT;
+const isVercel = !!(process.env.VERCEL || process.env.LAMBDA_TASK_ROOT || process.env.VERCEL_ENV || process.env.VERCEL_URL);
 
 import { config } from '@/config';
 
