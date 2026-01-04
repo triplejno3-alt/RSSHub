@@ -27,10 +27,14 @@ async function getChromiumPath(): Promise<string | null> {
 
     // Prevent concurrent downloads by reusing the same promise
     if (!downloadPromise) {
-        const chromium = (await import('@sparticuz/chromium')).default;
+        const chromium = (await import('@sparticuz/chromium-min')).default;
+        // URL to the Chromium binary package hosted in /src for Vercel
+        const CHROMIUM_PACK_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
+            ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/chromium-pack.tar`
+            : `https://github.com/gabenunez/puppeteer-on-vercel/raw/refs/heads/main/example/chromium-dont-use-in-prod.tar`;
 
         downloadPromise = chromium
-            .executablePath()
+            .executablePath(CHROMIUM_PACK_URL)
             .then((path) => {
                 cachedExecutablePath = path;
                 logger.debug(`Chromium path resolved: ${path}`);
@@ -213,7 +217,7 @@ export const getPuppeteerPage = async (
             logger.info(`Using Vercel-compatible Chromium (isVercel: ${isVercel})`);
             try {
                 // @ts-ignore
-                const { default: chromium } = await import('@sparticuz/chromium');
+                const chromium = (await import('@sparticuz/chromium-min')).default;
                 // @ts-ignore
                 const { default: puppeteerCore } = await import('puppeteer-core');
 
