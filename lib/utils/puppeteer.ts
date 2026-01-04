@@ -26,7 +26,7 @@ async function getChromiumPath(): Promise<string> {
         // URL to the Chromium binary package hosted in /src for Vercel
         const CHROMIUM_PACK_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
             ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/chromium-pack.tar`
-            : undefined;
+            : `https://github.com/gabenunez/puppeteer-on-vercel/raw/refs/heads/main/example/chromium-dont-use-in-prod.tar`;
 
         downloadPromise = chromium
             .executablePath(CHROMIUM_PACK_URL)

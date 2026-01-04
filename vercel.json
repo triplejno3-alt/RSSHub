@@ -6,7 +6,7 @@
         "src/server.mjs": {
             "maxDuration": 30,
             "includeFiles": "./src/templates/**/*.art",
-            "excludeFiles": "./src/templates/**,./src/assets/**,./src/chromium-pack.tar"
+            "excludeFiles": "./src/templates/**,./src/assets/**"
         }
     },
     "rewrites": [
