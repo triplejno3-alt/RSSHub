@@ -3,9 +3,8 @@ import { anonymizeProxy } from 'proxy-chain';
 import type { Browser, Page } from 'rebrowser-puppeteer';
 import puppeteer from 'rebrowser-puppeteer';
 
-// Conditional imports for Vercel
-// TEMP: Force Vercel mode for testing
-const isVercel = true; // !!(process.env.VERCEL || process.env.LAMBDA_TASK_ROOT || process.env.VERCEL_ENV || process.env.VERCEL_URL);
+// Always use @sparticuz/chromium in Vercel-like environments
+const isVercel = !!(process.env.VERCEL || process.env.LAMBDA_TASK_ROOT || process.env.VERCEL_ENV || process.env.VERCEL_URL || process.env.FORCE_VERCEL_CHROMIUM);
 
 import { config } from '@/config';
 
@@ -149,18 +148,29 @@ export const getPuppeteerPage = async (
         // Vercel-compatible launch
         // eslint-disable-next-line unicorn/prefer-ternary
         if (isVercel) {
-            // @ts-ignore
-            const { default: chromium } = await import('@sparticuz/chromium');
-            // @ts-ignore
-            const { default: puppeteerCore } = await import('puppeteer-core');
-            // @ts-ignore
-            browser = await puppeteerCore.launch({
-                executablePath: await chromium.executablePath(),
-                args: [...chromium.args, ...options.args],
-                headless: options.headless,
+            logger.info(`Using Vercel-compatible Chromium (isVercel: ${isVercel})`);
+            try {
                 // @ts-ignore
-                ignoreHTTPSErrors: options.ignoreHTTPSErrors,
-            });
+                const { default: chromium } = await import('@sparticuz/chromium');
+                // @ts-ignore
+                const { default: puppeteerCore } = await import('puppeteer-core');
+
+                const executablePath = await chromium.executablePath();
+                logger.info(`Chromium executable path: ${executablePath}`);
+
+                // @ts-ignore
+                browser = await puppeteerCore.launch({
+                    executablePath,
+                    args: [...chromium.args, ...options.args],
+                    headless: options.headless,
+                    // @ts-ignore
+                    ignoreHTTPSErrors: options.ignoreHTTPSErrors,
+                });
+                logger.info('Vercel Chromium browser launched successfully');
+            } catch (error) {
+                logger.error('Failed to launch Vercel Chromium:', error);
+                throw error;
+            }
         } else {
             browser = await insidePuppeteer.launch(
                 config.chromiumExecutablePath
