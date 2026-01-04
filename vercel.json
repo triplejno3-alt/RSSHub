@@ -5,11 +5,7 @@
     "functions": {
         "src/server.mjs": {
             "includeFiles": "./src/templates/**/*.art",
-            "excludeFiles": [
-                "./src/templates/**",
-                "./src/assets/**",
-                "./src/chromium-pack.tar"
-            ]
+            "excludeFiles": "./src/templates/**,./src/assets/**,./src/chromium-pack.tar"
         }
     },
     "rewrites": [
