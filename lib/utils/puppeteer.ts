@@ -1,12 +1,15 @@
-/* eslint-disable unicorn/prefer-ternary */
 import { anonymizeProxy } from 'proxy-chain';
 import type { Browser, Page } from 'rebrowser-puppeteer';
 import puppeteer from 'rebrowser-puppeteer';
 
+import { config } from '@/config';
+
+import logger from './logger';
+import proxy from './proxy';
+
 // Always use @sparticuz/chromium in Vercel-like environments
 // Note: FORCE_VERCEL_CHROMIUM is only for testing, should not be used in production
-const isVercel = !!(process.env.VERCEL || process.env.LAMBDA_TASK_ROOT || process.env.VERCEL_ENV || process.env.VERCEL_URL) ||
-                 (process.env.FORCE_VERCEL_CHROMIUM && process.platform === 'linux');
+const isVercel = !!(process.env.VERCEL || process.env.LAMBDA_TASK_ROOT || process.env.VERCEL_ENV || process.env.VERCEL_URL) || (process.env.FORCE_VERCEL_CHROMIUM && process.platform === 'linux');
 
 // Cache the Chromium executable path to avoid re-downloading on subsequent requests
 let cachedExecutablePath: string | null = null;
@@ -16,13 +19,15 @@ let downloadPromise: Promise<string> | null = null;
  * Downloads and caches the Chromium executable path.
  * Uses a download promise to prevent concurrent downloads.
  */
-async function getChromiumPath(): Promise<string> {
+async function getChromiumPath(): Promise<string | null> {
     // Return cached path if available
-    if (cachedExecutablePath) return cachedExecutablePath;
+    if (cachedExecutablePath) {
+        return cachedExecutablePath;
+    }
 
     // Prevent concurrent downloads by reusing the same promise
     if (!downloadPromise) {
-        const chromium = (await import('@sparticuz/chromium')).default;
+        const chromium = (await import('@sparticuz/chromium-min')).default;
         // URL to the Chromium binary package hosted in /src for Vercel
         const CHROMIUM_PACK_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
             ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/chromium-pack.tar`
@@ -32,11 +37,11 @@ async function getChromiumPath(): Promise<string> {
             .executablePath(CHROMIUM_PACK_URL)
             .then((path) => {
                 cachedExecutablePath = path;
-                console.log('Chromium path resolved:', path);
+                logger.debug(`Chromium path resolved: ${path}`);
                 return path;
             })
             .catch((error) => {
-                console.error('Failed to get Chromium path:', error);
+                logger.error('Failed to get Chromium path:', error);
                 downloadPromise = null; // Reset on error to allow retry
                 throw error;
             });
@@ -44,11 +49,6 @@ async function getChromiumPath(): Promise<string> {
 
     return downloadPromise;
 }
-
-import { config } from '@/config';
-
-import logger from './logger';
-import proxy from './proxy';
 
 /**
  * @deprecated use getPage instead
@@ -99,7 +99,10 @@ const outPuppeteer = async () => {
             const { default: puppeteerCore } = await import('puppeteer-core');
 
             const executablePath = await getChromiumPath();
-            logger.info(`Chromium executable path: ${executablePath}`);
+            if (!executablePath) {
+                throw new Error('Failed to get Chromium executable path');
+            }
+            logger.debug(`Chromium executable path: ${executablePath}`);
 
             // @ts-ignore
             browser = await puppeteerCore.launch({
@@ -109,7 +112,7 @@ const outPuppeteer = async () => {
                 // @ts-ignore
                 ignoreHTTPSErrors: options.ignoreHTTPSErrors,
             });
-            logger.info('Vercel Chromium browser launched successfully in outPuppeteer');
+            logger.debug('Vercel Chromium browser launched successfully in outPuppeteer');
         } catch (error) {
             logger.error('Failed to launch Vercel Chromium in outPuppeteer:', error);
             throw error;
@@ -212,7 +215,7 @@ export const getPuppeteerPage = async (
         });
     } else {
         // Vercel-compatible launch
-        // eslint-disable-next-line unicorn/prefer-ternary
+
         if (isVercel) {
             logger.info(`Using Vercel-compatible Chromium (isVercel: ${isVercel})`);
             try {
@@ -222,7 +225,10 @@ export const getPuppeteerPage = async (
                 const { default: puppeteerCore } = await import('puppeteer-core');
 
                 const executablePath = await getChromiumPath();
-                logger.info(`Chromium executable path: ${executablePath}`);
+                if (!executablePath) {
+                    throw new Error('Failed to get Chromium executable path');
+                }
+                logger.debug(`Chromium executable path: ${executablePath}`);
 
                 // @ts-ignore
                 browser = await puppeteerCore.launch({
@@ -232,7 +238,7 @@ export const getPuppeteerPage = async (
                     // @ts-ignore
                     ignoreHTTPSErrors: options.ignoreHTTPSErrors,
                 });
-                logger.info('Vercel Chromium browser launched successfully');
+                logger.debug('Vercel Chromium browser launched successfully');
             } catch (error) {
                 logger.error('Failed to launch Vercel Chromium:', error);
                 throw error;

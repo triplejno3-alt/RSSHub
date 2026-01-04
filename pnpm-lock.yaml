@@ -85,6 +85,9 @@ importers:
       '@sparticuz/chromium':
         specifier: ^131.0.1
         version: 131.0.1
+      '@sparticuz/chromium-min':
+        specifier: ^141.0.0
+        version: 141.0.0
       aes-js:
         specifier: 3.1.2
         version: 3.1.2
@@ -2504,6 +2507,10 @@ packages:
 
   '@so-ric/colorspace@1.1.6':
     resolution: {integrity: sha512-/KiKkpHNOBgkFJwu9sh48LkHSMYGyuTcSFK/qMBdnOAlrRJzRSXAOFB5qwzaVQuDl8wAvHVMkaASQDReTahxuw==}
+
+  '@sparticuz/chromium-min@141.0.0':
+    resolution: {integrity: sha512-1EAR1NBrY4sa0hysDUCxCSI+9xc88/LYB3YjWFqMMu3CF82ATp8FzOeu7icwGxI02NAPcwzb0Uf1kIzsfH7Eiw==}
+    engines: {node: '>=20.11.0'}
 
   '@sparticuz/chromium@131.0.1':
     resolution: {integrity: sha512-VfmHkQmb/Px0zjwdSQwjRMwFw63Qfj+g4Giumz4jiAGEpXHgIZk6xEwlUz6yiUHVDveK2TEgMR2MR6I3okOE7w==}
@@ -8701,6 +8708,14 @@ snapshots:
     dependencies:
       color: 5.0.3
       text-hex: 1.0.0
+
+  '@sparticuz/chromium-min@141.0.0':
+    dependencies:
+      follow-redirects: 1.15.11
+      tar-fs: 3.1.1
+    transitivePeerDependencies:
+      - bare-buffer
+      - debug
 
   '@sparticuz/chromium@131.0.1':
     dependencies:
