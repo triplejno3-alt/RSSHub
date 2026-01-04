@@ -2,6 +2,16 @@ import { anonymizeProxy } from 'proxy-chain';
 import type { Browser, Page } from 'rebrowser-puppeteer';
 import puppeteer from 'rebrowser-puppeteer';
 
+// Conditional imports for Vercel
+const isVercel = process.env.VERCEL || process.env.LAMBDA_TASK_ROOT;
+let chromium: any, puppeteerCore: any;
+if (isVercel) {
+    // @ts-ignore
+    chromium = (await import('@sparticuz/chromium')).default;
+    // @ts-ignore
+    puppeteerCore = (await import('puppeteer-core')).default;
+}
+
 import { config } from '@/config';
 
 import logger from './logger';
@@ -141,14 +151,25 @@ export const getPuppeteerPage = async (
             browserWSEndpoint: endpoint,
         });
     } else {
-        browser = await insidePuppeteer.launch(
-            config.chromiumExecutablePath
-                ? {
-                      executablePath: config.chromiumExecutablePath,
-                      ...options,
-                  }
-                : options
-        );
+        // Vercel-compatible launch
+        if (isVercel) {
+            // @ts-ignore
+            browser = await puppeteerCore.launch({
+                executablePath: await chromium.executablePath(),
+                args: [...chromium.args, ...options.args],
+                headless: options.headless,
+                ignoreHTTPSErrors: options.ignoreHTTPSErrors,
+            });
+        } else {
+            browser = await insidePuppeteer.launch(
+                config.chromiumExecutablePath
+                    ? {
+                          executablePath: config.chromiumExecutablePath,
+                          ...options,
+                      }
+                    : options
+            );
+        }
     }
 
     setTimeout(async () => {
