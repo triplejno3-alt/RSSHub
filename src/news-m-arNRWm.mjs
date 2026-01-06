@@ -1,0 +1,46 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './invalid-parameter-DGZgOgO2.mjs';
+import { load as r } from 'cheerio';
+const i = /(20\d{2}).(\d{2})-(\d{2})/,
+    a = `https://news.uestc.edu.cn`,
+    o = { academy: `/?n=UestcNews.Front.CategoryV2.Page&CatId=66`, culture: `/?n=UestcNews.Front.CategoryV2.Page&CatId=67`, announcement: `/?n=UestcNews.Front.CategoryV2.Page&CatId=68` },
+    s = {
+        path: `/news/:type?`,
+        categories: [`university`],
+        example: `/uestc/news/culture`,
+        parameters: { type: '默认为 `announcement`' },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`news.uestc.edu.cn/`], target: `/news` }],
+        name: `新闻中心`,
+        maintainers: [`achjqz`, `mobyw`],
+        handler: c,
+        url: `news.uestc.edu.cn/`,
+        description: `| 学术    | 文化    | 公告         | 校内通知     |
+| ------- | ------- | ------------ | ------------ |
+| academy | culture | announcement | notification |`,
+    };
+async function c(s) {
+    let c = o[s.req.param(`type`) || `announcement`];
+    if (!c) throw new n(`type not supported`);
+    let l = r((await t.get(a + c)).data);
+    return {
+        title: `新闻网通知`,
+        link: a,
+        description: `电子科技大学新闻网信息公告`,
+        item: l(l(`div.notice-item.clearfix`))
+            .toArray()
+            .map((t) => {
+                t = l(t);
+                let n = t.find(`a`).text().trim(),
+                    r = a + t.find(`a`).attr(`href`),
+                    o = e(t.find(`div.date-box-sm`).text().replace(i, `$1-$2-$3`));
+                return { title: n, link: r, description: t.find(`div.content`).text().trim().replace(`&nbsp;`, ``), pubDate: o };
+            }),
+    };
+}
+export { s as route };

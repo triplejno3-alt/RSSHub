@@ -1,0 +1,62 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './types-Bl_lnefZ.mjs';
+import { parse as n } from 'tldts';
+const r = {
+        name: `User subscriptions`,
+        categories: [`social-media`],
+        path: `/profile/:uid`,
+        example: `/follow/profile/41279032429549568`,
+        parameters: { uid: `User ID or user handle` },
+        radar: [{ source: [`app.follow.is/profile/:uid`], target: `/profile/:uid` }],
+        handler: s,
+        maintainers: [`KarasuShin`, `DIYgod`, `DFobain`],
+        features: { supportRadar: !0 },
+        view: t.Notifications,
+    },
+    i = (e) => `lists` in e,
+    a = (e) => `inboxId` in e,
+    o = (e) => `feeds` in e;
+async function s(t) {
+    let n = t.req.param(`uid`),
+        r = `https://api.follow.is`,
+        s = l(n || ``) ? n : n.startsWith(`@`) ? n.slice(1) : n,
+        u = new URLSearchParams({ handle: s });
+    l(s || ``) && u.append(`id`, s);
+    let d = await e(`${r}/profiles?${u.toString()}`),
+        f = await e(`${r}/subscriptions?userId=${d.data.id}`);
+    return {
+        title: `${d.data.name}'s subscriptions`,
+        item: f.data
+            .filter((e) => !a(e) && !(o(e) && e.feeds.errorAt))
+            .map((e) =>
+                i(e)
+                    ? { title: e.lists.title, description: e.lists.description, link: `https://app.follow.is/list/${e.listId}`, image: e.lists.image }
+                    : { title: e.feeds.title, description: e.feeds.description, link: `https://app.follow.is/feed/${e.feedId}`, image: c(e.feeds.siteUrl).src, category: e.category ? [e.category] : void 0 }
+            ),
+        link: `https://app.follow.is/share/users/${n}`,
+        image: d.data.image,
+    };
+}
+const c = (e, t) => {
+        let r,
+            i = ``;
+        try {
+            let { host: a } = new URL(e),
+                o = n(a).domainWithoutSuffix;
+            ((i = `https://avatar.vercel.sh/${o}.svg?text=${o?.slice(0, 2).toUpperCase()}`), (r = `https://unavatar.follow.is/${a}?fallback=${t || !1}`));
+        } catch {
+            let t = n(e).domainWithoutSuffix;
+            r = `https://avatar.vercel.sh/${t}.svg?text=${t?.slice(0, 2).toUpperCase()}`;
+        }
+        return { src: r, fallbackUrl: i };
+    },
+    l = (e) => {
+        if (!e || !/^\d{13,19}$/.test(e)) return !1;
+        let t = BigInt(e),
+            n = (t >> (63n - 41n)) + 1712546615000n,
+            r = new Date(Number(n));
+        return r.getFullYear() >= 2024 && r.getFullYear() <= 2050 && t <= (1n << 63n) - 1n;
+    };
+export { l as isBizId, r as route };

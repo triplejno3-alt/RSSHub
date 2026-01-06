@@ -1,0 +1,23 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import n from 'markdown-it';
+const r = n(),
+    i = { path: `/`, radar: [{ source: [`hackertalk.net/`], target: `` }], name: `Unknown`, maintainers: [`hyoban`], handler: a, url: `hackertalk.net/` };
+async function a(n) {
+    return {
+        title: `黑客说的最新帖子`,
+        link: `https://hackertalk.net/?tab=new`,
+        description: `黑客说 - 技术驱动优质交流`,
+        item: (await t(`https://api.hackertalk.net/v1/posts?limit=${n.req.query(`limit`) ?? 25}&orderBy=time`)).data.data.map((t) => ({
+            title: t.title,
+            description: r.render(t.content),
+            pubDate: e(t.createdAt),
+            link: `https://hackertalk.net/posts/${t.id}`,
+        })),
+    };
+}
+export { i as route };

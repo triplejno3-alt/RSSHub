@@ -1,0 +1,45 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = { path: `/`, radar: [{ source: [`distill.pub/`], target: `` }], name: `Unknown`, maintainers: [`nczitzk`], handler: a, url: `distill.pub/` };
+async function a() {
+    let i = `https://distill.pub`,
+        a = r((await n({ method: `get`, url: i })).data),
+        o = a(`.post-preview`)
+            .toArray()
+            .map((e) => ((e = a(e)), { title: e.find(`.title`).text(), link: `${i}/${e.children(`a`).attr(`href`)}` }));
+    return (
+        (o = await Promise.all(
+            o.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let e = r((await n({ method: `get`, url: i.link })).data);
+                    return (
+                        e(`d-contents`).remove(),
+                        e(`img`).each(function () {
+                            e(this).attr(`src`, `${i.link}/${e(this).attr(`src`)}`);
+                        }),
+                        (i.doi = e(`meta[name="citation_doi"]`).attr(`content`)),
+                        (i.pubDate = t(e(`meta[property="article:published"]`).attr(`content`))),
+                        (i.description = e(`d-article`)
+                            .children()
+                            .toArray()
+                            .map((t) => e(t).html())
+                            .join(``)),
+                        (i.author = e(`meta[property="article:author"]`)
+                            .toArray()
+                            .map((t) => e(t).attr(`content`))
+                            .join(`, `)),
+                        i
+                    );
+                })
+            )
+        )),
+        { title: a(`title`).text(), link: i, item: o }
+    );
+}
+export { i as route };

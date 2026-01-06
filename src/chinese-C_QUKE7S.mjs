@@ -1,0 +1,140 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+import { raw as l } from 'hono/html';
+const u = async (u) => {
+        let { category: d = `` } = u.req.param(),
+            f = u.req.query(`limit`) ? Number.parseInt(u.req.query(`limit`), 10) : 20,
+            p = `https://chinese.joins.com`,
+            m = new URL(`news/articleList.html?view_type=s${d ? `&sc_section_code=${d}` : ``}`, p).href,
+            { data: h } = await n(m),
+            g = s(h),
+            _ = g(`html`).prop(`lang`),
+            v = g(`section.article-list-content div.table-row`)
+                .slice(0, f)
+                .toArray()
+                .map(
+                    (e) => (
+                        (e = g(e)),
+                        {
+                            title: e.find(`strong`).text(),
+                            pubDate: r(t(e.find(`div.list-dated`).text().split(/\|/).pop()), 8),
+                            link: new URL(e.find(`a.links`).prop(`href`), p).href,
+                            author: e.find(`div.list-dated`).text().split(/\|/)[0],
+                            language: _,
+                        }
+                    )
+                );
+        v = await Promise.all(
+            v.map((r) =>
+                e.tryGet(r.link, async () => {
+                    let { data: e } = await n(r.link),
+                        u = s(e);
+                    (u(`a.articles`).remove(), u(`div.view-copyright, div.ad-template, div.view-editors, div.tag-group`).remove());
+                    let d = u(`div.article-head-title, div.viewer-titles`).text(),
+                        f = c(
+                            o(i, {
+                                children: [
+                                    u(`div.photo-box`).length === 0
+                                        ? null
+                                        : u(`div.photo-box`)
+                                              .toArray()
+                                              .map((e) => {
+                                                  let t = u(e).find(`img`).prop(`src`);
+                                                  return t ? a(`figure`, { children: a(`img`, { src: t }) }) : null;
+                                              }),
+                                    u(`div#article-view-content-div`).html() ? l(u(`div#article-view-content-div`).html()) : null,
+                                ],
+                            })
+                        ),
+                        p = u(`meta[property="og:image"]`).prop(`content`);
+                    return (
+                        (r.title = d),
+                        (r.description = f),
+                        (r.pubDate = t(u(`meta[property="article:published_time"]`).prop(`content`))),
+                        (r.category = u(`meta[name="keywords"]`).prop(`content`)?.split(/,/) ?? u(`meta[name="news_keywords"]`).prop(`content`)?.split(/,/) ?? []),
+                        (r.author = u(`meta[property="og:article:author"]`).prop(`content`)),
+                        (r.content = { html: f, text: u(`div#article-view-content-div`).text() }),
+                        (r.image = p),
+                        (r.banner = p),
+                        (r.language = _),
+                        r
+                    );
+                })
+            )
+        );
+        let y = new URL(g(`div.user-logo img`).prop(`src`), p).href;
+        return {
+            title: `${g(`a[data-code="${d}"]`)?.text() || g(`ul#user-menu a`).first().text()} - ${g(`title`).text()}`,
+            description: g(`meta[property="og:description"]`).prop(`content`),
+            link: m,
+            item: v,
+            allowEmpty: !0,
+            image: y,
+            author: g(`meta[property="og:site_name"]`).prop(`content`),
+            language: _,
+        };
+    },
+    d = {
+        path: `/chinese/:category?`,
+        name: `中央日报中文版`,
+        url: `chinese.joins.com`,
+        maintainers: [`nczitzk`],
+        handler: u,
+        example: `/chinese`,
+        parameters: { category: '分类，默认为空，可在对应分类页 URL 中找到 `sc_section_code`' },
+        description: `::: tip
+  若订阅 [财经](https://chinese.joins.com/news/articleList.html?sc_section_code=S1N1)，网址为 \`https://chinese.joins.com/news/articleList.html?sc_section_code=S1N1\`。截取 \`sc_section_code\` 的值作为参数填入，此时路由为 [\`/joins/chinese/S1N1\`](https://rsshub.app/joins/chinese/S1N1)。
+:::
+
+| 分类                                                                                       | \`sc_section_code\`                             |
+| ------------------------------------------------------------------------------------------ | ----------------------------------------------- |
+| [财经](https://chinese.joins.com/news/articleList.html?sc_section_code=S1N1)               | [S1N1](https://rsshub.app/joins/chinese/S1N1)   |
+| [国际](https://chinese.joins.com/news/articleList.html?sc_section_code=S1N2)               | [S1N2](https://rsshub.app/joins/chinese/S1N2)   |
+| [北韩](https://chinese.joins.com/news/articleList.html?sc_section_code=S1N3)               | [S1N3](https://rsshub.app/joins/chinese/S1N3)   |
+| [政治·社会](https://chinese.joins.com/news/articleList.html?sc_section_code=S1N4)          | [S1N4](https://rsshub.app/joins/chinese/S1N4)   |
+| [中国观察](https://chinese.joins.com/news/articleList.html?sc_section_code=S1N5)           | [S1N5](https://rsshub.app/joins/chinese/S1N5)   |
+| [社论](https://chinese.joins.com/news/articleList.html?sc_section_code=S1N26)              | [S1N26](https://rsshub.app/joins/chinese/S1N26) |
+| [专栏·观点](https://chinese.joins.com/news/articleList.html?sc_section_code=S1N11)         | [S1N11](https://rsshub.app/joins/chinese/S1N11) |
+| [军事·科技](https://chinese.joins.com/news/articleList.html?sc_section_code=S1N6)          | [S1N6](https://rsshub.app/joins/chinese/S1N6)   |
+| [娱乐体育](https://chinese.joins.com/news/articleList.html?sc_section_code=S1N7)           | [S1N7](https://rsshub.app/joins/chinese/S1N7)   |
+| [教育](https://chinese.joins.com/news/articleList.html?sc_section_code=S1N8)               | [S1N8](https://rsshub.app/joins/chinese/S1N8)   |
+| [旅游美食](https://chinese.joins.com/news/articleList.html?sc_section_code=S1N9)           | [S1N9](https://rsshub.app/joins/chinese/S1N9)   |
+| [时尚](https://chinese.joins.com/news/articleList.html?sc_section_code=S1N10)              | [S1N10](https://rsshub.app/joins/chinese/S1N10) |
+| [图集](https://chinese.joins.com/news/articleList.html?sc_section_code=S1N12&view_type=tm) | [S1N12](https://rsshub.app/joins/chinese/S1N12) |
+
+  `,
+        categories: [`traditional-media`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            {
+                source: [`chinese.joins.com/news/articleList.html`],
+                target: (e) => {
+                    let t = e.searchParams.get(`sc_section_code`);
+                    return `/joins/chinese${t ? `/${t}` : ``}`;
+                },
+            },
+            { title: `财经`, source: [`chinese.joins.com/news/articleList.html`], target: `/chinese/S1N1` },
+            { title: `国际`, source: [`chinese.joins.com/news/articleList.html`], target: `/chinese/S1N2` },
+            { title: `北韩`, source: [`chinese.joins.com/news/articleList.html`], target: `/chinese/S1N3` },
+            { title: `政治·社会`, source: [`chinese.joins.com/news/articleList.html`], target: `/chinese/S1N4` },
+            { title: `中国观察`, source: [`chinese.joins.com/news/articleList.html`], target: `/chinese/S1N5` },
+            { title: `社论`, source: [`chinese.joins.com/news/articleList.html`], target: `/chinese/S1N26` },
+            { title: `专栏·观点`, source: [`chinese.joins.com/news/articleList.html`], target: `/chinese/S1N11` },
+            { title: `军事·科技`, source: [`chinese.joins.com/news/articleList.html`], target: `/chinese/S1N6` },
+            { title: `娱乐体育`, source: [`chinese.joins.com/news/articleList.html`], target: `/chinese/S1N7` },
+            { title: `教育`, source: [`chinese.joins.com/news/articleList.html`], target: `/chinese/S1N8` },
+            { title: `旅游美食`, source: [`chinese.joins.com/news/articleList.html`], target: `/chinese/S1N9` },
+            { title: `时尚`, source: [`chinese.joins.com/news/articleList.html`], target: `/chinese/S1N10` },
+            { title: `图集`, source: [`chinese.joins.com/news/articleList.html`], target: `/chinese/S1N12` },
+        ],
+    };
+export { u as handler, d as route };

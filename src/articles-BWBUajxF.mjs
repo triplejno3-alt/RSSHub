@@ -1,0 +1,39 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = `https://lock.cmpxchg8b.com/`,
+    i = {
+        path: `/articles`,
+        categories: [`blog`],
+        example: `/cmpxchg8b/articles`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`lock.cmpxchg8b.com/articles`] }],
+        name: `Articles`,
+        maintainers: [`yuguorui`],
+        handler: a,
+        url: `lock.cmpxchg8b.com/articles`,
+    };
+async function a() {
+    let { data: i } = await t(r),
+        a = n(i),
+        o = a(`p.author`).text().trim(),
+        s = a(`section#articles section`)
+            .toArray()
+            .map((e) => ((e = a(e)), { title: e.find(`li`).text(), link: new URL(e.find(`li a`).attr(`href`), r).toString(), author: o })),
+        c = await Promise.all(
+            s.map((r) =>
+                e.tryGet(r.link, async () => {
+                    let { data: e } = await t(r.link),
+                        i = n(e)(`body`);
+                    return (i.find(`nav, footer`).remove(), (r.description = i.html()), r);
+                })
+            )
+        );
+    return { title: `cmpxchg8b`, link: new URL(`#articles`, r).toString(), item: c };
+}
+export { i as route };

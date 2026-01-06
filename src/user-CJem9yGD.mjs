@@ -1,0 +1,46 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './cache-5PFzW9cU.mjs';
+import { JSDOM as r } from 'jsdom';
+const i = {
+    path: `/kg/:userId`,
+    categories: [`social-media`],
+    example: `/qq/kg/639a9a86272c308e33`,
+    parameters: { userId: `用户 ID, 可在对应页面的 URL 中找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !0, supportScihub: !1 },
+    name: `用户作品列表`,
+    maintainers: [`zhangxiang012`],
+    handler: a,
+};
+async function a(i) {
+    let a = `https://node.kg.qq.com/personal?uid=${i.req.param(`userId`)}`,
+        { window: o } = new r((await t(a)).data, { runScripts: `dangerously` }),
+        s = o.__DATA__,
+        c = s.data.nickname,
+        l = s.data.head_img_url,
+        u = s.data.ugclist,
+        d = await Promise.all(
+            u.map(async (t) => {
+                let r = `https://node.kg.qq.com/play?s=${t.shareid}`,
+                    a = await n.getPlayInfo(i, t.shareid, t.ksong_mid);
+                return {
+                    title: t.title || ``,
+                    description: a.description,
+                    link: r,
+                    guid: `ksong:${t.ksong_mid}`,
+                    author: c,
+                    pubDate: e(a.ctime * 1e3) || e(t.ctime, `X`),
+                    itunes_item_image: a.itunes_item_image || t.avatar,
+                    enclosure_url: a.enclosure_url,
+                    enclosure_type: `audio/x-m4a`,
+                };
+            })
+        );
+    return { title: `${c} - 全民K歌`, link: a, description: s.share.content, allowEmpty: !0, item: d, image: l, itunes_author: c, itunes_category: `全民K歌` };
+}
+export { i as route };

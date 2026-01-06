@@ -1,0 +1,41 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import { t } from './types-Bl_lnefZ.mjs';
+import { t as n } from './config-not-found-DGyG6Tbz.mjs';
+import { t as r } from './utils-BcWkesqf.mjs';
+const i = {
+    path: `/account_id/:site/:account_id/statuses/:only_media?`,
+    categories: [`social-media`],
+    view: t.SocialMedia,
+    example: `/mastodon/account_id/mas.to/109300507275095341/statuses/false`,
+    parameters: {
+        site: 'instance address, only domain, no `http://` or `https://` protocol header',
+        account_id: 'account ID, you can get it from `https://INSTANCE/api/v1/accounts/lookup?acct=USERNAME` api',
+        only_media: {
+            description: `whether only display media content, default to false, any value to true`,
+            options: [
+                { value: `true`, label: `true` },
+                { value: `false`, label: `false` },
+            ],
+            default: `false`,
+        },
+    },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `User timeline (by account ID)`,
+    maintainers: [`notofoe`, `pseudoyu`],
+    handler: a,
+};
+async function a(t) {
+    let i = t.req.param(`site`),
+        a = t.req.param(`account_id`),
+        o = t.req.param(`only_media`) === `true` ? `true` : `false`;
+    if (!e.feature.allow_user_supply_unsafe_domain && !r.allowSiteList.includes(i)) throw new n(`This RSS is disabled unless 'ALLOW_USER_SUPPLY_UNSAFE_DOMAIN' is set to 'true'.`);
+    let { account_data: s, data: c } = await r.getAccountStatuses(i, a, o);
+    return { title: `${s.display_name} (@${s.acct})`, link: s.url, description: s.note, item: r.parseStatuses(c), allowEmpty: !0 };
+}
+export { i as route };

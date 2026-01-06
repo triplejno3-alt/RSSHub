@@ -1,0 +1,43 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+const i = {
+    path: `/blog`,
+    categories: [`blog`],
+    example: `/deltaio/blog`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`delta.io/blog`] }],
+    name: `Blogs`,
+    maintainers: [`RengarLee`],
+    handler: a,
+    url: `delta.io/blog`,
+};
+async function a() {
+    let i = `https://delta.io`,
+        a = `${i}/page-data/blog/page-data.json`,
+        o = (
+            await t.tryGet(
+                a,
+                async () => {
+                    let { data: e } = await r(a);
+                    return e;
+                },
+                e.cache.routeExpire,
+                !1
+            )
+        ).result.data.allMdx.edges.map(({ node: e }) => ({
+            title: e.frontmatter.title,
+            description: e.frontmatter.description,
+            author: e.frontmatter.author,
+            pubDate: n(e.frontmatter.date),
+            link: `${i}${e.fields.slug}`,
+            itunes_item_image: `${i}${e.frontmatter.thumbnail.childImageSharp.gatsbyImageData.images.fallback.src}`,
+        }));
+    return { title: `delta.io blog`, link: `${i}/blog`, item: o };
+}
+export { i as route };

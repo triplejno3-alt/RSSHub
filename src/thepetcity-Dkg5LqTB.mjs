@@ -1,0 +1,60 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+const r = {
+        '': { title: `PetCity 毛孩日常 | 飼養竉物、竉物用品、萌寵趣聞`, slug: `/` },
+        1: { title: `Pet Staff 毛孩好物`, slug: `/category/cute-item` },
+        2: { title: `Funny News毛孩趣聞`, slug: `/category/funny-news` },
+        3: { title: `Knowledge飼養大全`, slug: `/category/knowledge` },
+        4: { title: `Hot Spot 毛孩打卡點`, slug: `/category/hot-spot` },
+        5: { title: `Raise Pets 養寵物新手`, slug: `/category/raise-cats` },
+    },
+    i = `https://thepetcity.co`,
+    a = {
+        path: `/:term?`,
+        categories: [`new-media`],
+        example: `/thepetcity`,
+        parameters: { term: `見下表，留空為全部文章` },
+        radar: Object.entries(r).map(([e, t]) => ({ title: t.title, source: [...new Set([`thepetcity.co${t.slug}`, `thepetcity.co/`])], target: e ? `/${e}` : `` })),
+        name: `分類`,
+        maintainers: [`TonyRL`, `bigfei`],
+        handler: o,
+        url: `thepetcity.co/`,
+        description: `| Column Name       | TermID |
+| -------------------- | ------ |
+| Knowledge飼養大全     | 3      |
+| Funny News毛孩趣聞    | 2      |
+| Raise Pets 養寵物新手  | 5      |
+| Hot Spot 毛孩打卡點    | 4      |
+| Pet Staff 毛孩好物    | 1      |`,
+    };
+async function o(a) {
+    let o = a.req.param(`term`),
+        s = o ? { pageId: 977080509047743, term: o } : { pageId: 977080509047743 },
+        c = (await e(`${i}/node_api/v1/articles/posts`, { query: { ...s } })).data.posts.map((e) => ({
+            title: e.title,
+            description: e.description,
+            link: `${i}${e.url}`,
+            pubDate: n(e.post_date),
+            guid: e.guid,
+            api: `${i}/node_api/v1/articles/${e.id}`,
+        })),
+        l = await Promise.all(
+            c.map((n) =>
+                t.tryGet(n.guid, async () => {
+                    let t = await e(n.api, { query: { pageId: 977080509047743 } });
+                    return ((n.description = t.data.post_content), (n.category = [...new Set([...t.data.tags.map((e) => e.name), ...t.data.categories.map((e) => e.name)])]), (n.author = t.data.author.display_name), n);
+                })
+            )
+        );
+    return {
+        title: r[o] ? r[o].title : r[``].title,
+        description: `專屬毛孩愛好者的資訊平台，不論你是貓奴、狗奴，還是其他動物控，一起發掘最新的萌寵趣聞、有趣的寵物飼養知識、訓練動物、竉物用品推介、豐富多樣的寵物可愛影片。`,
+        link: i,
+        image: `https://assets.presslogic.com/presslogic-hk-pc/static/favicon.ico`,
+        item: l,
+    };
+}
+export { a as route };

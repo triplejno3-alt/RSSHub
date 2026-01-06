@@ -1,0 +1,65 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './utils-BUyhh4To.mjs';
+import { load as i } from 'cheerio';
+const a = {
+        path: `/:category_id`,
+        categories: [`traditional-media`],
+        example: `/scmp/3`,
+        parameters: { category_id: `Category` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`scmp.com/rss/:category_id/feed`] }],
+        name: `News`,
+        maintainers: [`proletarius101`],
+        handler: s,
+        description: `See the [official RSS page](https://www.scmp.com/rss) to get the ID of each category. This route provides fulltext that the offical feed doesn't.`,
+    },
+    o = (e) => {
+        if (!e) return;
+        let t = {};
+        for (let n in e) Object.hasOwn(e, n) && (t[n] = e[n]);
+        return t;
+    };
+async function s(a) {
+    let { data: s } = await n(`https://www.scmp.com/rss/${a.req.param(`category_id`)}/feed`),
+        c = i(s, { xmlMode: !0 }),
+        l = c(`item`)
+            .toArray()
+            .map((e) => {
+                let n = c(e),
+                    r = n.find(`enclosure`).first(),
+                    i = n.find(String.raw`media\:content`).toArray()[0],
+                    a = n.find(String.raw`media\:thumbnail`).toArray()[0];
+                return {
+                    title: n.find(`title`).text(),
+                    description: n.find(`description`).text(),
+                    link: n.find(`link`).text().split(`?utm_source`)[0],
+                    author: n.find(`author`).text(),
+                    pubDate: t(n.find(`pubDate`).text()),
+                    enclosure_url: r?.attr(`url`),
+                    enclosure_length: r?.attr(`length`),
+                    enclosure_type: r?.attr(`type`),
+                    media: { content: i ? o(i.attribs) : {}, thumbnail: a?.attribs ? o(a.attribs) : void 0 },
+                };
+            }),
+        u = await Promise.all(l.map((t) => e.tryGet(t.link, () => r(t))));
+    return (
+        a.set(`json`, { items: u }),
+        {
+            title: c(`channel > title`).text(),
+            link: c(`channel > link`).text(),
+            description: c(`channel > description`).text(),
+            item: u,
+            language: `en-hk`,
+            icon: `https://assets.i-scmp.com/static/img/icons/scmp-icon-256x256.png`,
+            logo: `https://customerservice.scmp.com/img/logo_scmp@2x.png`,
+            image: c(`channel > image > url`).text(),
+        }
+    );
+}
+export { a as route };

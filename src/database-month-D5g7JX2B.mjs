@@ -1,0 +1,37 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/database_month`,
+    categories: [`programming`],
+    example: `/aliyun/database_month`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`mysql.taobao.org/monthly`, `mysql.taobao.org/`] }],
+    name: `数据库内核月报`,
+    maintainers: [`junbaor`],
+    handler: i,
+    url: `mysql.taobao.org/monthly`,
+};
+async function i() {
+    let r = `http://mysql.taobao.org/monthly/`,
+        i = n((await t({ method: `get`, url: r })).data),
+        a = i(`ul[class='posts'] > li`)
+            .toArray()
+            .map((e) => {
+                let t = i(e);
+                return { title: t.find(`a`).text().trim(), description: ``, link: `http://mysql.taobao.org${t.find(`a`).attr(`href`).trim()}/` };
+            }),
+        o = await Promise.all(
+            a.map((r) => {
+                let i = r.link;
+                return e.tryGet(i, async () => ((r.description = n((await t(i)).data)(`.content`).html()), r));
+            })
+        );
+    return { title: i(`title`).text(), link: r, item: o.toReversed() };
+}
+export { r as route };

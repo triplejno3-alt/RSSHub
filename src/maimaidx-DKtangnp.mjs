@@ -1,0 +1,44 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import * as r from 'cheerio';
+const i = {
+    path: `/maimaidx/news`,
+    categories: [`game`],
+    example: `/sega/maimaidx/news`,
+    radar: [{ source: [`info-maimai.sega.jp/`] }],
+    name: `maimai DX Japanese Ver. News`,
+    maintainers: [`randompasser`],
+    handler: a,
+    url: `info-maimai.sega.jp/`,
+};
+async function a() {
+    let i = `https://info-maimai.sega.jp/`,
+        a = (e, t) => {
+            let n = r.load(e)(`.maiMd`);
+            return (n.prepend(t), n.find(`.hrLine`).replaceWith(`<hr/>`), n.html());
+        },
+        o = await n(i),
+        s = r.load(o.data),
+        c = s(`.maiPager-content .newsBox`);
+    return {
+        title: `maimai DX - Japanese Ver. News`,
+        link: i,
+        language: `ja`,
+        item: await Promise.all(
+            c.map(async (r, i) => {
+                let o = s(i),
+                    c = o.find(`.newsLink`).text(),
+                    l = t(o.find(`.newsDate`).text().slice(0, 10), `YYYY.MM.DD`),
+                    u = o.find(`.newsImg`),
+                    d = o.find(`a`).attr(`href`);
+                return await e.tryGet(d, async () => ({ title: c, link: d, description: a((await n(d)).body, u), pubDate: l }));
+            })
+        ),
+    };
+}
+export { i as route };

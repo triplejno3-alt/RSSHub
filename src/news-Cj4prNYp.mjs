@@ -1,0 +1,65 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './utils-Cz5FGufb.mjs';
+import { Fragment as a, jsx as o, jsxs as s } from 'hono/jsx/jsx-runtime';
+import { load as c } from 'cheerio';
+import { renderToString as l } from 'hono/jsx/dom/server';
+const u = {
+    path: `/news/:tag?`,
+    categories: [`study`],
+    example: `/x-mol/news/3`,
+    parameters: { tag: `Tag number, can be obtained from news list URL. Empty value means news index.` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`x-mol.com/news/index`], target: `/news` }],
+    name: `News`,
+    maintainers: [`cssxsh`],
+    handler: d,
+    url: `x-mol.com/news/index`,
+};
+async function d(u) {
+    let d = u.req.param(`tag`),
+        f = d ? `news/tag/${d}` : `news/index`,
+        p = new URL(f, i.host).href,
+        m = await n(p),
+        h = m.data,
+        g = c(h),
+        _ = g(`.newsitem`)
+            .toArray()
+            .map((e) => {
+                e = g(e);
+                let n = e.find(`h3 a`),
+                    c = e.find(`.space-right-m30`),
+                    u = c.text().replace(`来源：`, ``).trim();
+                return {
+                    title: n.text(),
+                    link: new URL(n.attr(`href`), i.host).href,
+                    description: l(
+                        s(a, {
+                            children: [
+                                e.find(`img`).attr(`src`) ? s(a, { children: [o(`img`, { src: e.find(`img`).attr(`src`).split(`?`)[0] }), o(`br`, {})] }) : null,
+                                e.find(`.thsis-div a`).text().trim() ? o(`p`, { children: e.find(`.thsis-div a`).text().trim() }) : null,
+                            ],
+                        })
+                    ),
+                    author: u,
+                    pubDate: c.next().length ? r(t(c.next().text().trim()), 8) : void 0,
+                };
+            }),
+        v = await Promise.all(
+            _.map((t) =>
+                e.tryGet(t.link, async () => {
+                    if (t.link.includes(`outLinkByIdAndCode`)) return t;
+                    let e = c((await n(t.link)).data)(`.newscontent`);
+                    return (e.find(`.detitemtit, .detposttiau`).remove(), (t.description = e.html()), t);
+                })
+            )
+        );
+    return { title: g(`title`).text(), link: m.url, description: g(`meta[name="description"]`).attr(`content`), item: v };
+}
+export { u as route };

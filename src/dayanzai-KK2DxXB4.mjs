@@ -1,0 +1,41 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { n as t, t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './timezone-CrV-DT8S.mjs';
+import { load as a } from 'cheerio';
+const o = {
+    path: `/:category/:fulltext?`,
+    categories: [`blog`],
+    example: `/dayanzai/windows`,
+    parameters: { category: `分类`, fulltext: '是否获取全文，需要获取则传入参数`y`' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`dayanzai.me/:category`, `dayanzai.me/:category/*`], target: `/:category` }],
+    name: `分类`,
+    maintainers: [],
+    handler: s,
+    description: `| 微软应用 | 安卓应用 | 教程资源 | 其他资源 |
+| -------- | -------- | -------- | -------- |
+| windows  | android  | tutorial | other    |`,
+};
+async function s(o) {
+    let { category: s, fulltext: c } = o.req.param(),
+        l = `http://www.dayanzai.me/` + s,
+        u = a((await r.get(l)).data),
+        d = u(`div.c-box > div > div.c-zx-list > ul > li`),
+        f = /日期：(.*?(\s\(.*?\))?)\s/,
+        p = d.toArray().map((e) => {
+            e = u(e).find(`div`);
+            let r = f.exec(e.find(`div.r > p.other`).text())[1];
+            return (
+                r.includes(`周`) || r.includes(`月`) ? ((r = /\((.*?)\)/.exec(r)[1]), (r = n(r, `MM-DD`))) : r.includes(`年`) ? ((r = /\((.*?)\)/.exec(r)[1]), (r = n(r, `YYYY-MM-DD`))) : (r = t(r)),
+                { title: e.find(`div.r > p.r-top > span > a`).text(), pubDate: i(r, 8), description: e.find(`div.r > p.desc`).text(), link: e.find(`div.r > p.r-top > span > a`).attr(`href`) }
+            );
+        }),
+        m = c === `y` ? await Promise.all(p.map((t) => e.tryGet(t.link, async () => ((t.description = a((await r.get(t.link)).data)(`div.intro-box`).html()), t)))) : p;
+    return { title: `大眼仔旭 ${s}`, link: l, description: `大眼仔旭 ${s} RSS`, item: m };
+}
+export { o as route };

@@ -1,0 +1,30 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { t } from './utils-Brt7HOtQ.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/topic_list`,
+    categories: [`new-media`],
+    example: `/agirls/topic_list`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`agirls.aotter.net/`, `agirls.aotter.net/topic`] }],
+    name: `当前精选主题列表`,
+    maintainers: [`TonyRL`],
+    handler: i,
+    url: `agirls.aotter.net/`,
+};
+async function i() {
+    let r = `topic`,
+        i = `${t}/${r}`,
+        a = n((await e(`${t}/${r}`)).data),
+        o = a(`.ag-topic`)
+            .toArray()
+            .map((e) => ((e = a(e)), { title: e.find(`.ag-topic__link`).text().trim(), description: e.find(`.ag-topic__summery`).text().trim(), link: `${t}${e.find(`.ag-topic__link`).attr(`href`)}` }));
+    return { title: a(`head title`).text().trim(), link: i, description: a(`head meta[name=description]`).attr(`content`), item: o, language: a(`html`).attr(`lang`) };
+}
+export { r as route };

@@ -1,0 +1,57 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { r as n } from './utils-CAAmnNMo.mjs';
+import { t as r } from './auth-CxuQ4hiC.mjs';
+const i = {
+    path: `/xhu/topic/:topicId`,
+    categories: [`social-media`],
+    example: `/zhihu/xhu/topic/19566035`,
+    parameters: { topicId: `话题ID` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.zhihu.com/topic/:topicId/:type`] }],
+    name: `xhu - 话题`,
+    maintainers: [`JimenezLi`],
+    handler: a,
+};
+async function a(i) {
+    let a = await r.getCookie(),
+        o = i.req.param(`topicId`),
+        s = `https://www.zhihu.com/topic/${o}/newest`,
+        c = (await t({ method: `get`, url: `https://api.zhihuvvv.workers.dev/topics/${o}/feeds/timeline_activity?before_id=0&limit=20`, headers: { Referer: `https://api.zhihuvvv.workers.dev`, Cookie: a } })).data.data;
+    return {
+        title: `知乎话题-${o}`,
+        link: s,
+        item: c.map(({ target: t }) => {
+            let r = t.type,
+                i = ``,
+                a = ``,
+                s = ``,
+                c = new Date(),
+                l = ``;
+            switch (r) {
+                case `answer`:
+                    ((i = `${t.question.title}-${t.author.name}的回答：${t.excerpt}`),
+                        (a = `<strong>${t.question.title}</strong><br>${t.author.name}的回答<br/>${n(t.content)}`),
+                        (s = `https://www.zhihu.com/question/${t.question.id}/answer/${t.id}`),
+                        (c = e(t.updated_time * 1e3)),
+                        (l = t.author.name));
+                    break;
+                case `question`:
+                    ((i = t.title), (a = t.title), (s = `https://www.zhihu.com/question/${t.id}`), (c = e(t.created * 1e3)));
+                    break;
+                case `article`:
+                    ((i = t.title), (a = t.excerpt), (s = t.url), (c = e(t.created * 1e3)));
+                    break;
+                default:
+                    a = `未知类型 ${o}.${r}，请点击<a href="https://github.com/DIYgod/RSSHub/issues">链接</a>提交issue`;
+            }
+            return { title: i, description: a, author: l, pubDate: c, guid: s, link: s };
+        }),
+    };
+}
+export { i as route };

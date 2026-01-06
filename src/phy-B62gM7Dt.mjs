@@ -1,0 +1,48 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/phy`,
+    categories: [`university`],
+    example: `/ecnu/phy`,
+    radar: [{ source: [`phy.ecnu.edu.cn`], target: `/phy` }],
+    name: `物理与电子科学学院通知公告`,
+    maintainers: [`FrozenStarrrr`, `ChiyoYuki`, `ECNU-minus`],
+    handler: async () => {
+        let a = `https://phy.ecnu.edu.cn/`,
+            o = i((await n(`${a}1605/list.htm`)).data),
+            s = o(`ul.data-list > li`)
+                .toArray()
+                .map((e) => ({ pubDate: r(t(o(e).find(`span`).text()), 8), link: new URL(o(e).find(`a`).attr(`href`), a).toString(), title: o(e).find(`a`).attr(`title`) }));
+        return {
+            title: `物理与电子科学学院通知公告`,
+            link: `https://phy.ecnu.edu.cn/1605/list.htm`,
+            item: await Promise.all(
+                s.map((t) =>
+                    e.tryGet(t.link, async () => {
+                        let { data: e } = await n(t.link),
+                            r = i(e),
+                            o = r(`div.wp_articlecontent`);
+                        return (
+                            o.find(`img[src], a[href]`).each((e, t) => {
+                                let n = r(t),
+                                    i = t.tagName === `img` ? `src` : `href`,
+                                    o = n.attr(i);
+                                o && n.attr(i, new URL(o, a).toString());
+                            }),
+                            (t.description = o.html()?.trim()),
+                            t
+                        );
+                    })
+                )
+            ),
+        };
+    },
+};
+export { a as route };

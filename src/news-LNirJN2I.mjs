@@ -1,0 +1,25 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './rss-parser-CKuAfhVS.mjs';
+import { t as n } from './utils-Bi4jpU3B.mjs';
+const r = {
+    path: `/news`,
+    categories: [`finance`],
+    example: `/coindesk/news`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `News`,
+    maintainers: [`pseudoyu`],
+    handler: i,
+    radar: [{ source: [`coindesk.com/`], target: `/news` }],
+    description: `Get latest news from CoinDesk with full text.`,
+};
+async function i() {
+    let r = await t.parseURL(`https://feeds.feedburner.com/Coindesk`),
+        i = (await Promise.all(r.items.map((t) => e.tryGet(t.link, () => n(t))))).filter((e) => e !== null);
+    return { title: r.title || `CoinDesk News`, link: r.link || `https://coindesk.com`, description: r.description || `Latest news from CoinDesk`, language: r.language || `en`, item: i };
+}
+export { r as route };

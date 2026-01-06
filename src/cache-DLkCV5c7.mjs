@@ -1,0 +1,97 @@
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import { t } from './logger-_vmdpChp.mjs';
+import { LRUCache as n } from 'lru-cache';
+import r from 'ioredis';
+const i = globalThis.caches !== void 0 && globalThis.WebSocketPair !== void 0,
+    a = { available: !1 },
+    o = {};
+var s = {
+    init: () => {
+        ((o.memoryCache = new n({ ttl: e.cache.routeExpire * 1e3, max: e.memory.max })), (a.available = !0));
+    },
+    get: (e, t = !0) => {
+        if (e && a.available && o.memoryCache) {
+            let n = o.memoryCache.get(e, { updateAgeOnGet: t });
+            return (n && (n += ``), n);
+        } else return null;
+    },
+    set: (t, n, r = e.cache.contentExpire) => {
+        if (((!n || n === `undefined`) && (n = ``), typeof n == `object` && (n = JSON.stringify(n)), t && a.available && o.memoryCache)) return o.memoryCache.set(t, n, { ttl: r * 1e3 });
+    },
+    clients: o,
+    status: a,
+};
+const c = { available: !1 },
+    l = {},
+    u = (e) => {
+        if (e.startsWith(`rsshub:cacheTtl:`)) throw Error(`"rsshub:cacheTtl:" prefix is reserved for the internal usage, please change your cache key`);
+        return `rsshub:cacheTtl:${e}`;
+    };
+var d = {
+    init: () => {
+        ((l.redisClient = new r(e.redis.url)),
+            l.redisClient.on(`error`, (e) => {
+                ((c.available = !1), t.error(`Redis error: `, e));
+            }),
+            l.redisClient.on(`end`, () => {
+                c.available = !1;
+            }),
+            l.redisClient.on(`connect`, () => {
+                ((c.available = !0), t.info(`Redis connected.`));
+            }));
+    },
+    get: async (t, n = !0) => {
+        if (t && c.available && l.redisClient) {
+            let r = u(t),
+                [i, a] = await l.redisClient.mget(t, r);
+            return (i && n && (a ? l.redisClient.expire(r, a) : (a = e.cache.contentExpire + ``), l.redisClient.expire(t, a), (i += ``)), i || ``);
+        } else return null;
+    },
+    set: (t, n, r = e.cache.contentExpire) => {
+        if (!(!c.available || !l.redisClient) && ((!n || n === `undefined`) && (n = ``), typeof n == `object` && (n = JSON.stringify(n)), t))
+            return (r !== e.cache.contentExpire && l.redisClient.set(u(t), r, `EX`, r), l.redisClient.set(t, n, `EX`, r));
+    },
+    clients: l,
+    status: c,
+};
+const f = { get: () => null, set: () => null };
+let p;
+if (i) p = { init: () => null, get: () => null, set: () => null, status: { available: !1 }, clients: {} };
+else if (e.cache.type === `redis`) {
+    ((p = d), p.init());
+    let { redisClient: e } = p.clients;
+    ((f.get = async (t) => {
+        if (t && p.status.available && e) return await e.get(t);
+    }),
+        (f.set = p.set));
+} else if (e.cache.type === `memory`) {
+    ((p = s), p.init());
+    let { memoryCache: t } = p.clients;
+    ((f.get = (e) => {
+        if (e && p.status.available && t) return t.get(e, { updateAgeOnGet: !1 });
+    }),
+        (f.set = (n, r, i = e.cache.routeExpire) => {
+            if (((!r || r === `undefined`) && (r = ``), typeof r == `object` && (r = JSON.stringify(r)), n && t)) return t.set(n, r, { ttl: i * 1e3 });
+        }));
+} else ((p = { init: () => null, get: () => null, set: () => null, status: { available: !1 }, clients: {} }), t.error(`Cache not available, concurrent requests are not limited. This could lead to bad behavior.`));
+var m = {
+    ...p,
+    tryGet: async (t, n, r = e.cache.contentExpire, i = !0) => {
+        if (typeof t != `string`) throw TypeError(`Cache key must be a string`);
+        let a = await p.get(t, i);
+        if (a) {
+            let e;
+            try {
+                e = JSON.parse(a);
+            } catch {
+                e = null;
+            }
+            return (e && (a = e), a);
+        } else {
+            let e = await n();
+            return (p.set(t, e, r), e);
+        }
+    },
+    globalCache: f,
+};
+export { i as n, m as t };

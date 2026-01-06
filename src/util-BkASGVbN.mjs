@@ -1,0 +1,75 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { renderToString as o } from 'hono/jsx/dom/server';
+const s = `https://top.aibase.com`,
+    c = `https://app.chinaz.com`,
+    l = (e) => (e.startsWith(`[`) ? JSON.parse(e) : [e]),
+    u = async (t) => {
+        let n = new URL(t(`script[src]`).last()?.prop(`src`) ?? `_static/ee6af7e.js`, s).href;
+        return (await e(n, { responseType: `text` })).match(/"\/(\w+)\/ai\/.*?\.aspx"/)?.[1] ?? `djflkdsoisknfoklsyhownfrlewfknoiaewf`;
+    },
+    d = async (e) => {
+        let t = await u(e);
+        return {
+            apiRecommListUrl: new URL(`${t}/ai/GetAIProcRecommList.aspx`, c).href,
+            apiRecommProcUrl: new URL(`${t}/ai/GetAIProcListByRecomm.aspx`, c).href,
+            apiTagProcUrl: new URL(`${t}/ai/GetAiProductOfTag.aspx`, c).href,
+            apiInfoListUrl: new URL(`${t}/ai/GetAiInfoList.aspx`, c).href,
+            aILogListUrl: new URL(`${t}/ai/v2/GetAILogList.aspx`, c).href,
+        };
+    },
+    f = (e) =>
+        e.map((e) => {
+            let r = e.name,
+                i = e.imgurl,
+                a = p({ images: i ? [{ src: i, alt: r }] : void 0, item: e }),
+                o = `aibase-${e.zurl}`;
+            return {
+                title: r,
+                description: a,
+                pubDate: n(t(e.addtime), 8),
+                link: new URL(`tool/${e.zurl}`, s).href,
+                category: [...new Set([...l(e.categories), ...l(e.tags), e.catname, e.procattrname, e.procformname, e.proctypename])].filter(Boolean),
+                guid: o,
+                id: o,
+                content: { html: a, text: e.desc },
+                image: i,
+                banner: i,
+                updated: t(e.UpdTime),
+                enclosure_url: e.logo,
+                enclosure_type: e.logo ? `image/${e.logo.split(/\./).pop()}` : void 0,
+                enclosure_title: r,
+            };
+        }),
+    p = ({ images: e, item: t }) =>
+        o(
+            a(r, {
+                children: [
+                    e?.map((e, t) => (e?.src ? i(`figure`, { children: i(`img`, { src: e.src, alt: e.alt }) }, `${e.src}-${t}`) : null)),
+                    t
+                        ? i(`table`, {
+                              children: a(`tbody`, {
+                                  children: [
+                                      a(`tr`, { children: [i(`th`, { children: `名称` }), i(`td`, { children: t.name })] }),
+                                      a(`tr`, { children: [i(`th`, { children: `标签` }), i(`td`, { children: l(t.tags).map((e) => a(r, { children: [i(`a`, { href: `/topic/${e}`, children: e }), `\xA0`] })) })] }),
+                                      a(`tr`, { children: [i(`th`, { children: `类型` }), i(`td`, { children: t.proctypename || `无` })] }),
+                                      a(`tr`, { children: [i(`th`, { children: `描述` }), i(`td`, { children: t.desc || `无` })] }),
+                                      a(`tr`, { children: [i(`th`, { children: `需求人群` }), i(`td`, { children: m(t.use) })] }),
+                                      a(`tr`, { children: [i(`th`, { children: `使用场景示例` }), i(`td`, { children: m(t.example) })] }),
+                                      a(`tr`, { children: [i(`th`, { children: `产品特色` }), i(`td`, { children: m(t.functions) })] }),
+                                      a(`tr`, { children: [i(`th`, { children: `站点` }), i(`td`, { children: t.url ? i(`a`, { href: t.url, children: t.url }) : `无` })] }),
+                                  ],
+                              }),
+                          })
+                        : null,
+                ],
+            })
+        ),
+    m = (e) => {
+        if (!e) return `无`;
+        let t = l(e);
+        return t.length === 1 ? t[0] : t.map((e, t) => i(`li`, { children: e }, `${e}-${t}`));
+    };
+export { f as n, s as r, d as t };

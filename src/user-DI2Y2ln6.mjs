@@ -1,0 +1,89 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { t as r } from './invalid-parameter-DGZgOgO2.mjs';
+import './puppeteer-BbZGb8cd.mjs';
+import { n as i, t as a } from './readable-social--hCfpJhv.mjs';
+import { a as o, i as s, r as c } from './util-D4gWpswK.mjs';
+import l from 'node:querystring';
+const u = {
+    path: `/user/:user_id/:category/:routeParams?`,
+    name: `用户笔记/收藏`,
+    categories: [`social-media`],
+    view: n.Articles,
+    maintainers: [`lotosbin`, `howerhe`, `rien7`, `dddaniel1`, `pseudoyu`],
+    handler: d,
+    radar: [{ source: [`xiaohongshu.com/user/profile/:user_id`], target: `/user/:user_id/notes` }],
+    example: `/xiaohongshu/user/593032945e87e77791e03696/notes`,
+    features: { antiCrawler: !0, requirePuppeteer: !0, requireConfig: [{ name: `XIAOHONGSHU_COOKIE`, optional: !0, description: `小红书 cookie 值，可在网络里面看到。` }] },
+    parameters: {
+        user_id: `user id, length 24 characters`,
+        category: {
+            description: `category, notes or collect`,
+            options: [
+                { value: `notes`, label: `notes` },
+                { value: `collect`, label: `collect` },
+            ],
+            default: `notes`,
+        },
+        routeParams: { description: 'displayLivePhoto,`/user/:user_id/notes/displayLivePhoto=0`,不限时LivePhoto显示为图片,`/user/:user_id/notes/displayLivePhoto=1`,取值不为0时LivePhoto显示为视频', default: `0` },
+    },
+};
+async function d(t) {
+    let n = t.req.param(`user_id`),
+        r = t.req.param(`category`),
+        c = !!a(void 0, i(l.parse(t.req.param(`routeParams`)).displayLivePhoto), !1),
+        u = `https://www.xiaohongshu.com/user/profile/${n}`;
+    if (e.xiaohongshu.cookie && r === `notes`)
+        try {
+            let e = await s(u),
+                t = await o(e.notes, `https://www.xiaohongshu.com/explore`, c);
+            return { title: `${e.userPageData.basicInfo.nickname} - 笔记 • 小红书 / RED`, description: e.userPageData.basicInfo.desc, image: e.userPageData.basicInfo.imageb || e.userPageData.basicInfo.images, link: u, item: t };
+        } catch {
+            return await f(u, r);
+        }
+    else return await f(u, r);
+}
+async function f(e, n) {
+    let {
+        userPageData: { basicInfo: i, interactions: a, tags: o },
+        notes: s,
+        collect: l,
+    } = await c(e, t);
+    return {
+        title: `${i.nickname} - 小红书${n === `notes` ? `笔记` : `收藏`}`,
+        description: `${i.desc} ${o.map((e) => e.name).join(` `)} ${a.map((e) => `${e.count} ${e.name}`).join(` `)}`,
+        image: i.imageb || i.images,
+        link: e,
+        item:
+            n === `notes`
+                ? ((t) =>
+                      t.flatMap((t) =>
+                          t.map(({ id: t, noteCard: n }) => ({
+                              title: n.displayTitle,
+                              link: new URL(n.noteId || t, e).toString(),
+                              guid: n.displayTitle,
+                              description: `<img src ="${n.cover.infoList.pop().url} width="${n.cover.width}" height="${n.cover.height}"><br>${n.displayTitle}`,
+                              author: n.user.nickname,
+                              upvotes: n.interactInfo.likedCount,
+                          }))
+                      ))(s)
+                : ((t) => {
+                      if (!t) throw new r(`该用户已设置收藏内容不可见`);
+                      if (t.code !== 0) throw Error(JSON.stringify(t));
+                      if (!t.data.notes.length) throw new r(`该用户已设置收藏内容不可见`);
+                      return t.data.notes.map((t) => ({
+                          title: t.display_title,
+                          link: `${e}/${t.note_id}`,
+                          description: `<img src ="${t.cover.info_list.pop().url}"><br>${t.display_title}`,
+                          author: t.user.nickname,
+                          upvotes: t.interact_info.likedCount,
+                      }));
+                  })(l),
+    };
+}
+export { u as route };

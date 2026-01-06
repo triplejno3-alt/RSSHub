@@ -1,0 +1,59 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import r from 'query-string';
+const i = {
+    path: `/jw/:type`,
+    categories: [`university`],
+    example: `/nju/jw/ggtz`,
+    parameters: { type: `分类名` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`jw.nju.edu.cn/:type/list.htm`] }],
+    name: `本科生院`,
+    maintainers: [`cqjjjzr`],
+    handler: a,
+    description: `| 公告通知 | 教学动态 |
+| -------- | -------- |
+| ggtz     | jxdt     |`,
+};
+async function a(i) {
+    let a = i.req.param(`type`),
+        o = {
+            ggtz: [
+                26263,
+                `公告通知`,
+                `[{"field":"top","type":"desc"},{"field":"new","type":"desc"},{"field":"publishTime","type":"desc"}]`,
+                `[{"field":"title","name":"title"},{"field":"f1","name":"f1"},{"field":"publishTime","pattern":[{"name":"d","value":"yyyy-MM-dd HH:mm:ss"}],"name":"publishTime"},{"field":"link","name":"link"}]`,
+                `https://jw.nju.edu.cn/ggtz/list.htm`,
+            ],
+            jxdt: [
+                24774,
+                `教学动态`,
+                `[{"field":"top","type":"desc"},{"field":"new","type":"desc"},{"field":"publishTime","type":"desc"}]`,
+                `[{"field":"title","name":"title"},{"field":"publishTime","pattern":[{"name":"d","value":"yyyy-MM-dd HH:mm:ss"}],"name":"publishTime"},{"field":"link","name":"link"}]`,
+                `https://jw.nju.edu.cn/_s414/24774/list.psp`,
+            ],
+        },
+        { data: s } = await t({
+            method: `post`,
+            url: `https://jw.nju.edu.cn/_wp3services/generalQuery?queryObj=articles`,
+            body: r.stringify({ siteId: 414, columnId: o[a][0], pageIndex: 1, rows: 24, orders: o[a][2], returnInfos: o[a][3] }),
+            headers: { Origin: `https://jw.nju.edu.cn`, Referer: `https://jw.nju.edu.cn/main.htm`, 'Content-Type': `application/x-www-form-urlencoded` },
+        });
+    return {
+        title: `本科生院-${o[a][1]}`,
+        link: o[a][4],
+        item:
+            s &&
+            s.data &&
+            s.data.map((t) => {
+                let r = { title: t.title, author: t.publisher, pubDate: n(e(t.publishTime, `YYYY-MM-DD HH:mm:ss`), 8), link: t.url };
+                return (a === `ggtz` && (r.category = t.f1), r);
+            }),
+    };
+}
+export { i as route };

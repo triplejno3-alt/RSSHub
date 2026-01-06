@@ -1,0 +1,56 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { n as t } from './wechat-mp-HNgcLN2K.mjs';
+import { load as n } from 'cheerio';
+import r from 'dayjs';
+const i = {
+    path: `/mp/homepage/:biz/:hid/:cid?`,
+    categories: [`new-media`],
+    example: `/wechat/mp/homepage/MzA3MDM3NjE5NQ==/16`,
+    parameters: { biz: `公众号id`, hid: `分页id`, cid: `页内栏目` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `公众号栏目 (非推送 & 历史消息)`,
+    maintainers: [`MisteryMonster`],
+    handler: a,
+    description:
+        '只适用拥有首页模板 (分享链接带有 homepage) 的公众号。例如从公众号分享出来的链接为 `https://mp.weixin.qq.com/mp/homepage?__biz=MzA3MDM3NjE5NQ==&hid=4`，`biz` 为 `MzA3MDM3NjE5NQ==`，`hid` 为 `4`。\n\n  有些页面里会有分栏， `cid` 可以通过元素选择器选中栏目查看`data-index`。如[链接](https://mp.weixin.qq.com/mp/homepage?__biz=MzA3MDM3NjE5NQ==&hid=4)里的 `京都职人` 栏目的 `cid` 为 `0`，`文艺时光` 栏目的 `cid` 为 `2`。如果不清楚的话最左边的栏目为`0`，其右方栏目依次递增 `1`。',
+};
+async function a(i) {
+    let { biz: a, hid: o, cid: s } = i.req.param(),
+        c = ``;
+    s && (c = `&cid=${s}`);
+    let l = ``;
+    o && (l = `&hid=${o}`);
+    let u = await e({ method: `post`, url: `https://mp.weixin.qq.com/mp/homepage?__biz=${a}${l}${c}&begin=0&count=5&action=appmsg_list` }),
+        d = await e({ method: `get`, url: `https://mp.weixin.qq.com/mp/homepage?__biz=${a}${l}${c}` }),
+        f = u.data.appmsg_list,
+        p = n(d.data),
+        m = p(`div.articles_header`).find(`a`).text() + `|` + p(`div.articles_header > h2.rich_media_title`).text(),
+        h = await Promise.all(f.map((e) => t({ link: e.link, guid: e.link })));
+    return {
+        title: m,
+        link: `https://mp.weixin.qq.com/mp/homepage?__biz=${a}${l}${c}`,
+        item: f.map((e, t) => ({
+            title: e.title,
+            description: `
+                ${e.digest}<br>
+                <img
+                    style="max-width: 650px; height: auto; object-fit: contain; width: 100%;"
+                    src="${e.cover}"
+                ><br>
+                <br>
+                ${h[t].description}
+            `,
+            link: h[t].link,
+            guid: h[t].guid,
+            author: h[t].author,
+            pubDate: r.unix(e.sendtime).format(),
+        })),
+    };
+}
+export { i as route };

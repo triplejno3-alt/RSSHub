@@ -1,0 +1,149 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { Fragment as n, jsx as r, jsxs as i } from 'hono/jsx/jsx-runtime';
+import { load as a } from 'cheerio';
+import { renderToString as o } from 'hono/jsx/dom/server';
+async function s(e) {
+    let n = `article.g-main-video-article`,
+        r = a((await t(e)).data),
+        i = [],
+        o = [],
+        s = [],
+        c = [],
+        l = `https://oreno3d.com` + r(`header > figure.video-figure > a `).find(`img`).attr(`src`),
+        u = r(`header > h1.video-h1 `).text();
+    (r(n)
+        .find(`section:nth-child(4) > a > div.video-center`)
+        .each(function (e) {
+            ((o[e] = r(this).text()), o[e].replace(` `, ``), o[e].trim());
+        }),
+        r(n)
+            .find(`section:nth-child(5) > a > div.video-center`)
+            .each(function (e) {
+                ((s[e] = r(this).text()), s[e].replace(` `, ``), s[e].trim());
+            }),
+        r(n)
+            .find(`section:nth-child(6) > a > div.video-center`)
+            .each(function (e) {
+                ((c[e] = r(this).text()), c[e].replace(` `, ``), c[e].trim());
+            }),
+        r(n)
+            .find(`section:nth-child(7) > ul > li > a div.tag-text`)
+            .each(function (e) {
+                ((i[e] = r(this).text()), i[e].replace(` `, ``), i[e].trim());
+            }));
+    let d = r(n).find(`section blockquote.video-information-comment`).text(),
+        f = r(`header > figure.video-figure > a`).attr(`href`);
+    return { raw_pic_link: l, video_name: u, authors: o.join(` `), origins: s.join(` `), characters: c.join(` `), tags: i.join(` `), desc: d, iwara_link: f, oreno3d_link: e };
+}
+var c = s;
+const l = { favorites: `高評価`, hot: `急上昇`, latest: `新着`, popularity: `人気` };
+function u(e, t, n) {
+    let r = ``;
+    return (
+        t.req.param(`keyword`)
+            ? (r = `${e}/search?sort=${n}&keyword=${t.req.param(`keyword`)}`)
+            : t.req.param(`characterid`)
+              ? (r = `${e}/characters/${t.req.param(`characterid`)}?sort=${n}`)
+              : t.req.param(`authorid`)
+                ? (r = `${e}/authors/${t.req.param(`authorid`)}?sort=${n}`)
+                : t.req.param(`tagid`)
+                  ? (r = `${e}/tags/${t.req.param(`tagid`)}?sort=${n}`)
+                  : t.req.param(`originid`) && (r = `${e}/origins/${t.req.param(`originid`)}?sort=${n}`),
+        r
+    );
+}
+const d = {
+    path: [`/authors/:authorid/:sort/:pagelimit?`, `/characters/:characterid/:sort/:pagelimit?`, `/origins/:originid/:sort/:pagelimit?`, `/search/:keyword/:sort/:pagelimit?`, `/tags/:tagid/:sort/:pagelimit?`],
+    categories: [`anime`],
+    example: `/oreno3d/authors/3189/latest/1`,
+    parameters: { authorid: `Author id, can be found in URL`, sort: `Sort method, see the table above`, pagelimit: `The maximum number of pages to be crawled, the default is 1` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+    name: `Author Search`,
+    maintainers: [`xueli_sherryli`],
+    handler: f,
+    description: `| favorites | hot | latest | popularity |
+| --------- | --- | ------ | ---------- |
+| favorites | hot | latest | popularity |`,
+};
+async function f(s) {
+    function d(e) {
+        let t = a(e.data);
+        return { title: t(`div.g-main-list`).find(`h1.main-h`).text(), list: t(`a.box`) };
+    }
+    async function f(t) {
+        let s = a(t.data),
+            l = d(t).title,
+            u = d(t).list;
+        return {
+            items: await Promise.all(
+                u.toArray().map(async (t) => {
+                    let a = await c(s(t).attr(`href`)),
+                        l = a.raw_pic_link,
+                        u = a.video_name,
+                        d = a.authors,
+                        f = a.origins,
+                        p = a.characters,
+                        m = a.tags,
+                        h = a.desc,
+                        g = a.iwara_link,
+                        _ = a.oreno3d_link,
+                        v = o(
+                            i(n, {
+                                children: [
+                                    r(`img`, { src: l }),
+                                    i(`p`, { children: [`标题：`, r(`b`, { children: u })] }),
+                                    i(`p`, { children: [`作者：`, r(`b`, { children: d })] }),
+                                    i(`p`, { children: [`原作：`, r(`b`, { children: f })] }),
+                                    i(`p`, { children: [`角色：`, r(`b`, { children: p })] }),
+                                    i(`p`, { children: [`标签：`, r(`b`, { children: m })] }),
+                                    r(`p`, { children: `简介：` }),
+                                    r(`div`, { style: `white-space: pre-line;`, children: r(`b`, { children: h }) }),
+                                    i(`p`, { children: [`iwara链接：`, r(`b`, { children: r(`a`, { href: g, children: g }) })] }),
+                                    i(`p`, { children: [`Oreno3D链接：`, r(`b`, { children: r(`a`, { href: _, children: _ }) })] }),
+                                ],
+                            })
+                        ),
+                        y = `${u} - ${d}`;
+                    return await e.tryGet(_, () => ({ title: y, author: d, link: _, category: m.split(` `), description: v }));
+                })
+            ),
+            title: l,
+        };
+    }
+    let p = s.req.param(`sort`),
+        m = s.req.param(`pagelimit`) ?? 1,
+        h = u(`https://oreno3d.com`, s, p),
+        g = await t(h),
+        _ = a(g.data),
+        v = `div.container > main > div.g-main-list > ul.pagination > li:last-child > a`;
+    if (_(v)) {
+        let e = new URLSearchParams(_(v).attr(`href`)).get(`page`);
+        Number.parseInt(m) >= Number.parseInt(e) && (m = e);
+    } else m = 1;
+    let y = [g],
+        b = [];
+    for (let e = 1; e < m; e++) b.push(`${h}&page=${e + 1}`);
+    await Promise.all(
+        b.map(async (e) => {
+            let n = await t(e);
+            y.push(n);
+        })
+    );
+    let x = [];
+    await Promise.all(
+        y.map(async (e) => {
+            let t = await f(e);
+            x.push(t);
+        })
+    );
+    let S = [];
+    for (let e of x) S = [...S, ...e.items];
+    let C = { title: x[0].title, item: S };
+    return { title: `${C.title} - ${l[p]}(Page 1-${m})`, link: h, item: C.item };
+}
+export { d as route };

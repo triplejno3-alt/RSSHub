@@ -1,0 +1,29 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = { path: `/lib`, radar: [{ source: [`lib.nuist.edu.cn/`, `lib.nuist.edu.cn/index/tzgg.htm`] }], name: `Unknown`, maintainers: [`gylidian`], handler: a, url: `lib.nuist.edu.cn/` };
+async function a() {
+    let i = `https://lib.nuist.edu.cn/index/tzgg.htm`,
+        a = r((await n(i)).data),
+        o = a(`.list2 li`)
+            .toArray()
+            .map((e) => ((e = a(e)), { title: e.find(`a`).attr(`title`), category: `通知`, link: new URL(e.find(`a`).attr(`href`), i).href }));
+    return {
+        title: `南京信息工程大学图书馆通知`,
+        link: i,
+        item: await Promise.all(
+            o.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let e = r((await n(i.link)).data);
+                    return ((i.description = e(`#vsb_content`).html()), (i.pubDate = t(e(`.date`).find(`span`).eq(0).text(), `YYYY年MM月DD日`)), i);
+                })
+            )
+        ),
+    };
+}
+export { i as route };

@@ -1,0 +1,24 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { t as e } from './utils-M0JWlqMr.mjs';
+const t = `https://yjs.gxmzu.edu.cn/tzgg/zsgg.htm`,
+    n = {
+        path: `/yjszsgg`,
+        categories: [`university`],
+        example: `/gxmzu/yjszsgg`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`yjs.gxmzu.edu.cn/tzgg/zsgg.htm`, `yjs.gxmzu.edu.cn/`] }],
+        name: `研究生院招生公告`,
+        maintainers: [`real-jiakai`],
+        handler: r,
+        url: `yjs.gxmzu.edu.cn/tzgg/zsgg.htm`,
+    };
+async function r(n) {
+    return { title: `广西民族大学研究生院 -- 招生公告`, link: t, item: await e(n, t, `https://yjs.gxmzu.edu.cn`, `a`, `.timestyle55267`, { title: `.titlestyle55269`, content: `#vsb_newscontent`, date: `.timestyle55269` }) };
+}
+export { n as route };

@@ -1,0 +1,94 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+import { raw as c } from 'hono/html';
+const l = {
+    path: `/:community/:category?`,
+    categories: [`bbs`],
+    example: `/learnku/laravel/qa`,
+    parameters: { community: `社区 标识，可在 <https://learnku.com/communities> 找到`, category: '分类，如果不传 `category` 则获取全部分类' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`learnku.com/:community`], target: `/:community` }],
+    name: `社区`,
+    maintainers: [`kayw-geek`],
+    handler: u,
+    description: `| 招聘 | 翻译         | 问答 | 链接  |
+| ---- | ------------ | ---- | ----- |
+| jobs | translations | qa   | links |`,
+};
+async function u(l) {
+    let u = l.req.param(`community`),
+        d = l.req.param(`category`) || ``,
+        f = `https://learnku.com/${u}`;
+    d !== `` && (f = `https://learnku.com/${u}/c/${d}`);
+    let p = (await n({ method: `get`, url: f })).data,
+        m = o(p),
+        h = m(`.simple-topic`).toArray(),
+        g = await Promise.all(
+            h.map(async (l) => {
+                let u = o(l),
+                    d = u(`.category-name span`).text().trim();
+                if ([`置顶`, `广告`].includes(d)) return ``;
+                u(`.topic-title i`).remove();
+                let f = u(`.topic-title-wrap`).attr(`href`),
+                    p = u(`.topic-title`).text().trim(),
+                    m = await e.tryGet(f, async () => o((await n.get(f)).data)),
+                    h = m(`.article-content .content-body`).html(),
+                    g = m(`#all-comments`).html();
+                return {
+                    title: p,
+                    description: s(
+                        a(r, {
+                            children: [
+                                a(`div`, {
+                                    style: `background-color:#f0f2f5;border: 2px solid #e3eaef;box-shadow: 0 1px 2px 0 rgb(101 129 156 / 8%);font-size: 1rem;position: relative;background: #fff;box-shadow: 0px 2px 4px rgba(0,0,0,0.1);margin: 1rem 0;padding: 24px;transition: box-shadow 0.15s ease;border-radius: 8px;`,
+                                    children: [
+                                        i(`h2`, { children: `🦕正文` }),
+                                        i(`hr`, { style: `FILTER: alpha(opacity=100,finishopacity=0,style=3)`, width: `100%`, color: `#79ffe1`, size: `3` }),
+                                        i(`div`, {
+                                            style: `font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto','Oxygen','Ubuntu','Cantarell','Fira Sans','Droid Sans','Helvetica Neue',sans-serif`,
+                                            children: h ? c(h) : null,
+                                        }),
+                                    ],
+                                }),
+                                g
+                                    ? a(`div`, {
+                                          style: `background-color:#f0f2f5;border: 2px solid #e3eaef;box-shadow: 0 1px 2px 0 rgb(101 129 156 / 8%);font-size: 1rem;position: relative;background: #fff;box-shadow: 0px 2px 4px rgba(0,0,0,0.1);margin: 1rem 0;padding: 24px;transition: box-shadow 0.15s ease;border-radius: 8px;`,
+                                          children: [i(`h2`, { children: `👨‍💻评论` }), i(`hr`, { style: `FILTER: alpha(opacity=100,finishopacity=0,style=3)`, width: `100%`, color: `#79ffe1`, size: `3` }), c(g)],
+                                      })
+                                    : null,
+                            ],
+                        })
+                    ),
+                    category: d,
+                    link: f,
+                    pubDate: t(u(`.timeago`).attr(`title`), `YYYY/MM/DD`),
+                };
+            })
+        ),
+        _ = m(`.sidebar .community-details .header span`).text();
+    m(`.sidebar .community-details .main div div a`).remove();
+    let v = m(`.sidebar .community-details .main div div`).text();
+    return {
+        title: `LearnKu - ${_} - ${
+            new Map([
+                [`translations`, { name: `翻译` }],
+                [`jobs`, { name: `招聘` }],
+                [`qa`, { name: `问答` }],
+                [`links`, { name: `链接` }],
+                [``, { name: `最新` }],
+            ]).get(d).name
+        }`,
+        link: f,
+        description: v,
+        item: g.filter((e) => e !== ``),
+    };
+}
+export { l as route };

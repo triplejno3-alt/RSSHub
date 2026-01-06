@@ -1,0 +1,78 @@
+import { t as e } from './cache-DLkCV5c7.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './invalid-parameter-DGZgOgO2.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+import { raw as l } from 'hono/html';
+const u = {
+        1: `同人誌 漢化`,
+        2: `同人誌 CG畫集`,
+        3: `同人誌 Cosplay`,
+        5: `同人誌`,
+        6: `單行本`,
+        7: `雜誌&短篇`,
+        9: `單行本 漢化`,
+        10: `雜誌&短篇 漢化`,
+        12: `同人誌 日語`,
+        13: `單行本 日語`,
+        14: `雜誌&短篇 日語`,
+        16: `同人誌 English`,
+        17: `單行本 English`,
+        18: `雜誌&短篇 English`,
+        19: `韓漫`,
+        20: `韓漫 漢化`,
+        21: `韓漫 生肉`,
+        22: `同人誌 3D漫畫`,
+    },
+    d = `https://www.wnacg.com`;
+async function f(f) {
+    let { cid: p, tag: m } = f.req.param();
+    if (p && !Object.keys(u).includes(p)) throw new r(`此分类不存在`);
+    let h = `${d}/albums${p ? `-index-cate-${p}` : ``}${m ? `-index-tag-${m}` : ``}.html`,
+        { data: g } = await n(h),
+        _ = s(g),
+        v = _(`.gallary_item`)
+            .toArray()
+            .map((e) => {
+                e = _(e);
+                let n = e.find(`a`).attr(`href`),
+                    r = n.match(/^\/photos-index-aid-(\d+)\.html$/)[1];
+                return {
+                    title: e.find(`a`).attr(`title`),
+                    link: `${d}${n}`,
+                    pubDate: t(
+                        e
+                            .find(`.info_col`)
+                            .text()
+                            .replace(/\d+張照片，\n創建於/, ``),
+                        `YYYY-MM-DD`
+                    ),
+                    aid: r,
+                };
+            }),
+        y = await Promise.all(
+            v.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let { data: e } = await n(t.link, { headers: { referer: encodeURI(h) } }),
+                        r = s(e),
+                        u = r(`.uwuinfo p`).first().text(),
+                        f = r(`.tagshow`)
+                            .toArray()
+                            .map((e) => r(e).text());
+                    r(`.addtags`).remove();
+                    let p = r(`.uwconn`).html(),
+                        { data: m } = await n(`${d}/photos-gallery-aid-${t.aid}.html`, { headers: { referer: `${d}/photos-slide-aid-${t.aid}.html` } });
+                    r = s(m);
+                    let g = r(`script`)
+                            .text()
+                            .match(/var imglist = (\[.*]);"\);/)[1],
+                        _ = JSON.parse(g.replaceAll(`url:`, `"url":`).replaceAll(`caption:`, `"caption":`).replaceAll(`fast_img_host+\\`, ``).replaceAll(`\\`, ``));
+                    return ((t.author = u), (t.category = f), (t.description = c(o(i, { children: [p ? l(p) : null, a(`br`, {}), _ ? _.map((e) => a(`img`, { src: `https:${e.url}`, alt: e.caption })) : null] }))), t);
+                })
+            )
+        );
+    return { title: _(`head title`).text(), link: h, item: y };
+}
+export { f as t };

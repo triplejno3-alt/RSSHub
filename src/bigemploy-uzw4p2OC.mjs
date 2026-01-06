@@ -1,0 +1,31 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/job/bigemploy`,
+    categories: [`university`],
+    example: `/hrbeu/job/bigemploy`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`job.hrbeu.edu.cn/*`] }],
+    name: `大型招聘会`,
+    maintainers: [`Derekmini`],
+    handler: i,
+    url: `job.hrbeu.edu.cn/*`,
+};
+async function i() {
+    let r = n((await t(`http://job.hrbeu.edu.cn/HrbeuJY/web`)).data);
+    return {
+        title: `大型招聘会`,
+        link: `http://job.hrbeu.edu.cn/HrbeuJY/web`,
+        item: r(`div.articlecontent`)
+            .toArray()
+            .map((t) => ({ title: r(t).find(`a.bigTitle`).text(), pubDate: e(r(t).find(`p`).eq(1).text().replace(`时间:`, ``).trim()), description: `点击标题，登录查看招聘详情`, link: r(t).find(`a.bigTitle`).attr(`href`) })),
+        allowEmpty: !0,
+    };
+}
+export { r as route };

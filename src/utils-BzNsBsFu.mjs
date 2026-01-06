@@ -1,0 +1,28 @@
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+const c = ({ thumb: e, description: t }) =>
+        a(r, { children: [e ? a(r, { children: [i(`img`, { src: e }), i(`br`, {})] }) : null, t ? a(r, { children: [i(`blockquote`, { children: i(`p`, { children: t }) }), i(`br`, {})] }) : null] }),
+    l = (e) => s(i(c, { ...e })),
+    u = (r, i) =>
+        i(r.link, async () => {
+            let i = o((await t({ method: `get`, url: r.link })).data);
+            return (
+                i(`.post-cont`) && i(`.post-cont`).html()
+                    ? (i(`img`).removeAttr(`data-width`).removeAttr(`data-height`).removeAttr(`class`).removeAttr(`title`).removeAttr(`referrerpolicy`),
+                      i(`.taglist, .J_ndlogo, .zan-shang, .sourcelist-box, #shareContain, .buyCopyright, .article-info, .icon, .special`).remove(),
+                      (r.description +=
+                          i(`.post-cont`)
+                              .html()
+                              .replaceAll(/data:image\S*=="\s*\n*\s*original="/g, ``) ?? ``),
+                      (r.pubDate ||= n(e(i(`.introduce`).text().split()), 8)))
+                    : i(`.content`) && i(`.content`).html()
+                      ? (r.description += i(`.content`).html() ?? ``)
+                      : i(`.article-conten`) && i(`.article-conten`).html() && (r.description += i(`.article-conten`).html() ?? ``),
+                r
+            );
+        });
+export { l as n, u as t };

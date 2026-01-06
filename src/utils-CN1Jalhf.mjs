@@ -1,0 +1,85 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { Fragment as n, jsx as r, jsxs as i } from 'hono/jsx/jsx-runtime';
+import { load as a } from 'cheerio';
+import { renderToString as o } from 'hono/jsx/dom/server';
+import { raw as s } from 'hono/html';
+const c = ({ banner: e, authorsBio: t, content: a }) => o(i(n, { children: [r(`img`, { src: e, alt: `` }), t ? s(t) : null, a ? s(a) : null] })),
+    l = (e) => {
+        let t = e.hosterId;
+        return (
+            e.hoster === `vimeo` ? (t = `https://player.vimeo.com/video/${t}?dnt=1`) : e.hoster === `youtube` && (t = `https://www.youtube-nocookie.com/embed/${t}`),
+            o(
+                i(n, {
+                    children: [
+                        r(`iframe`, { width: `672`, height: `377`, src: t, frameborder: `0`, allowfullscreen: !0, referrerpolicy: `strict-origin-when-cross-origin` }),
+                        e.credits ? s(e.credits) : null,
+                        e.description ? s(e.description) : null,
+                    ],
+                })
+            )
+        );
+    },
+    u = async (t) =>
+        (
+            await e(`https://api.aeonmedia.co/graphql`, {
+                method: `POST`,
+                headers: { 'Content-Type': `application/json` },
+                body: JSON.stringify({ query: `query getImageById($id: ID!) { image(id: $id) { id url alt caption width height } }`, variables: { id: t, site: `Aeon` }, operationName: `getImageById` }),
+            })
+        ).data.image.url;
+function d(e) {
+    let t = e.type.toLowerCase(),
+        n = ``,
+        r = ``,
+        i = ``;
+    switch (t) {
+        case `film`:
+            n = l(e);
+            break;
+        case `guide`: {
+            ((r = e.imageSquare?.url), (i = e.authors.map((e) => e.bio).join(` `)));
+            let t = [`Need To Know`, `What To Do`, `Key Points`, `Learn More`, `Links & Books`],
+                o = Object.keys(e)
+                    .filter((e) => e.startsWith(`section`) && e !== `section`)
+                    .map((n) => {
+                        let r = a(e[n]);
+                        return (r(`p.pullquote`).remove(), `<h2>${t.shift()}</h2>` + r.html());
+                    })
+                    .join(``);
+            n = c({ banner: r, authorsBio: i, content: o });
+            break;
+        }
+        case `idea`: {
+            ((r = e.imageLandscape?.url), (i = e.authors.map((e) => e.bio).join(` `)));
+            let t = a(e.body);
+            (t(`p.pullquote`).remove(), (n = c({ banner: r, authorsBio: i, content: t.html() })));
+            break;
+        }
+        default:
+            break;
+    }
+    return n;
+}
+const f = async (n) =>
+    await Promise.all(
+        n.map((n) =>
+            t.tryGet(n.link, async () => {
+                let t = (await e(n.json)).pageProps.article;
+                n.pubDate = new Date(t.publishedAt).toUTCString();
+                let r = a(d(t));
+                await Promise.all(
+                    r(`dl > dt`)
+                        .toArray()
+                        .map(async (e) => {
+                            let t = r(e).text(),
+                                n = await u(t);
+                            r(e).replaceWith(`<img src="${n}" alt="${t}">`);
+                        })
+                );
+                let i = ``;
+                return ((i = t.type === `film` ? t.creditsShort : t.authors.map((e) => e.name).join(`, `)), (n.description = r.html()), (n.author = i), n);
+            })
+        )
+    );
+export { f as t };

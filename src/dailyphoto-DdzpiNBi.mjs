@@ -1,0 +1,48 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './types-Bl_lnefZ.mjs';
+import { Fragment as a, jsx as o, jsxs as s } from 'hono/jsx/jsx-runtime';
+import { load as c } from 'cheerio';
+import { renderToString as l } from 'hono/jsx/dom/server';
+import { raw as u } from 'hono/html';
+const d = (e) =>
+        l(
+            s(a, {
+                children: [o(`img`, { src: e?.src, alt: e?.altText }), o(`br`, {}), o(`h3`, { children: e?.ttl ? u(e.ttl) : null }), o(`p`, { children: e?.dsc ? u(e.dsc) : null }), o(`p`, { children: e?.crdt ? u(e.crdt) : null })],
+            })
+        ),
+    f = {
+        path: `/dailyphoto`,
+        categories: [`picture`],
+        view: i.Pictures,
+        example: `/natgeo/dailyphoto`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`nationalgeographic.com/photo-of-the-day/*`, `nationalgeographic.com/`] }],
+        name: `Daily Photo`,
+        maintainers: [`LogicJake`, `OrangeEd1t`, `TonyRL`, `pseudoyu`],
+        handler: p,
+        url: `nationalgeographic.com/photo-of-the-day/*`,
+    };
+async function p() {
+    let i = `https://www.nationalgeographic.com`,
+        a = `${i}/photo-of-the-day`,
+        o = c(await t.tryGet(a, async () => (await r(a)).data, e.cache.contentExpire, !1));
+    return {
+        title: `Nat Geo Photo of the Day`,
+        link: a,
+        item: JSON.parse(o.html().match(/window\['__natgeo__']=(.*);/)[1]).page.content.mediaspotlight.frms[0].mods[0].edgs[1].media.map((e) => ({
+            title: e.meta.title,
+            description: d(e.img),
+            link: i + e.locator,
+            pubDate: n(e.caption.preHeading),
+            author: e.img.crdt,
+        })),
+    };
+}
+export { f as route };

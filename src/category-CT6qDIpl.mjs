@@ -1,0 +1,42 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './utils-D__cuG2f.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/category/:category?/:subCategory?`,
+    categories: [`programming`],
+    example: `/category/css/interactivity`,
+    parameters: {
+        category: {
+            description: `Main Category. For Complete list visit site "https://www.30secondsofcode.org/collections/p/1/"`,
+            options: [
+                { value: `js`, label: `Javascript` },
+                { value: `css`, label: `CSS` },
+                { value: `algorithm`, label: `JavaScript Algorithms` },
+                { value: `react`, label: `React` },
+            ],
+        },
+        subCategory: { description: `Filter within Category. Visit Individual Category site for subCategories` },
+    },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`30secondsofcode.org/:category/:subCategory/`, `30secondsofcode.org/:category/`], target: `/category/:category/:subCategory` }],
+    name: `Category and Subcategory`,
+    maintainers: [`Rjnishant530`],
+    handler: i,
+};
+async function i(r) {
+    let i = r.req.param(`category`) ?? ``,
+        a = r.req.param(`subCategory`) ?? ``,
+        o = `https://www.30secondsofcode.org`,
+        s = n(await e(`${o}${i ? `/${i}` : ``}${a ? `/${a}` : ``}${i || a ? `/p/1/` : ``}`)),
+        c = s(`section.hero`),
+        l = c.find(`div > h1`).text(),
+        u = c.find(`div > p`).text(),
+        d = c.find(`img`).attr(`src`),
+        f = await t(s(`section.preview-list > ul > li`).toArray());
+    return { title: l, description: u, image: `${o}${d}`, link: o, item: f };
+}
+export { r as route };

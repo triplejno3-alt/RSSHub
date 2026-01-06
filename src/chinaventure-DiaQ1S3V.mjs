@@ -1,0 +1,52 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = `https://www.chinaventure.com.cn`,
+    o = { 78: `商业深度`, 80: `资本市场`, 83: `5G`, 111: `健康`, 110: `教育`, 112: `地产`, 113: `金融`, 114: `硬科技`, 116: `新消费` },
+    s = {
+        path: `/news/:id?`,
+        categories: [`new-media`],
+        example: `/chinaventure/news/78`,
+        parameters: { id: `分类，见下表，默认为推荐` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`chinaventure.com.cn/`], target: `` }],
+        name: `分类`,
+        maintainers: [`yuxinliu-alex`],
+        handler: c,
+        url: `chinaventure.com.cn/`,
+        description: `| 推荐 | 商业深度 | 资本市场 | 5G | 健康 | 教育 | 地产 | 金融 | 硬科技 | 新消费 |
+| ---- | -------- | -------- | -- | ---- | ---- | ---- | ---- | ------ | ------ |
+|      | 78       | 80       | 83 | 111  | 110  | 112  | 113  | 114    | 116    |`,
+    };
+async function c(s) {
+    let c = s.req.param(`id`),
+        l = a.concat(c ? `/news/${c}.html` : `/index.html`),
+        u = i((await n({ method: `get`, url: l })).data),
+        d = u(`a`, `.common_newslist_pc`)
+            .filter((e) => u(e).attr(`href`))
+            .toArray()
+            .map((e) => ({ link: a + u(e).attr(`href`) }))
+            .slice(0, s.req.query(`limit`) ? Math.min(Number.parseInt(s.req.query(`limit`)), 20) : 20),
+        f = await Promise.all(
+            d.map((a) =>
+                e.tryGet(a.link, async () => {
+                    let e = i((await n({ method: `get`, url: a.link })).data);
+                    return ((a.title = e(`h1.maintitle_pc`).text()), (a.description = e(`div.article_slice_pc`).html()), (a.author = e(`div.source_author`).text()), (a.pubDate = r(t(e(`div.releaseTime`).text()), 8)), a);
+                })
+            )
+        );
+    return {
+        title: `${o[c] ?? `推荐`}-投中网`,
+        link: l,
+        description: `投中网是国内领先的创新经济信息服务平台，拥有立体化媒体矩阵，十多年行业深耕，为创新经济领域核心人群提供深入、独到的智识和洞见，在私募股权投资行业和创新商业领域均拥有权威影响力。`,
+        language: `zh-cn`,
+        item: f,
+    };
+}
+export { s as route };

@@ -1,0 +1,23 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+const n = {
+    path: `/archive`,
+    categories: [`blog`],
+    example: `/luxiangdong/archive`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`luxiangdong.com/`] }],
+    name: `文章`,
+    maintainers: [`Levix`],
+    handler: r,
+    url: `luxiangdong.com/`,
+};
+async function r() {
+    let { data: n } = await t(`https://www.luxiangdong.com/content.json?t=${Date.now()}`);
+    return { title: `土猛的员外`, link: `https://www.luxiangdong.com/`, item: n.posts.map((t) => ({ title: t.title, link: t.permalink, pubDate: e(t.date), author: n.meta.author, category: t.tags.map((e) => e.name) })) };
+}
+export { n as route };

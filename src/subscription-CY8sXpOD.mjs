@@ -1,0 +1,73 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './config-not-found-DGyG6Tbz.mjs';
+const r = {
+    path: `/subscription/:parameters?`,
+    description:
+        "\n1. If no specific parameters are specified, all subscription sources will be output by default.\n2. Please obtain the Category ID or Subscription Source ID on the `Category` (shortcut `g` `c`) or `Source` (shortcut `g` `f`) page. The URL of each category (or subscription source) will display its ID information.\n3. Support for category names and category IDs, to output multiple categories, please repeat entering `category=` and connect with `&`, or directly use **English** commas between different category names. For example, you can subscribe through `/miniflux/subscription/category=technology&category=1` or `/miniflux/subscription/categories=technology,1`.\n4. Support specifying the subscription source name or subscription source ID, similar to setting categories. For example, you can subscribe through `/miniflux/subscription/feed=1&feed=Archdaily` or `/miniflux/subscription/feeds=1,Archdaily`.\n5. Support simultaneously specifying subscription source information and category information; it will output subscription sources that meet the selected categories' criteria. Consider an example: by using `/miniflux/subscription/feeds=1,archdaily&category=art,7`, if the Subscription Source ID is 1 or the Subscription Source Name is ArchDaily indeed falls under Category 'art' or has a Category ID of 7, then output that subscription source information.\n    ",
+    categories: [`other`],
+    example: `/miniflux/subscription/categories=test`,
+    parameters: { parameters: `Category name or category ID or/and subscription source name or subscription source ID` },
+    features: {
+        requireConfig: [
+            { name: `MINIFLUX_INSTANCE`, description: `The instance used by the user, by default, is the official MiniFlux [paid service address](https://reader.miniflux.app)` },
+            { name: `MINIFLUX_TOKEN`, description: "User's API key, please log in to the instance used and go to `Settings` -> `API Key` -> `Create a new API key` to obtain." },
+        ],
+        requirePuppeteer: !1,
+        antiCrawler: !1,
+        supportBT: !1,
+        supportPodcast: !1,
+        supportScihub: !1,
+    },
+    name: `Subscriptions`,
+    maintainers: [`emdoe`, `DIYgod`],
+    handler: i,
+};
+async function i(r) {
+    let i = e.miniflux.instance,
+        a = e.miniflux.token;
+    if (!a) throw new n(`This RSS feed is disabled due to its incorrect configuration: the token is missing.`);
+    function o(e) {
+        if (e.search(`=`) === -1) return ``;
+        let t = e.slice(0, e.indexOf(`=`)),
+            n = e.slice(e.lastIndexOf(`=`) + 1);
+        return t.search(`categor`) === -1 ? (t.search(`feed`) === -1 ? `` : (n.split(`,`).map((e) => d.push(e.toString().toLowerCase())), t)) : (n.split(`,`).map((e) => u.push(e.toString().toLowerCase())), t);
+    }
+    function s(e) {
+        l.push({ title: e.title, link: e.site_url, pubData: e.last_modified_header, description: `Feed URL: <a href=${e.feed_url}>${e.feed_url}</a>` });
+    }
+    let c = await t.get(`${i}/v1/feeds`, { headers: { 'X-Auth-Token': a } }),
+        l = [],
+        u = [],
+        d = [],
+        f = c.data;
+    if (
+        r.req
+            .param(`parameters`)
+            ?.split(`&`)
+            .map((e) => o(e))
+            .join(``)
+    ) {
+        for (let e of f)
+            if (u.length && d.length) {
+                let t = e.category.title.toLowerCase(),
+                    n = e.category.id.toString(),
+                    r = e.id.toString(),
+                    i = e.title.toLowerCase();
+                (u.includes(n) || u.includes(t)) && (d.includes(r) || d.includes(i)) && s(e);
+            } else if (u.length) {
+                let t = e.category.title.toLowerCase(),
+                    n = e.category.id.toString();
+                (u.includes(n) || u.includes(t)) && s(e);
+            } else if (d.length) {
+                let t = e.id.toString(),
+                    n = e.title.toLowerCase();
+                (d.includes(t) || d.includes(n)) && s(e);
+            }
+    } else for (let e of f) s(e);
+    return { title: `MiniFlux | Subscription List`, link: i, description: `A subscription tracking feed.`, item: l, allowEmpty: !0 };
+}
+export { r as route };

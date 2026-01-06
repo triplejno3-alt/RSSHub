@@ -1,0 +1,53 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = { url: `http://jiaowu.xaufe.edu.cn/`, title: `西安财经大学 教务处（招生办公室）` },
+    a = { tzgg: { title: `通知公告`, url: `index/tzgg.htm` } },
+    o = {
+        path: `/jiaowu/:category?`,
+        categories: [`university`],
+        example: `/xaufe/jiaowu/tzgg`,
+        parameters: { category: `分类，默认为通知公告` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `教务处`,
+        maintainers: [`shaokeyibb`],
+        handler: s,
+        description: `| 通知公告 |
+| :------: |
+|   tzgg   |`,
+    };
+async function s(o) {
+    let s = a[o.req.param(`category`)] || a.tzgg,
+        c = (await n({ method: `get`, url: i.url + s.url })).body,
+        l = r(c),
+        u = l(`.main_conRCb ul li`)
+            .slice(0, 16)
+            .toArray()
+            .map((e) => {
+                e = l(e);
+                let n = e.children(`span`).text(),
+                    r = e.find(`a em`).text(),
+                    a = e.children(`a`).attr(`href`).replaceAll(`../`, i.url);
+                return { pubDate: t(n), title: r, link: a };
+            });
+    return {
+        title: `${s.title}-${i.title}`,
+        link: i.url + s.url,
+        description: `${s.title}-${i.title}`,
+        language: `zh_CN`,
+        item: await Promise.all(
+            u.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = r((await n({ method: `get`, url: t.link })).body);
+                    return ((t.author = /作者：(\S*)\s{4}/g.exec(e(`p`, `.main_contit`).text())[1]), (t.description = e(`#vsb_content`).html()), t);
+                })
+            )
+        ),
+    };
+}
+export { o as route };

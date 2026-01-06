@@ -1,0 +1,47 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+const i = {
+    path: `/index`,
+    categories: [`new-media`],
+    view: r.Articles,
+    example: `/sspai/index`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`sspai.com/index`] }],
+    name: `首页`,
+    maintainers: [`HenryQW`, `cscnk52`],
+    handler: a,
+    url: `sspai.com/index`,
+};
+async function a() {
+    let r = await n({ method: `get`, url: `https://sspai.com/api/v1/article/index/page/get?limit=10&offset=0&created_at=0` });
+    return {
+        title: `少数派`,
+        link: `https://sspai.com`,
+        description: `少数派首页`,
+        item: await Promise.all(
+            r.data.data.map((r) => {
+                let i = `https://sspai.com/api/v1/${r.slug ? `member/article/single/info/get?slug=${r.slug}` : `article/info/get?id=${r.id}`}&view=second&support_webp=true`,
+                    a = ``,
+                    o = `sspai: ${r.id}`;
+                return e.tryGet(o, async () => {
+                    let e = (await n({ method: `get`, url: i })).data.data,
+                        o = e.promote_image;
+                    return (
+                        o && (a = `<img src="${o}" alt="Article Cover Image" style="display: block; margin: 0 auto;"><br>`),
+                        e.body_extends && (a += e.body_extends.map((e) => `<h2>${e.title}</h2>${e.body}`).join(``)),
+                        (a += e.body),
+                        { title: r.title.trim(), description: a, link: `https://sspai.com/post/${r.id}`, pubDate: t(r.released_time * 1e3), author: r.author.nickname }
+                    );
+                });
+            })
+        ),
+    };
+}
+export { i as route };

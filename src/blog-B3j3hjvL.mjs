@@ -1,0 +1,36 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/blog/:lang?`,
+    categories: [`blog`],
+    example: `/qwenlm/blog/zh`,
+    parameters: { lang: `Blog language` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`qwenlm.github.io/blog/`, `qwenlm.github.io/:lang/blog/`], target: `/qwenlm/blog/:lang` }],
+    name: `Blog`,
+    maintainers: [`Kjasn`],
+    handler: async (i) => {
+        let { lang: a } = i.req.param(),
+            o = a ? `https://qwenlm.github.io/${a}/blog` : `https://qwenlm.github.io/blog`,
+            s = r(await e(o)),
+            c = s(`article.post-entry`)
+                .toArray()
+                .map((e) => {
+                    e = s(e);
+                    let t = n(
+                        e
+                            .find(`.entry-footer span`)
+                            .attr(`title`)
+                            .trim()
+                            .replace(/\+0800$/, ``)
+                    );
+                    return { title: e.find(`header.entry-header h2`).text().trim(), link: e.find(`.entry-link`).attr(`href`), pubDate: t };
+                });
+        return { title: `Qwen Blog`, link: o, item: await Promise.all(c.map((n) => t.tryGet(n.link, async () => ((n.description = r(await e(n.link))(`main`).html()), n)))) };
+    },
+};
+export { i as route };

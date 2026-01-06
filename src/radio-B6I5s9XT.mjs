@@ -1,0 +1,51 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './description-C5mknfdt.mjs';
+const r = {
+    path: `/:id`,
+    categories: [`multimedia`],
+    example: `/radio/1552135`,
+    parameters: { id: `专辑 id，可在对应专辑页面的 URL 中找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !0, supportScihub: !1 },
+    name: `节目`,
+    maintainers: [`kt286`, `nczitzk`],
+    handler: i,
+    description:
+        '如果订阅 [共和国追梦人](http://www.radio.cn/pc-portal/sanji/detail.html?columnId=1552135)，其 URL 为 `https://www.radio.cn/pc-portal/sanji/detail.html?columnId=1552135`，可以得到 `columnId` 为 `1552135`\n\n  所以对应路由为 [`/radio/1552135`](https://rsshub.app/radio/1552135)\n\n::: tip\n  该路由仅适用于更新时间较早的电台节目，如 [共和国追梦人](http://www.radio.cn/pc-portal/sanji/detail.html?columnId=1552135)\n\n  与适用于 [专辑](#yun-ting-zhuan-ji) 路由的专辑其 `columnId` 长度相比，它们的 `columnId` 长度较短\n:::',
+};
+async function i(r) {
+    let i = r.req.param(`id`),
+        a = `http://tacc.radio.cn/pcpages/odchannelpages?od_id=${i}&start=1&rows=${r.req.query(`limit`) ?? `100`}`,
+        o = `https://www.radio.cn/pc-portal/sanji/detail.html?columnId=${i}`,
+        s = await t({ method: `get`, url: a });
+    /^\(.*\)$/.test(s.data) && (s.data = JSON.parse(s.data.match(/^\((.*)\)$/)[1]));
+    let c = s.data.data,
+        l = c.program.map((t) => {
+            let r = t.streams[0].url,
+                i = `audio/${r.match(/\.(\w+)$/)[1]}`;
+            return {
+                guid: t.id,
+                title: t.name,
+                link: t.streams[0].url,
+                description: n({ description: t.description, enclosure_url: r, enclosure_type: i }),
+                pubDate: e(t.onlinetime),
+                enclosure_url: r,
+                enclosure_type: i,
+                itunes_duration: t.duration,
+                itunes_item_image: c.odchannel.imageUrl[0].url,
+            };
+        });
+    return {
+        title: `云听 - ${c.odchannel.name}`,
+        link: o,
+        item: l,
+        image: c.odchannel.imageUrl[0].url,
+        itunes_author: c.odchannel.commissioningEditorName || c.odchannel.editorName || c.odchannel.source || `radio.cn`,
+        description: c.odchannel.description || c.odchannel.sub_title || ``,
+    };
+}
+export { r as route };

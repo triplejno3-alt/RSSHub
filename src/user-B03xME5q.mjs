@@ -1,0 +1,53 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import { t as e } from './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import { t } from './types-Bl_lnefZ.mjs';
+import './puppeteer-BbZGb8cd.mjs';
+import { t as n } from './api-BlYmvzit.mjs';
+import { t as r } from './utils-DPcqKUMS.mjs';
+const i = {
+    path: `/user/:id/:routeParams?`,
+    categories: [`social-media`],
+    view: t.SocialMedia,
+    example: `/twitter/user/_RSSHub`,
+    parameters: { id: 'username; in particular, if starts with `+`, it will be recognized as a [unique ID](https://github.com/DIYgod/RSSHub/issues/12221), e.g. `+44196397`', routeParams: `extra parameters, see the table above` },
+    features: {
+        requireConfig: [
+            { name: `TWITTER_USERNAME`, description: `Please see above for details.` },
+            { name: `TWITTER_PASSWORD`, description: `Please see above for details.` },
+            { name: `TWITTER_AUTHENTICATION_SECRET`, description: `TOTP 2FA secret, please see above for details.`, optional: !0 },
+            { name: `TWITTER_AUTH_TOKEN`, description: `Please see above for details.` },
+            { name: `TWITTER_THIRD_PARTY_API`, description: `Use third-party API to query twitter data`, optional: !0 },
+        ],
+        requirePuppeteer: !1,
+        antiCrawler: !1,
+        supportBT: !1,
+        supportPodcast: !1,
+        supportScihub: !1,
+    },
+    name: `User timeline`,
+    maintainers: [`DIYgod`, `yindaheng98`, `Rongronggg9`, `CaoMeiYouRen`, `pseudoyu`],
+    handler: a,
+    radar: [{ source: [`x.com/:id`], target: `/user/:id` }],
+};
+async function a(t) {
+    let i = t.req.param(`id`),
+        { count: a, include_replies: o, include_rts: s } = r.parseRouteParams(t.req.param(`routeParams`)),
+        c = a ? { count: a } : {};
+    await n.init();
+    let l = await n.getUser(i),
+        u;
+    try {
+        ((u = await (o ? n.getUserTweetsAndReplies(i, c) : n.getUserTweets(i, c))), s || (u = r.excludeRetweet(u)));
+    } catch (t) {
+        e.error(t);
+    }
+    let d = l?.profile_image_url || l?.profile_image_url_https;
+    return { title: `Twitter @${l?.name}`, link: `https://x.com/${l?.screen_name}`, image: d.replace(/_normal.jpg$/, `.jpg`), description: l?.description, item: u && r.ProcessFeed(t, { data: u }), allowEmpty: !0 };
+}
+export { i as route };

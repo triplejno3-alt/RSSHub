@@ -1,0 +1,56 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+import a from 'iconv-lite';
+const o = `http://news.inewsweek.cn`,
+    s = {
+        path: `/:channel`,
+        categories: [`traditional-media`],
+        example: `/inewsweek/survey`,
+        parameters: { channel: `栏目` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`inewsweek.cn/:channel`, `inewsweek.cn/`] }],
+        name: `栏目`,
+        maintainers: [`changren-wcr`],
+        handler: c,
+        description: `提取文章全文。
+
+| 封面  | 时政     | 社会    | 经济    | 国际  | 调查   | 人物   |
+| ----- | -------- | ------- | ------- | ----- | ------ | ------ |
+| cover | politics | society | finance | world | survey | people |`,
+    };
+async function c(s) {
+    let c = `${o}/${s.req.param(`channel`)}`,
+        l = await n(c, { responseType: `buffer` }),
+        u = i(a.decode(l.data, `gbk`)),
+        d = await Promise.all(
+            u(`div.grid-item`)
+                .toArray()
+                .map((s) => {
+                    s = u(s);
+                    let c = `${o}${s.find(`a`).attr(`href`)}`;
+                    return e.tryGet(c, async () => {
+                        let e = await n(c, { responseType: `buffer` }),
+                            o = i(a.decode(e.data, `gbk`)),
+                            l = o(`div.contenttxt`).html(),
+                            u = r(
+                                t(
+                                    o(`div.editor`)
+                                        .html()
+                                        .split(/(\s\s+)/)[2]
+                                ),
+                                8
+                            );
+                        return { title: s.find(`p`).text(), description: l, link: c, pubDate: u };
+                    });
+                })
+        );
+    return { title: u(`title`).text(), link: c, item: d };
+}
+export { s as route };

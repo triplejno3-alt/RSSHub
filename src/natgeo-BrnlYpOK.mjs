@@ -1,0 +1,54 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { load as r } from 'cheerio';
+async function i(t) {
+    let i = r(await e(t)),
+        a = i(`.content-title-area`)
+            .find(`h6`)
+            .first()
+            .text()
+            .replaceAll(/&nbsp;/gi, ` `)
+            .trim();
+    i(`.splide__arrows, .slide-control, [class^="ad-"], style`).remove();
+    let o = (i(`article`).eq(0).html() ?? ``) + (i(`article`).eq(1).html() ?? ``);
+    return (
+        /photo|gallery/.test(t) && (o = i(`#content-album`).html() + o),
+        {
+            title: i(`h1.content-title`).text().trim(),
+            pubDate: n(a),
+            description: o,
+            category: i(`.content-tag a`)
+                .toArray()
+                .map((e) => i(e).text()),
+            link: t,
+            image: i(`link[rel="image_src"]`).attr(`href`),
+        }
+    );
+}
+const a = {
+    path: `/:cat/:type?`,
+    categories: [`travel`],
+    example: `/natgeo/environment/article`,
+    parameters: { cat: `分类`, type: '类型, 例如`https://www.natgeomedia.com/environment/photo/`对应 `cat`, `type` 分别为 `environment`, `photo`' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`natgeomedia.com/:cat/:type`, `natgeomedia.com/:cat/`, `natgeomedia.com/`], target: `/:cat/:type?` }],
+    name: `分类`,
+    maintainers: [`fengkx`],
+    handler: o,
+};
+async function o(n) {
+    let a = n.req.param(`type`) ?? ``,
+        o = `https://www.natgeomedia.com/${n.req.param(`cat`)}/${a}`,
+        s = r(await e(o)),
+        c = s(`.article-link-content h4`)
+            .toArray()
+            .filter((e) => s(e).closest(`.article-link-right`).length === 0)
+            .map((e) => ({ link: s(e).find(`a[href]`).first().attr(`href`) }))
+            .filter((e) => e.link),
+        l = await Promise.all(c.map((e) => t.tryGet(e.link, () => i(e.link))));
+    return { title: s(`title`).text(), description: s(`meta[name="description"]`).attr(`content`), link: o, image: `https://www.natgeomedia.com/img/app_icon.png`, item: l };
+}
+export { a as route };

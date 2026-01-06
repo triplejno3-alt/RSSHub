@@ -1,0 +1,22 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = { path: [`/update`, `/versions`], name: `Unknown`, maintainers: [`Cesaryuan`, `nczitzk`], handler: i, url: `getquicker.net/Help/Versions` };
+async function i() {
+    let r = `https://getquicker.net`,
+        i = `${r}/Help/Versions`,
+        a = n((await t({ method: `get`, url: i })).data),
+        o = a(`.version`)
+            .toArray()
+            .map((t) => {
+                t = a(t);
+                let n = t.find(`h2 a`);
+                return { title: n.text().trim(), link: `${r}${n.attr(`href`)}`, description: t.find(`.article-content`).html(), pubDate: e(t.find(`.text-secondary`).first().text()) };
+            });
+    return { title: a(`title`).text(), link: i, item: o };
+}
+export { r as route };

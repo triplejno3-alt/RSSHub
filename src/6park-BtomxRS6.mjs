@@ -1,0 +1,56 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/index/:id?/:type?/:keyword?`,
+    name: `首页`,
+    maintainers: [`nczitzk`, `cscnk52`],
+    handler: o,
+    example: `/6park/index`,
+    parameters: { id: `分站，见下表，默认为史海钩沉`, type: `类型，可选值为 gold、type，默认为空`, keyword: `关键词，可选，默认为空` },
+    radar: [{ source: [`club.6parkbbs.com/:id/index.php`, `club.6parkbbs.com/`], target: `/:id?` }],
+    description: `| 婚姻家庭 | 魅力时尚 | 女性频道 | 生活百态 | 美食厨房 | 非常影音 | 车迷沙龙 | 游戏天地 | 卡通漫画 | 体坛纵横 | 运动健身 | 电脑前线 | 数码家电 | 旅游风向 | 摄影部落 | 奇珍异宝 | 笑口常开 | 娱乐八卦 | 吃喝玩乐 | 文化长廊 | 军事纵横 | 百家论坛 | 科技频道 | 爱子情怀 | 健康人生 | 博论天下 | 史海钩沉 | 网际谈兵 | 经济观察 | 谈股论金 | 杂论闲侃 | 唯美乐园 | 学习园地 | 命理玄机 | 宠物情缘 | 网络歌坛 | 音乐殿堂 | 情感世界 |
+|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|
+| life9    | life1    | chan10   | life2    | life6    | fr       | enter7   | enter3   | enter6   | enter5   | sport    | know1    | chan6    | life7    | chan8    | page     | enter1   | enter8   | netstar  | life10   | nz       | other    | chan2    | chan5    | life5    | bolun    | chan1    | military | finance  | chan4    | pk       | gz1      | gz2      | gz3      | life8    | chan7    | enter4   | life3    |`,
+};
+async function o(a) {
+    let o = a.req.param(`id`) ?? `chan1`,
+        s = a.req.param(`type`) ?? ``,
+        c = a.req.param(`keyword`) ?? ``,
+        l = a.req.query(`limit`) ? Number.parseInt(a.req.query(`limit`)) : 50,
+        u = `https://club.6parkbbs.com`,
+        d = `${`${u}/${o}/index.php`}${s === `` || c === `` ? `` : s === `gold` ? `?app=forum&act=gold` : `?action=search&act=threadsearch&app=forum&${s}=${c}&submit=${s === `type` ? `查询` : `栏目搜索`}`}`,
+        f = i((await n({ method: `get`, url: d })).data),
+        p = f(`#d_list ul li, #thread_list li, .t_l .t_subject`)
+            .toArray()
+            .slice(0, l)
+            .map((e) => ((e = f(e)), { link: `${u}/${o}/${e.find(`a`).first().attr(`href`)}` }));
+    return (
+        (p = await Promise.all(
+            p.map((a) =>
+                e.tryGet(a.link, async () => {
+                    let e = await n({ method: `get`, url: a.link }),
+                        o = i(e.data);
+                    return (
+                        (a.title = o(`title`).text().replace(` -6park.com`, ``)),
+                        (a.author = e.data.match(/送交者: .*>(.*)<.*\[/)[1]),
+                        (a.pubDate = r(t(e.data.match(/于 (.*) 已读/)[1], `YYYY-MM-DD h:m`), 8)),
+                        (a.description = o(`pre`)
+                            .html()
+                            .replaceAll(`<p></p>`, ``)
+                            .replaceAll(/<font color="#E6E6DD">6park.com<\/font>/g, ``)),
+                        a
+                    );
+                })
+            )
+        )),
+        { title: f(`title`).text(), link: d, item: p }
+    );
+}
+export { a as route };

@@ -1,0 +1,63 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = `https://www.sc.sdu.edu.cn/`,
+    a = [`通知公告`, `学术动态`, `本科教育`, `研究生教育`],
+    o = [`tzgg.htm`, `kxyj/xsyg.htm`, `rcpy/bkjy.htm`, `rcpy/yjsjy.htm`],
+    s = {
+        path: `/sc/:type?`,
+        categories: [`university`],
+        example: `/sdu/sc/0`,
+        parameters: { type: '默认为 `0`' },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `软件学院通知`,
+        maintainers: [`Ji4n1ng`],
+        handler: c,
+        description: `| 通知公告 | 学术动态 | 本科教育 | 研究生教育 |
+| -------- | -------- | -------- | ---------- |
+| 0        | 1        | 2        | 3          |`,
+    };
+async function c(s) {
+    let c = s.req.param(`type`) ? Number.parseInt(s.req.param(`type`)) : 0,
+        l = new URL(o[c], i).href,
+        u = r((await n(l)).data),
+        d = u(`.newlist01 li`)
+            .toArray()
+            .map((e) => {
+                e = u(e);
+                let n = e.find(`a`),
+                    r = n.attr(`href`);
+                return ((r = new URL(r, i).href), { title: n.text().trim(), link: r, pubDate: t(e.find(`.date`).text().trim()) });
+            });
+    return (
+        (d = await Promise.all(
+            d.map((t) =>
+                e.tryGet(t.link, async () => {
+                    try {
+                        let e = r((await n(t.link)).data);
+                        return (
+                            (t.title = e(`h3`).text()),
+                            (t.author =
+                                e(`.pr`)
+                                    .text()
+                                    .trim()
+                                    .match(/作者：(.*)/)[1] || `山东大学软件学院`),
+                            e(`h3, .pr`).remove(),
+                            (t.description = e(`.content`).html()),
+                            t
+                        );
+                    } catch {
+                        return t;
+                    }
+                })
+            )
+        )),
+        { title: `山东大学软件学院${a[c]}`, description: u(`title`).text(), link: l, item: d }
+    );
+}
+export { s as route };

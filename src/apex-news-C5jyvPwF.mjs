@@ -1,0 +1,66 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { t as i } from './invalid-parameter-DGZgOgO2.mjs';
+import a from 'markdown-it';
+const o = a({ html: !0, breaks: !0 }),
+    s = new Set([`zh-hant`, `en`]),
+    c = new Set([`latest`, `game-updates`, `news-article`]);
+async function l(r) {
+    let { lang: a = `en`, type: l = `latest` } = r.req.param(),
+        u = new URLSearchParams({ limit: `13`, gameSlug: `apex-legends`, offset: `0` });
+    if (!s.has(a)) throw new i(`Invalid language: ${a}`);
+    if (!c.has(l)) throw new i(`Invalid type: ${l}`);
+    (l !== `latest` && u.append(`typeSlug`, l), a !== `en` && u.append(`locale`, a));
+    let d = await e(`https://drop-api.ea.com/news-articles/pagination?${u}`),
+        f = [d.featured, ...d.items]
+            .filter(Boolean)
+            .map((e) => ({ title: e.title, description: e.summary, link: `https://www.ea.com${a === `en` ? `/` : `/` + a + `/`}games/apex-legends/apex-legends/news/${e.slug}`, pubDate: n(e.publishingDate), slug: e.slug })),
+        p = await Promise.all(
+            f.map((n) =>
+                t.tryGet(n.link ?? ``, async () => {
+                    let t = await e(`https://drop-api.ea.com/news-articles/${n.slug}${a === `en` ? `` : `?locale=` + a}`);
+                    return ((n.description = o.render(t.body)), n);
+                })
+            )
+        );
+    return {
+        title: `Apex Legends 官网资讯${l === `latest` ? `` : `（${l === `news-article` ? `最新消息` : `游戏更新`}）`}`,
+        link: `https://www.ea.com${a === `en` ? `/` : `/` + a + `/`}games/apex-legends/apex-legends/news${l === `latest` ? `` : `?type=${l}`}`,
+        item: p.map((e) => ({ title: e.title, description: e.description, link: e.link, pubDate: e.pubDate })),
+        image: `https://drop-assets.ea.com/images/F1GeiHWipvvKj7GtUVP3U/31bb122451e2dea6d14c9b497f8e09d4/apex-white-nav-logo.svg`,
+    };
+}
+const u = {
+    path: `/apex-news/:lang?/:type?`,
+    categories: [`game`],
+    example: `/ea/apex-news/zh-hant/game-updates`,
+    parameters: {
+        lang: {
+            description: `语言`,
+            options: [
+                { value: `zh-hant`, label: `中文(繁体)` },
+                { value: `en`, label: `English` },
+            ],
+            default: `en`,
+        },
+        type: {
+            description: `资讯类型（可选）`,
+            options: [
+                { value: `news-article`, label: `最新消息` },
+                { value: `game-updates`, label: `游戏更新` },
+                { value: `latest`, label: `全部` },
+            ],
+            default: `latest`,
+        },
+    },
+    name: `APEX Legends 官网资讯`,
+    maintainers: [`IceChestnut`],
+    handler: l,
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    view: r.Articles,
+};
+export { u as route };

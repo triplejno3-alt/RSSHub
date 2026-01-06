@@ -1,0 +1,115 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+import { t as r } from './parse-date-DjdQS_Nt.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import * as s from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+import { raw as l } from 'hono/html';
+const u = `https://www.famitsu.com`,
+    d = {
+        path: `/category/:category?`,
+        categories: [`game`],
+        example: `/famitsu/category/new-article`,
+        parameters: { category: 'Category, see table below, `new-article` by default' },
+        radar: [{ source: [`www.famitsu.com/category/:category/page/1`] }],
+        name: `Category`,
+        maintainers: [`TonyRL`],
+        handler: h,
+        description: `| 新着        | Switch | PS5 | PS4 | PC ゲーム | ニュース | 動画   | 特集・企画記事  | インタビュー | 取材・リポート | レビュー | インディーゲーム |
+| ----------- | ------ | --- | --- | --------- | -------- | ------ | --------------- | ------------ | -------------- | -------- | ---------------- |
+| new-article | switch | ps5 | ps4 | pc-game   | news     | videos | special-article | interview    | event-report   | review   | indie-game       |`,
+    };
+function f() {
+    return n.tryGet(
+        `famitsu:buildId`,
+        async () => {
+            let t = await e(u),
+                n = s.load(t);
+            return JSON.parse(n(`#__NEXT_DATA__`).text()).buildId;
+        },
+        t.cache.routeExpire,
+        !1
+    );
+}
+function p(e) {
+    return c(a(g, { bannerImage: e.bannerImage, content: e.content }));
+}
+function m(e) {
+    if (Array.isArray(e.content)) return e.content.map((e) => e.type && m(e)).join(``);
+    switch (e.type) {
+        case `B`:
+        case `INTERVIEWEE`:
+        case `STRONG`:
+            return `<b>${e.content}</b>`;
+        case `HEAD`:
+            return `<h2>${e.content}</h2>`;
+        case `SHEAD`:
+            return `<h3>${e.content}</h3>`;
+        case `LINK_B`:
+        case `LINK_B_TAB`:
+            return `<a href="${e.url}"><b>${e.content}</b></a><br>`;
+        case `IMAGE`:
+            return `<img src="${e.path}">`;
+        case `NEWS`:
+            return `<a href="${e.url}">${e.content}<br>${e.description}</a><br>`;
+        case `HTML`:
+            return e.content;
+        case `ANNOTATION`:
+        case `CAPTION`:
+        case `ITEMIZATION`:
+        case `ITEMIZATION_NUM`:
+        case `NOLINK`:
+        case `PBOX`:
+        case `STRING`:
+        case `TWITTER`:
+        case `YOUTUBE`:
+            return `<div><span>${e.content}</span></div>`;
+        case `BUTTON`:
+        case `BUTTON_ANDROID`:
+        case `BUTTON_EC`:
+        case `BUTTON_IOS`:
+        case `BUTTON_QUESTION`:
+        case `BUTTON_TAB`:
+        case `LINK`:
+        case `LINK_TAB`:
+            return `<a href="${e.url}">${e.content}</a><br>`;
+        default:
+            throw Error(`Unhandle type: ${e.type}`);
+    }
+}
+async function h(t) {
+    let { category: i = `new-article` } = t.req.param(),
+        a = `${u}/category/${i}/page/1`,
+        o = await f(),
+        s = await e(`https://www.famitsu.com/_next/data/${o}/category/${i}/page/1.json`, { query: { categoryCode: i, pageNumber: 1 } }),
+        c = s.pageProps.categoryArticleDataForPc
+            .filter((e) => !e.advertiserName)
+            .map((e) => {
+                let t = e.publishedAt?.slice(0, 7).replace(`-`, ``);
+                return {
+                    title: e.title,
+                    link: `https://www.famitsu.com/article/${t}/${e.id}`,
+                    pubDate: r(e.publishedAt),
+                    category: [...new Set([e.mainCategory.nameJa, ...(e.subCategories?.map((e) => e.nameJa) ?? [])])],
+                    publicationDate: t,
+                    articleId: e.id,
+                };
+            }),
+        l = await Promise.all(
+            c.map((t) =>
+                n.tryGet(t.link, async () => {
+                    let n = (await e(`https://www.famitsu.com/_next/data/${o}/article/${t.publicationDate}/${t.articleId}.json`, { query: { publicationDate: t.publicationDate, articleId: t.articleId } })).pageProps.articleDetailData;
+                    return (
+                        (t.author = n.authors?.map((e) => e.name_ja).join(`, `) ?? n.user.name_ja),
+                        (t.description = p({ bannerImage: n.ogpImageUrl ?? n.thumbnailUrl, content: n.content.flatMap((e) => e.contents.map((e) => m(e))).join(``) })),
+                        t
+                    );
+                })
+            )
+        );
+    return { title: `${s.pageProps.targetCategory.nameJa}の最新記事 | ゲーム・エンタメ最新情報のファミ通.com`, image: `https://www.famitsu.com/img/1812/favicons/apple-touch-icon.png`, link: a, item: l, language: `ja` };
+}
+const g = ({ bannerImage: e, content: t }) => o(i, { children: [e ? o(i, { children: [a(`img`, { src: e }), a(`br`, {})] }) : null, t ? l(t) : null] });
+export { d as route };

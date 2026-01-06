@@ -1,0 +1,32 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { load as r } from 'cheerio';
+const i = `https://rustcc.cn`,
+    a = {
+        path: `/jobs`,
+        categories: [`programming`],
+        example: `/rustcc/jobs`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`rustcc.cn/`] }],
+        name: `招聘`,
+        maintainers: [`CcccFz`],
+        handler: o,
+        url: `rustcc.cn/`,
+    };
+async function o() {
+    let e = `https://rustcc.cn/section?id=fed6b7de-0a74-48eb-8988-1978858c9b35`,
+        n = r((await t({ url: e, headers: { Referer: i } })).data)(`.article-list li`).toArray();
+    return { title: `Rust语言中文社区 | 招聘`, link: e, description: `获取Rust语言中文社区的最新招聘`, item: await Promise.all(n.map((e) => s(e))) };
+}
+function s(t) {
+    let a = r(t),
+        o = a(`.title`);
+    return { title: o.text(), link: `${i}${o.attr(`href`)}`, description: a(`.info .tags`).text(), pubDate: n(e(a(`.info .timestamp`).text(), `YYYY-MM-DD hh:mm`), 8) };
+}
+export { a as route };

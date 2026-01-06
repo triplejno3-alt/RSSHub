@@ -1,0 +1,83 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { Fragment as n, jsx as r, jsxs as i } from 'hono/jsx/jsx-runtime';
+import { renderToString as a } from 'hono/jsx/dom/server';
+const o = ({ image: e, description: t, caption: a }) => i(n, { children: [r(`img`, { src: e, alt: t }), r(`figcaption`, { children: a })] }),
+    s = (e) => a(r(o, { ...e })),
+    c = ({ video: e }) =>
+        r(`iframe`, { id: `ytplayer`, type: `text/html`, width: `640`, height: `360`, src: `https://www.youtube-nocookie.com/embed/${e}`, frameborder: `0`, allowfullscreen: !0, referrerpolicy: `strict-origin-when-cross-origin` }),
+    l = (e) => a(r(c, { ...e }));
+async function u(n) {
+    let r = (await e(`https://go-api.twreporter.org/v2/posts/${n}?full=true`)).data,
+        i = r.published_date,
+        a = ``;
+    r.writers && (a = r.writers.map((e) => (e.job_title ? e.job_title + ` / ` + e.name : `文字 / ` + e.name)).join(`，`));
+    let o = ``;
+    r.photographers &&
+        ((o = r.photographers
+            .map((e) => {
+                let t = `攝影 / `;
+                return (e.job_title && (t = e.job_title + ` / `), t + e.name);
+            })
+            .join(`，`)),
+        (a += `；` + o));
+    let c = r.hero_image ?? r.og_image,
+        u = c?.resized_targets.desktop.url,
+        d = r.leading_image_description,
+        f = c?.description ?? ``,
+        p = r.og_description,
+        m = c ? s({ image: u, description: f, caption: d }) : ``;
+    function h(e, t) {
+        let n = ``;
+        if (t !== `` && e !== `embeddedcode`)
+            switch (e) {
+                case `image`:
+                case `slideshow`:
+                    n = t.map((e) => s({ image: e.desktop.url, description: e.description, caption: e.description })).join(`<br>`);
+                    break;
+                case `blockquote`:
+                    n = `<blockquote>${t}</blockquote>`;
+                    break;
+                case `header-one`:
+                    n = `<h1>${t}</h1>`;
+                    break;
+                case `header-two`:
+                    n = `<h2>${t}</h2>`;
+                    break;
+                case `infobox`: {
+                    let e = t[0];
+                    n = `<h2>${e.title}</h2>${e.body}`;
+                    break;
+                }
+                case `youtube`: {
+                    let e = t[0].youtubeId.split(`?`)[0];
+                    n = l({ video: e });
+                    break;
+                }
+                case `quoteby`: {
+                    let e = t[0];
+                    n = `<blockquote>${e.quote}</blockquote><p>${e.quoteBy}</p>`;
+                    break;
+                }
+                default:
+                    n = `${t}<br>`;
+            }
+        return n;
+    }
+    let g = [
+        m,
+        p,
+        r.content.api_data
+            .map((e) => {
+                let t = e.content,
+                    n = e.type;
+                return h(n, t);
+            })
+            .filter(Boolean)
+            .join(`<br>`),
+    ]
+        .filter(Boolean)
+        .join(`<br><br>`);
+    return { author: a, description: g, link: `https://www.twreporter.org/a/${n}`, guid: `https://www.twreporter.org/a/${n}`, pubDate: t(i, `YYYY-MM-DDTHH:mm:ssZ`) };
+}
+export { u as t };

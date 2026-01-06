@@ -1,0 +1,39 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { t } from './playlist-BdstUPwC.mjs';
+const n = {
+    path: `/music/artist/:id`,
+    categories: [`multimedia`],
+    example: `/163/music/artist/2116`,
+    parameters: { id: `歌手 id, 可在歌手详情页 URL 中找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `歌手专辑`,
+    maintainers: [`metowolf`],
+    handler: r,
+};
+async function r(n) {
+    let r = n.req.param(`id`),
+        i = (await e(`https://music.163.com/api/artist/albums/${r}`, { headers: { Referer: `https://music.163.com/` } })).data;
+    return {
+        title: i.artist.name,
+        link: `https://music.163.com/#/artist/album?id=${r}`,
+        description: `网易云音乐歌手专辑 - ${i.artist.name}`,
+        image: i.artist.img1v1Url || i.artist.picUrl,
+        item: i.hotAlbums.map((e) => {
+            let n = e.artists.length === 1 ? e.artists[0].name : e.artists.reduce((e, t) => (e.name || e) + `/` + t.name);
+            return {
+                title: `${e.name} - ${n}`,
+                description: t({ singer: n, album: e.name, date: new Date(e.publishTime).toLocaleDateString(), picUrl: e.picUrl }),
+                link: `https://music.163.com/#/album?id=${e.id}`,
+                pubDate: new Date(e.publishTime),
+                published: new Date(e.publishTime),
+                category: e.subType,
+                author: n,
+            };
+        }),
+    };
+}
+export { n as route };

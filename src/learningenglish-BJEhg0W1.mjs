@@ -1,0 +1,44 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { load as r } from 'cheerio';
+const i = {
+        'take-away-english': `随身英语`,
+        'authentic-real-english': `地道英语`,
+        'media-english': `媒体英语`,
+        lingohack: `英语大破解`,
+        'english-in-a-minute': `一分钟英语`,
+        'phrasal-verbs': `短语动词`,
+        'todays-phrase': `今日短语`,
+        'q-and-a': `你问我答`,
+        'english-at-work': `白领英语`,
+        storytellers: `亲子英语故事`,
+    },
+    a = {
+        name: `Learning English`,
+        maintainers: [`Blank0120`],
+        categories: [`study`],
+        handler: o,
+        path: `/learningenglish/:channel?`,
+        example: `/bbc/learningenglish/take-away-english`,
+        parameters: { channel: { description: `英语学习分类栏目`, options: Object.entries(i).map(([e, t]) => ({ value: e, label: t })), default: `take-away-english` } },
+    };
+async function o(a) {
+    let { channel: o = `take-away-english` } = a.req.param(),
+        s = `https://www.bbc.co.uk`,
+        c = `${s}/learningenglish/chinese/features/${o}`,
+        l = r(await e(c, { parseResponse: (e) => e })),
+        u = { title: l(`[data-widget-index=4]`).find(`h2`).text(), link: `${s}${l(`[data-widget-index=4]`).find(`h2 a`).attr(`href`)}`, pubDate: n(l(`[data-widget-index=4]`).find(`.details h3`).text()) },
+        d = l(`.threecol li`)
+            .toArray()
+            .slice(0, 10)
+            .map((e) => {
+                let t = r(e);
+                return { title: t(`h2`).text(), link: `${s}${t(`h2 a`).attr(`href`)}`, pubDate: n(t(`.details h3`).text()) };
+            }),
+        f = await Promise.all([u, ...d].map((n) => (n.link ? t.tryGet(n.link, async () => ((n.description = r(await e(n.link, { parseResponse: (e) => e }))(`.widget-richtext`).html() ?? void 0), n)) : n)));
+    return { title: `BBC英语学习-${i[o]}`, link: c, item: f };
+}
+export { a as route };

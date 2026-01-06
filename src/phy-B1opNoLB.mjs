@@ -1,0 +1,41 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { load as t } from 'cheerio';
+const n = {
+    path: `/phy/:category/:column/:subcolumn?`,
+    categories: [`university`],
+    example: `/jlu/phy/xzgz/tzgg`,
+    parameters: {
+        category: `分类，为「行政工作」、「科学研究」、「人才培养」的拼音小写首字母。`,
+        column: `栏目，当分类为「行政工作」时，为「通知公告」、「学院新闻」、「学院文件」的拼音小写首字母。当分类为「科学研究」时，为「科研动态」、「学术活动」的拼音小写首字母。当分类为「人才培养」时。为「本科生教育」、「研究生教育」、「学团工作」的拼音小写首字母。`,
+        subcolumn: `子栏目。当栏目为「本科生教育」时，为「本科资讯」的拼音大写首字母，或为「教育思想大讨论系列活动」、「培养方案」的拼音小写首字母。当栏目为「研究生教育」时，为「教学通知」的拼音小写首字母。`,
+    },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`phy.jlu.edu.cn/:category/:column`, `phy.jlu.edu.cn/:category/:column/:subcolumn`] }],
+    name: `物理学院`,
+    maintainers: [`tsurumi-yizhou`],
+    url: `phy.jlu.edu.cn`,
+    handler: async (n) => {
+        let { category: r, column: i, subcolumn: a } = n.req.param(),
+            o = t((await e(`https://phy.jlu.edu.cn/${r}/${a ? `${i}/${a}` : i}.htm`)).body);
+        return {
+            title: `吉林大学物理学院`,
+            link: `https://phy.jlu.edu.cn/`,
+            description: `吉林大学物理学院`,
+            item: o(`.tit-list ul li`)
+                .toArray()
+                .map((e) => {
+                    let t = o(e).find(`a`),
+                        n = t.find(`.tl-top`).find(`h3`).text().trim(),
+                        r = t.attr(`href`).replaceAll(`../`, `https://phy.jlu.edu.cn/`),
+                        i = t.find(`.tl-top`).find(`.tl-date`),
+                        a = i.find(`span`).text().replaceAll(`/`, ``).trim() + `-` + i.find(`b`).text();
+                    return { title: n, link: r, pubDate: new Date(a) };
+                }),
+        };
+    },
+};
+export { n as route };

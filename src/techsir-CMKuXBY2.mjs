@@ -1,0 +1,35 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = { path: `/`, categories: [`new-media`], example: `/techsir`, url: `www.techsir.com`, name: `最新资讯`, maintainers: [`p3psi-boo`], handler: a };
+async function a() {
+    let i = `https://techsir.com`,
+        a = r((await n({ method: `get`, url: i })).data),
+        o = a(
+            `#kt_wrapper > div.main-content-area > div.container.container-fluid > div:nth-child(1) > div.col-xs-12.col-sm-6.col-md-8.post-listing > div.row.flex-row-fluid > div:nth-child(2) > div > div > div.card-body.pt-2 > div.d-flex`
+        )
+            .toArray()
+            .map((e) => {
+                let t = a(e),
+                    n = `${i}${t.find(`a`).attr(`href`)}`;
+                return { title: t.find(`a`).text(), link: n };
+            });
+    return {
+        title: `TechSir - 最新资讯`,
+        link: i,
+        item: await Promise.all(
+            o.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let e = r((await n({ method: `get`, url: i.link })).data);
+                    return ((i.description = e(`.kg-card-markdown`).html()), (i.pubDate = t(e(`time.time`).text())), (i.author = e(`a.author`).text()), i);
+                })
+            )
+        ),
+    };
+}
+export { i as route };

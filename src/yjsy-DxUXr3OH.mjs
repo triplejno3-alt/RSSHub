@@ -1,0 +1,47 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/yjsy/:category?`,
+    categories: [`university`],
+    example: `/hljucm/yjsy`,
+    parameters: { category: `分类, 见下表，默认为新闻动态` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `研究生院`,
+    maintainers: [`nczitzk`],
+    handler: o,
+    description: `| 新闻动态 | 通知公告 |
+| -------- | -------- |
+| xwdt     | tzgg     |`,
+};
+async function o(a) {
+    let o = `https://yjsy.hljucm.net/index/${a.req.param(`category`) ?? `xwdt`}.htm`,
+        s = i((await n(o)).data),
+        c = s(`.postlist a`)
+            .toArray()
+            .map((e) => ((e = s(e)), { title: e.attr(`title`), link: new URL(e.attr(`href`), o).href })),
+        l = await Promise.all(
+            c.map((a) =>
+                e.tryGet(a.link, async () => {
+                    let e = await n(a.link),
+                        o = i(e.data);
+                    ((a.description = o(`#vsb_newscontent`).html()), (a.pubDate = r(t(o(`.timestyle56043`).text()), 8)));
+                    let s = e.data.match(/<span>附件【<a href="(.*)"><span>(.*)<\/span><\/a>】<\/span>/g);
+                    if (s)
+                        for (let e of s) {
+                            let { link: t, name: n } = e.match(/【<a href="(?<link>.*)"><span>(?<name>.*)<\/span><\/a>】/).groups;
+                            a.description += `<a href="${t}">${n}</a>`;
+                        }
+                    return a;
+                })
+            )
+        );
+    return { title: s(`title`).text(), link: o, item: l };
+}
+export { a as route };

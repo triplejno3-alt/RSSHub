@@ -1,0 +1,76 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { jsx as r, jsxs as i } from 'hono/jsx/jsx-runtime';
+import { load as a } from 'cheerio';
+import { renderToString as o } from 'hono/jsx/dom/server';
+import s from 'iconv-lite';
+const c = {
+    path: `/author/:id?`,
+    categories: [`reading`],
+    example: `/jjwxc/author/4364484`,
+    parameters: { id: `作者 id，可在对应作者页中找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `作者最新作品`,
+    maintainers: [`nczitzk`],
+    handler: l,
+};
+async function l(c) {
+    let l = c.req.param(`id`),
+        u = `https://www.jjwxc.net`,
+        d = new URL(`oneauthor.php?authorid=${l}`, u).href,
+        { data: f } = await t(d, { responseType: `buffer` }),
+        p = a(s.decode(f, `gbk`)),
+        m = p(`font a`).first(),
+        h = m.parent(),
+        g = m.text(),
+        _ = new URL(m.prop(`href`), u).href,
+        v = h.find(`font`).first().text(),
+        y = h.find(`font`).eq(1).text(),
+        b = h.parent().contents().last().text().trim(),
+        x = _.split(/=/).pop(),
+        S = `${g}(${v}/${y}/${b})`,
+        C = p(`span[itemprop="name"]`).text(),
+        w = [
+            {
+                title: S,
+                link: _,
+                description: o(
+                    r(`table`, {
+                        children: i(`tbody`, {
+                            children: [
+                                g ? i(`tr`, { children: [r(`th`, { children: `最近更新作品` }), r(`td`, { children: r(`a`, { href: _, children: g }) })] }) : null,
+                                v ? i(`tr`, { children: [r(`th`, { children: `作品状态` }), r(`td`, { children: v })] }) : null,
+                                y ? i(`tr`, { children: [r(`th`, { children: `作品字数` }), r(`td`, { children: y })] }) : null,
+                                b ? i(`tr`, { children: [r(`th`, { children: `最后更新时间` }), r(`td`, { children: b })] }) : null,
+                            ],
+                        }),
+                    })
+                ),
+                author: C,
+                category: [v],
+                guid: `jjwxc-${l}-${x}#${y}`,
+                pubDate: n(e(b), 8),
+            },
+        ],
+        T = p(`div.logo a img`),
+        E = `https:${T.prop(`src`)}`,
+        D = new URL(`favicon.ico`, u).href;
+    return {
+        item: w,
+        title: `${T.prop(`alt`).replace(/logo/, ``)} | ${C} - 最近更新`,
+        link: d,
+        description: p(`span[itemprop="description"]`).text(),
+        language: `zh`,
+        image: E,
+        icon: D,
+        logo: D,
+        subtitle: p(`meta[name="Description"]`).prop(`content`),
+        author: C,
+    };
+}
+export { c as route };

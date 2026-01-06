@@ -1,0 +1,42 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './rss-parser-CKuAfhVS.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/`,
+    example: `/jandan`,
+    name: `Feed`,
+    maintainers: [`nczitzk`, `bigfei`, `pseudoyu`],
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`i.jandan.net`], target: `/jandan` }],
+    handler: a,
+};
+async function a() {
+    let i = `http://i.jandan.net`,
+        a = await n.parseURL(`${i}/feed/`);
+    return {
+        title: `煎蛋`,
+        link: i,
+        item: await Promise.all(
+            a.items.map((n) =>
+                t.tryGet(n.link || ``, async () => {
+                    if (!n.link) return;
+                    let t = r(await e(n.link));
+                    return (
+                        t(`.wechat-hide`).prev().nextAll().remove(),
+                        t(`img`).replaceWith((e, n) => {
+                            let r = t(n).attr(`src`),
+                                i = t(n).attr(`alt`);
+                            return `<img src="${r?.replace(/https?:\/\/(\w+)\.moyu\.im/, `https://$1.sinaimg.cn`)}" alt="${i}">`;
+                        }),
+                        { title: n.title || ``, description: t(`.entry`).html() || ``, pubDate: n.pubDate, link: n.link, author: n[`dc:creator`], category: n.categories }
+                    );
+                })
+            )
+        ).then((e) => e.filter((e) => e !== void 0)),
+    };
+}
+export { i as route };

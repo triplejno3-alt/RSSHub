@@ -1,0 +1,59 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/daily-papers/:cycle?/:voteFliter?`,
+    categories: [`programming`],
+    example: `/huggingface/daily-papers/week/50`,
+    parameters: { cycle: `The publication cycle you want to follow. Choose from: date, week, month. Default: date`, voteFliter: `Filter papers by vote count.` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`huggingface.co/papers/:cycle`], target: `/daily-papers/:cycle` }],
+    name: `Daily Papers`,
+    maintainers: [`zeyugao`, `ovo-tim`],
+    handler: i,
+    url: `huggingface.co/papers`,
+};
+async function i(r) {
+    let { cycle: i = `date`, voteFliter: a = `0` } = r.req.param(),
+        o;
+    switch (i) {
+        case `date`:
+            o = `https://huggingface.co/papers`;
+            break;
+        case `week`:
+            o = `https://huggingface.co/papers/week/${new Date().getFullYear()}-W52`;
+            break;
+        case `month`:
+            o = `https://huggingface.co/papers/month/${new Date().toISOString().slice(0, 7)}`;
+            break;
+        default:
+            throw Error(`Invalid cycle: ${i}`);
+    }
+    let { body: s } = await t(o);
+    return {
+        allowEmpty: !0,
+        title: `Huggingface Daily Papers`,
+        link: `https://huggingface.co/papers`,
+        item: n(s)(`div[data-target="DailyPapers"]`)
+            .data(`props`)
+            .dailyPapers.filter((e) => e.paper.upvotes >= a)
+            .map((t) => ({
+                title: t.title,
+                link: `https://arxiv.org/abs/${t.paper.id}`,
+                description: t.paper.summary.replaceAll(
+                    `
+`,
+                    ` `
+                ),
+                pubDate: e(t.publishedAt),
+                author: t.paper.authors.map((e) => e.name).join(`, `),
+                upvotes: t.paper.upvotes,
+            }))
+            .toSorted((e, t) => t.upvotes - e.upvotes),
+    };
+}
+export { r as route };

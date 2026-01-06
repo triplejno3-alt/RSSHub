@@ -1,0 +1,27 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+const n = {
+    path: `/homepage/:user_id`,
+    categories: [`bbs`],
+    example: `/deepin/homepage/78326`,
+    parameters: { user_id: `user id` },
+    name: `BBS Home Page`,
+    maintainers: [`tensor-tech`],
+    radar: [{ source: [`bbs.deepin.org/user/:user_id`], target: `/homepage/:user_id` }],
+    handler: r,
+};
+async function r(n) {
+    let { user_id: r } = n.req.param(),
+        i = (await e(`https://bbs.deepin.org/api/v1/user/thread?date_type=0&limit=10&offset=0&user_id=${r}`, { headers: { accept: `application/json` } })).data.map((e) => ({
+            title: e.subject,
+            link: `https://bbs.deepin.org/post/${e.id}`,
+            description: e.post.message,
+            pubDate: t(e.created_at),
+            author: e.user.nickname,
+            category: e.forum.name,
+        }));
+    return { title: `${i[0].author}/deepin论坛主页`, link: `https://bbs.deepin.org/user/${r}`, item: i };
+}
+export { n as route };

@@ -1,0 +1,105 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { r as n } from './utils-CAAmnNMo.mjs';
+import { t as r } from './auth-CxuQ4hiC.mjs';
+const i = {
+    path: `/xhu/people/activities/:hexId`,
+    categories: [`social-media`],
+    example: `/zhihu/xhu/people/activities/246e6cf44e94cefbf4b959cb5042bc91`,
+    parameters: { hexId: `用户的 16 进制 id，获取方式见下方说明` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.zhihu.com/people/:id`], target: `/people/activities/:id` }],
+    name: `xhu - 用户动态`,
+    maintainers: [`JimenezLi`],
+    handler: a,
+    description: `[xhu](https://github.com/REToys/xhu)
+
+::: tip
+  用户的 16 进制 id 获取方式：
+
+  1.  可以通过 RSSHub Radar 扩展获取；
+  2.  或者在用户主页打开 F12 控制台，执行以下代码：\`console.log(/"id":"([0-9a-f]*?)","urlToken"/.exec(document.getElementById('js-initialData').innerHTML)[1]);\` 即可获取用户的 16 进制 id。
+:::`,
+};
+async function a(i) {
+    let a = await r.getCookie(),
+        o = i.req.param(`hexId`),
+        s = `https://www.zhihu.com/people/${o}`,
+        c = (await t({ method: `get`, url: `https://api.zhihuvvv.workers.dev/people/${o}/activities?before_id=0&limit=20`, headers: { Referer: `https://api.zhihuvvv.workers.dev`, Cookie: a } })).data.data;
+    return {
+        title: `${c[0].actor.name}的知乎动态`,
+        link: s,
+        image: c[0].actor.avatar_url,
+        description: c[0].actor.headline || c[0].actor.description,
+        item: c.map((t) => {
+            let r = t.target,
+                i,
+                a,
+                o,
+                s = [],
+                l = ``,
+                u = ``,
+                d = ``;
+            switch (t.target.type) {
+                case `answer`:
+                    ((i = r.question.title), (d = r.author.name), (a = n(r.content)), (o = `https://www.zhihu.com/question/${r.question.id}/answer/${r.id}`));
+                    break;
+                case `article`:
+                    ((i = r.title), (d = r.author.name), (a = n(r.content)), (o = `https://zhuanlan.zhihu.com/p/${r.id}`));
+                    break;
+                case `pin`:
+                    ((i = r.excerpt_title), (d = r.author.name));
+                    for (let e of r.content)
+                        switch (e.type) {
+                            case `text`:
+                                l = `<p>${e.own_text}</p>`;
+                                break;
+                            case `image`:
+                                s.push(`<p><img src="${e.url.replace(`xl`, `r`)}"/></p>`);
+                                break;
+                            case `link`:
+                                u = `<p><a href="${e.url}" target="_blank">${e.title}</a></p>`;
+                                break;
+                            case `video`:
+                                u = `<p><video
+                                controls="controls"
+                                width="${e.playlist[1].width}"
+                                height="${e.playlist[1].height}"
+                                src="${e.playlist[1].url}"></video></p>`;
+                                break;
+                            default:
+                                throw Error(`Unknown type: ${e.type}`);
+                        }
+                    ((a = `${l}${u}${s.join(``)}`), (o = `https://www.zhihu.com/pin/${r.id}`));
+                    break;
+                case `question`:
+                    ((i = r.title), (d = r.author.name), (a = n(r.detail)), (o = `https://www.zhihu.com/question/${r.id}`));
+                    break;
+                case `collection`:
+                    ((i = r.title), (o = `https://www.zhihu.com/collection/${r.id}`));
+                    break;
+                case `column`:
+                    ((i = r.title), (a = `<p>${r.intro}</p><p><img src="${r.image_url}"/></p>`), (o = `https://zhuanlan.zhihu.com/${r.id}`));
+                    break;
+                case `topic`:
+                    ((i = r.name), (a = `<p>${r.introduction}</p><p>话题关注者人数：${r.followers_count}</p>`), (o = `https://www.zhihu.com/topic/${r.id}`));
+                    break;
+                case `live`:
+                    ((i = r.subject), (a = r.description.replaceAll(/\n|\r/g, `<br>`)), (o = `https://www.zhihu.com/lives/${r.id}`));
+                    break;
+                case `roundtable`:
+                    ((i = r.name), (a = r.description), (o = `https://www.zhihu.com/roundtable/${r.id}`));
+                    break;
+                default:
+                    a = `未知类型 ${t.target.type}，请点击<a href="https://github.com/DIYgod/RSSHub/issues">链接</a>提交issue`;
+            }
+            return { title: `${c[0].actor.name}${t.action_text}: ${i}`, author: d, description: a, pubDate: e(t.created_time * 1e3), link: o };
+        }),
+    };
+}
+export { i as route };

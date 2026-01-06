@@ -1,0 +1,22 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './parser-uq0ytZBu.mjs';
+import { load as n } from 'cheerio';
+const r = async (r) => {
+        let { category: i } = r.req.param(),
+            a = `https://collabo-cafe.com/events/category/${i}`;
+        return { title: `分类`, link: a, item: t(n(await e(a))) };
+    },
+    i = {
+        path: `/category/:category`,
+        categories: [`anime`],
+        example: `/collabo-cafe/category/cafe`,
+        parameters: { category: `Category, refer to the original website (ジャンル別)` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `分类`,
+        maintainers: [`cokemine`],
+        handler: r,
+    };
+export { r as handler, i as route };

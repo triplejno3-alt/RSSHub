@@ -1,0 +1,235 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './invalid-parameter-DGZgOgO2.mjs';
+import { t as i } from './config-not-found-DGyG6Tbz.mjs';
+import { t as a } from './captcha-BgQBnnqm.mjs';
+import { t as o } from './wait-BbcjSMwa.mjs';
+import { t as s } from './wechat-mp-HNgcLN2K.mjs';
+let c = 0;
+const l = { path: `/:id/:params?`, name: `Test`, maintainers: [`DIYgod`, `NeverBehave`], handler: u };
+async function u(l) {
+    if (l.req.param(`id`) === `error`) throw Error(`Error test`);
+    if ((l.req.param(`id`) === `httperror` && (await n({ method: `get`, url: `https://httpbingo.org/status/404` })), l.req.param(`id`) === `config-not-found-error`)) throw new i(`Test config not found error`);
+    if (l.req.param(`id`) === `invalid-parameter-error`) throw new r(`Test invalid parameter error`);
+    if (l.req.param(`id`) === `captcha-error`) throw new a(`Test captcha error`);
+    if (l.req.param(`id`) === `redirect`) {
+        l.set(`redirect`, `/test/1`);
+        return;
+    }
+    let u = [],
+        d = null;
+    switch (l.req.param(`id`)) {
+        case `filter`:
+            u = [
+                { title: `Filter Title1`, description: `Description1`, pubDate: new Date(`2019-3-1`).toUTCString(), link: `https://github.com/DIYgod/RSSHub/issues/-1`, author: `DIYgod0`, category: [`Category0`, `Category1`] },
+                {
+                    title: `Filter Title2`,
+                    description: `Description2`,
+                    pubDate: new Date(`2019-3-1`).toUTCString(),
+                    link: `https://github.com/DIYgod/RSSHub/issues/0`,
+                    author: `DIYgod0`,
+                    category: [`Category0`, `Category1`, `Category2`],
+                },
+                { title: `Filter Title3`, description: `Description3`, pubDate: new Date(`2019-3-1`).toUTCString(), link: `https://github.com/DIYgod/RSSHub/issues/1`, author: `DIYgod0`, category: `Category3` },
+            ];
+            break;
+        case `filter-illegal-category`:
+            u.push({
+                title: `TitleIllegal`,
+                description: `DescriptionIllegal`,
+                pubDate: new Date(`2019-3-1`).toUTCString(),
+                link: `https://github.com/DIYgod/RSSHub/issues/1`,
+                author: `DIYgod0`,
+                category: [1, `CategoryIllegal`, !0, null, void 0, { type: `object` }],
+            });
+            break;
+        case `long`:
+            u.push({ title: `Long Title `.repeat(50), description: `Long Description `.repeat(10), pubDate: new Date(`2019-3-1`).toUTCString(), link: `https://github.com/DIYgod/RSSHub/issues/0`, author: `DIYgod0` });
+            break;
+        case `cache`: {
+            let e = await t.tryGet(`test`, () => ({ text: `Cache${++c}` }));
+            u.push({ title: `Cache Title`, description: e.text, pubDate: new Date(`2019-3-1`).toUTCString(), link: `https://github.com/DIYgod/RSSHub/issues/0`, author: `DIYgod0` });
+            break;
+        }
+        case `refreshCache`: {
+            let e = await t.get(`refreshCache`),
+                n = await t.get(`noRefreshCache`, !1);
+            (e || ((e = `0`), await t.set(`refreshCache`, `1`)),
+                n || ((n = `0`), await t.set(`noRefreshCache`, `1`, void 0)),
+                u.push({ title: `Cache Title`, description: e + ` ` + n, pubDate: new Date(`2019-3-1`).toUTCString(), link: `https://github.com/DIYgod/RSSHub/issues/0`, author: `DIYgod0` }));
+            break;
+        }
+        case `cacheUrlKey`: {
+            let n = await t.tryGet(new URL(`https://rsshub.app`), () => ({ text: `Cache${++c}` }), e.cache.routeExpire * 2);
+            u.push({ title: `Cache Title`, description: n.text, pubDate: new Date(`2019-3-1`).toUTCString(), link: `https://github.com/DIYgod/RSSHub/issues/0`, author: `DIYgod0` });
+            break;
+        }
+        case `complicated`:
+            ((d = `https://mock.com/DIYgod/RSSHub.png`),
+                u.push(
+                    {
+                        title: `Complicated Title`,
+                        description: `<a href="/DIYgod/RSSHub"></a>
+<img src="/DIYgod/RSSHub.jpg">
+<script>alert(1);<\/script>
+<a href="http://mock.com/DIYgod/RSSHub"></a>
+<img src="/DIYgod/RSSHub.jpg" data-src="/DIYgod/RSSHub0.jpg">
+<img data-src="/DIYgod/RSSHub.jpg">
+<img data-mock="/DIYgod/RSSHub.png">
+<img mock="/DIYgod/RSSHub.gif">
+<img src="http://mock.com/DIYgod/DIYgod/RSSHub">
+<img src="/DIYgod/RSSHub.jpg" onclick="alert(1);" onerror="alert(1);" onload="alert(1);">
+<img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">`,
+                        pubDate: new Date(`2019-3-1`).toUTCString(),
+                        link: `//mock.com/DIYgod/RSSHub`,
+                        author: `DIYgod`,
+                    },
+                    {
+                        title: `Complicated Title`,
+                        description: `<a href="/DIYgod/RSSHub"></a>
+<img src="/DIYgod/RSSHub.jpg">`,
+                        pubDate: new Date(`2019-3-1`).toUTCString(),
+                        link: `https://mock.com/DIYgod/RSSHub`,
+                        author: `DIYgod`,
+                    },
+                    {
+                        title: `Complicated Title`,
+                        description: `<a href="/DIYgod/RSSHub"></a>
+<img src="/DIYgod/RSSHub.jpg">
+<img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">`,
+                        pubDate: new Date(`2019-3-1`).toUTCString(),
+                        link: `//mock.com/DIYgod/RSSHub`,
+                        author: `DIYgod`,
+                        enclosure_url: `https://mock.com/DIYgod/RSSHub.png`,
+                        enclosure_type: `image/png`,
+                        itunes_item_image: `https://mock.com/DIYgod/RSSHub.gif`,
+                    },
+                    {
+                        title: `Complicated Title`,
+                        description: `<a href="/DIYgod/RSSHub"></a>
+<img src="/DIYgod/RSSHub.jpg">
+<img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">`,
+                        pubDate: new Date(`2019-3-1`).toUTCString(),
+                        link: `//mock.com/DIYgod/RSSHub`,
+                        author: `DIYgod`,
+                        image: `https://mock.com/DIYgod/RSSHub.jpg`,
+                    }
+                ));
+            break;
+        case `multimedia`:
+            u.push(
+                {
+                    title: `Multimedia Title`,
+                    description: `<img src="/DIYgod/RSSHub.jpg">
+<video src="/DIYgod/RSSHub.mp4"></video>
+<video poster="/DIYgod/RSSHub.jpg">
+<source src="/DIYgod/RSSHub.mp4" type="video/mp4">
+<source src="/DIYgod/RSSHub.webm" type="video/webm">
+</video>
+<audio src="/DIYgod/RSSHub.mp3"></audio>
+<iframe src="/DIYgod/RSSHub.html"></iframe>`,
+                    pubDate: new Date(`2019-3-1`).toUTCString(),
+                    link: `https://mock.com/DIYgod/RSSHub`,
+                    author: `DIYgod`,
+                },
+                {
+                    title: `Multimedia Title`,
+                    description: `<img src="/DIYgod/RSSHub.jpg">
+<video src="/DIYgod/RSSHub.mp4"></video>`,
+                    pubDate: new Date(`2019-3-1`).toUTCString(),
+                    link: `https://mock.com/DIYgod/RSSHub`,
+                    author: `DIYgod`,
+                    enclosure_url: `https://mock.com/DIYgod/RSSHub.mp4`,
+                    enclosure_type: `video/mp4`,
+                }
+            );
+            break;
+        case `sort`:
+            u.push(
+                { title: `Sort Title 0`, link: `https://github.com/DIYgod/RSSHub/issues/s1`, author: `DIYgod0` },
+                { title: `Sort Title 1`, link: `https://github.com/DIYgod/RSSHub/issues/s1`, author: `DIYgod0` },
+                { title: `Sort Title 2`, link: `https://github.com/DIYgod/RSSHub/issues/s2`, pubDate: new Date(1546272e6 - 100 * 1e3).toUTCString(), author: `DIYgod0` },
+                { title: `Sort Title 3`, link: `https://github.com/DIYgod/RSSHub/issues/s3`, pubDate: new Date(1546272e6).toUTCString(), author: `DIYgod0` }
+            );
+            break;
+        case `mess`:
+            u.push({ title: `Mess Title`, link: `/DIYgod/RSSHub/issues/0`, pubDate: 1546272e6, author: `DIYgod0` });
+            break;
+        case `opencc`:
+            u.push({ title: `小可愛`, description: `宇宙無敵`, link: `/DIYgod/RSSHub/issues/0`, pubDate: new Date(1546272e6).toUTCString(), author: `DIYgod0` });
+            break;
+        case `brief`:
+            u.push({ title: `小可愛`, description: `<p>宇宙無敵</p><br>`.repeat(1e3), link: `/DIYgod/RSSHub/issues/0`, pubDate: new Date(1546272e6).toUTCString(), author: `DIYgod0` });
+            break;
+        case `json`:
+            u.push(
+                { title: `Title0`, pubDate: new Date(`2019-3-1`).toUTCString(), link: `https://github.com/DIYgod/RSSHub/issues/-3` },
+                { title: `Title1`, description: `Description1`, pubDate: new Date(`2019-3-1`).toUTCString(), link: `https://github.com/DIYgod/RSSHub/issues/-2`, author: `DIYgod0 `, category: `Category0` },
+                {
+                    title: `Title2 HTML in description`,
+                    description: `<a href="https://github.com/DIYgod/RSSHub">RSSHub</a>`,
+                    pubDate: new Date(`2019-3-1`).toUTCString(),
+                    updated: new Date(`2019-3-2`).toUTCString(),
+                    link: `https://github.com/DIYgod/RSSHub/issues/-1`,
+                    author: [{ name: ` DIYgod1` }, { name: `DIYgod2 ` }],
+                    category: [`Category0`, `Category1`],
+                },
+                {
+                    title: `Title3 HTML in content`,
+                    content: { html: `<a href="https://github.com/DIYgod/RSSHub">DIYgod/RSSHub</a>` },
+                    pubDate: new Date(`2019-3-1`).toUTCString(),
+                    updated: new Date(`2019-3-2`).toUTCString(),
+                    link: `https://github.com/DIYgod/RSSHub/issues/0`,
+                    author: [{ name: `   DIYgod3` }, { name: `DIYgod4   ` }, { name: `DIYgod5   ` }],
+                    category: [`Category1`],
+                    enclosure_url: `https://github.com/DIYgod/RSSHub/issues/0`,
+                    enclosure_type: `image/jpeg`,
+                    enclosure_length: 3661,
+                    itunes_duration: 36610,
+                },
+                { title: `Title4 author is null`, pubDate: new Date(`2019-3-1`).toUTCString(), link: `https://github.com/DIYgod/RSSHub/pull/11555`, author: null }
+            );
+            break;
+        case `gpt`:
+            u.push({ title: `Title0`, description: `Description0`, pubDate: new Date(`2019-3-1`).toUTCString(), link: `https://github.com/DIYgod/RSSHub/issues/0` });
+            break;
+        default:
+    }
+    for (let e = 1; e < 6; e++)
+        u.push({
+            title: `Title${e}`,
+            description: `Description${e}`,
+            pubDate: new Date((l.req.param(`id`) === `current_time` ? new Date() : 1546272e6) - e * 10 * 1e3).toUTCString(),
+            link: `https://github.com/DIYgod/RSSHub/issues/${e}`,
+            author: `DIYgod${e}`,
+        });
+    if (
+        (l.req.param(`id`) === `empty` && (u = null),
+        l.req.param(`id`) === `allow_empty` && (u = null),
+        l.req.param(`id`) === `enclosure` && (u = [{ title: ``, link: `https://github.com/DIYgod/RSSHub/issues/1`, enclosure_url: `https://github.com/DIYgod/RSSHub/issues/1`, enclosure_length: 3661, itunes_duration: 36610 }]),
+        l.req.param(`id`) === `slow` && (await o(1e3)),
+        l.req.param(`id`) === `slow4` && (await o(4e3)),
+        l.req.query(`mode`) === `fulltext` && (u = [{ title: ``, link: `https://m.thepaper.cn/newsDetail_forward_4059298` }]),
+        l.req.param(`id`) === `wechat-mp`)
+    ) {
+        let e = l.req.param(`params`);
+        if (!e) throw new r(`Invalid parameter`);
+        u = [await s(`https:/mp.weixin.qq.com/s` + (e.includes(`&`) ? `?` : `/`) + e)];
+    }
+    return {
+        image: d,
+        title: `Test ${l.req.param(`id`)}`,
+        itunes_author: l.req.param(`id`) === `enclosure` ? `DIYgod` : null,
+        link: `https://github.com/DIYgod/RSSHub`,
+        item: u,
+        allowEmpty: l.req.param(`id`) === `allow_empty`,
+        description:
+            l.req.param(`id`) === `complicated` ? `<img src="http://mock.com/DIYgod/DIYgod/RSSHub">` : l.req.param(`id`) === `multimedia` ? `<video src="http://mock.com/DIYgod/DIYgod/RSSHub"></video>` : `A test route for RSSHub`,
+    };
+}
+export { l as route };

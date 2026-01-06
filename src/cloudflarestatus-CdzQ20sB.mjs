@@ -1,0 +1,50 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+import { raw as c } from 'hono/html';
+const l = async (n) => {
+        let l = Number.parseInt(n.req.query(`limit`) ?? `100`, 10),
+            u = `https://www.cloudflarestatus.com`,
+            d = o(await e(u)),
+            f = d(`html`).attr(`lang`) ?? `en`;
+        d(`div.incidents-list`).remove();
+        let p = d(`div.update`)
+            .slice(0, l)
+            .toArray()
+            .map((e) => {
+                let n = d(e),
+                    o = n.parent().parent().find(`a`),
+                    l = o.text(),
+                    p = n.find(`strong`).first().text(),
+                    m = n.find(`span.whitespace-pre-wrap`).first().text(),
+                    h = `${p ? `${p} - ` : ``}${m}`,
+                    g = s(a(r, { children: [l ? i(`h2`, { children: l }) : null, n.html() ? c(n.html()) : null] })),
+                    _ = n.find(`span.ago`).attr(`data-datetime-unix`),
+                    v = o.attr(`href`) ? new URL(o.attr(`href`), u).toString() : void 0,
+                    y = [p].filter(Boolean),
+                    b = v ? `${v}#${_}` : ``,
+                    x = _;
+                return { title: h, description: g, pubDate: _ ? t(_, `x`) : void 0, link: v, category: y, guid: b, id: b, content: { html: g, text: g }, updated: x ? t(x, `x`) : void 0, language: f };
+            });
+        return { title: d(`title`).text(), description: d(`meta[name="description"]`).attr(`content`), link: u, item: p, allowEmpty: !0, language: f, id: u };
+    },
+    u = {
+        path: `/`,
+        name: `Status`,
+        url: `www.cloudflarestatus.com`,
+        maintainers: [`nczitzk`],
+        handler: l,
+        example: `/cloudflarestatus`,
+        parameters: void 0,
+        description: void 0,
+        categories: [`programming`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`www.cloudflarestatus.com`], target: `/` }],
+        view: n.Notifications,
+    };
+export { l as handler, u as route };

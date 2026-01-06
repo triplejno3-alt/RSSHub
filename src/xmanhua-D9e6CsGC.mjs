@@ -1,0 +1,48 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/:uid`,
+    categories: [`anime`],
+    example: `/xmanhua/73xm`,
+    parameters: { uid: '漫画 id,在浏览器中可见，例如鬼灭之刃对应的 id 为 `73xm`' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+    radar: [{ source: [`xmanhua.com/:uid`] }],
+    name: `最新动态`,
+    maintainers: [`Ye11`],
+    handler: i,
+};
+async function i(r) {
+    let i = r.req.param(`uid`),
+        a = `https://xmanhua.com`,
+        o = (await t({ method: `get`, url: `https://xmanhua.com/${i}/`, headers: { Referer: a } })).data,
+        s = n(o),
+        c = s(`div #chapterlistload`).find(`.detail-list-form-item`),
+        l = s(`body > div.detail-info-1 > div > div > p.detail-info-tip > span:nth-child(1)`).text().split(`：`)[1],
+        u = s(`div.detail-list-form-title`).clone().children().remove().end().text(),
+        d = !1,
+        f = u.split(`,`)[1];
+    if (f.includes(`月`) && f.includes(`號`)) {
+        let e = Number.parseInt(f.split(`月`)[0]),
+            t = Number.parseInt(f.split(`月`)[1].split(`號`)[0]),
+            n = new Date().getFullYear();
+        f = new Date(n, e - 1, t + 1);
+    } else ((f = new Date(f)), f.setDate(f.getDate() + 1));
+    (u.includes(`已完結`) || u.includes(`已完结`)) && (d = !0);
+    let p = s(`div.detail-list-form-title span.s a`).attr(`href`),
+        m = c.toArray().map((t) => {
+            t = s(t);
+            let n = t.text(),
+                r = t.attr(`href`),
+                i = r === p ? e(f) : ``;
+            return { title: n, link: a + r, auther: l, pubDate: i, guid: a + r };
+        }),
+        h = s(`body > div.detail-info-1 > div > div > p.detail-info-title`).text(),
+        g = d ? `已完结` : `连载中`;
+    return { title: `x漫画  ${h}`, link: `https://xmanhua.com/${i}`, description: g, allowEmpty: !0, item: m };
+}
+export { r as route };

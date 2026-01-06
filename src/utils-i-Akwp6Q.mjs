@@ -1,0 +1,35 @@
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './timezone-CrV-DT8S.mjs';
+const n = `https://apps.qoo-app.com`,
+    r = `https://news.qoo-app.com`,
+    i = `https://notes.qoo-app.com`,
+    a = `https://sso.qoo-app.com`,
+    o = `https://user.qoo-app.com`,
+    s = `https://o.qoo-img.com/statics.qoo-app.com/cdn/img/QooApp_512.v-0d0fd2.png`,
+    c = (e) => {
+        e(`img`).each((e, t) => {
+            (t.attribs[`data-orig-file`] &&
+                ((t.attribs.src = t.attribs[`data-orig-file`].replace(`i0.wp.com/`, ``).split(`?`)[0]),
+                delete t.attribs[`data-orig-file`],
+                delete t.attribs[`data-orig-size`],
+                delete t.attribs[`data-image-meta`],
+                delete t.attribs[`data-comments-opened`],
+                delete t.attribs[`data-full-url`],
+                delete t.attribs[`data-medium-file`],
+                delete t.attribs[`data-large-file`]),
+                (t.attribs.src = t.attribs.src.replace(`i0.wp.com/`, ``).split(`?`)[0]),
+                delete t.attribs.srcset);
+        });
+    },
+    l = (n) => {
+        n(`.qoo-note-wrap`)
+            .toArray()
+            .map((r) => {
+                r = n(r);
+                let i = r.find(`.qoo-note-view .content-title`).text(),
+                    a = r.find(`cite.name`).text(),
+                    o = t(e(r.find(`time`).text(), `YYYY-MM-DD HH:mm`), 8);
+                return (r.find(`cite.name, time, footer`).remove(), { title: i, description: r.find(`.qoo-note-view`).html(), link: r.find(`a.link-wrap`).attr(`href`), pubDate: o, author: a });
+            });
+    };
+export { i as a, o as c, r as i, l as n, s as o, c as r, a as s, n as t };

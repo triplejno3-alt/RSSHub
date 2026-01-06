@@ -1,0 +1,42 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './utils-DvtjrFBW.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/dailySummary`,
+    example: `/visionias/dailySummary`,
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`visionias.in/current-affairs/upsc-daily-news-summary`], target: `/dailySummary` }],
+    name: `Daily News Summary`,
+    maintainers: [`Rjnishant530`],
+    handler: i,
+};
+async function i() {
+    let n = a(await e(`${t}/current-affairs/upsc-daily-news-summary`));
+    return {
+        title: `Daily News Summary | Vision IAS`,
+        link: `${t}/current-affairs/upsc-daily-news-summary`,
+        description: `Get concise and efficient summaries of key articles from prominent newspapers. Our daily news digest ensures quick reading and easy understanding, helping you stay informed about important events and developments without spending hours going through full articles. Perfect for focused and timely updates.`,
+        language: `en`,
+        item: n,
+        image: `${t}/current-affairs/images/news-today-logo.svg`,
+        icon: `https://cdn.visionias.in/new-system-assets/images/home_page/home/vision-logo-footer.png`,
+        logo: `https://cdn.visionias.in/new-system-assets/images/home_page/home/vision-logo-footer.png`,
+        allowEmpty: !0,
+    };
+}
+function a(e) {
+    let t = n(e);
+    return t(`#quiz-start div[x-data="{ isExpanded: false }"]`)
+        .toArray()
+        .map((e) => {
+            let n = t(e).find(`a>h5`).text().trim(),
+                r = t(e).find(`a>div`).html() ?? ``,
+                i = t(e).find(`div>p>a`).attr(`href`) || ``;
+            return { title: n, link: i, guid: i, description: r };
+        });
+}
+export { r as route };

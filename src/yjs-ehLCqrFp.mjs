@@ -1,0 +1,96 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+        zsgz: { tzgg: { title: `招生工作 - 通知公告`, path: `/zsgz/tzgg.htm` }, xwsd: { title: `招生工作 - 新闻速递`, path: `/zsgz/xwsd.htm` } },
+        pygz: { tzgg: { title: `培养工作 - 通知公告`, path: `/pygz/tzgg.htm` }, gzzd: { title: `培养工作 - 规章制度`, path: `/pygz/gzzd.htm` } },
+        xwgz: {
+            tzgg: { title: `学位工作 - 通知公告`, path: `/xwgz/tzgg.htm` },
+            dsgl: { title: `学位工作 - 导师管理`, path: `/xwgz/dsgl.htm` },
+            xwgl: { title: `学位工作 - 学位管理`, path: `/xwgz/xwgl.htm` },
+            pggz: { title: `学位工作 - 评估工作`, path: `/xwgz/pggz.htm` },
+        },
+        xsgz: {
+            tzgg: { title: `学生工作 - 通知公告`, path: `/xsgz/tzgg.htm` },
+            xwsd: { title: `学生工作 - 新闻速递`, path: `/xsgz/xwsd.htm` },
+            xshd: { title: `学生工作 - 学生活动`, path: `/xsgz/xshd.htm` },
+            jzgz: { title: `学生工作 - 奖助工作`, path: `/xsgz/jzgz.htm` },
+        },
+        xzzx: { zsxz: { title: `下载中心 - 招生下载`, path: `/xzzx/zsxz.htm` }, pyxz: { title: `下载中心 - 培养下载`, path: `/xzzx/pyxz.htm` }, xwxz: { title: `下载中心 - 学位下载`, path: `/xzzx/xwxz.htm` } },
+    },
+    a = {
+        path: `/yjs/:type/:subtype`,
+        categories: [`university`],
+        example: `/gmu/yjs/zsgz/tzgg`,
+        parameters: {
+            type: {
+                description: `分类，见下表`,
+                options: [
+                    { value: `zsgz`, label: `招生工作` },
+                    { value: `pygz`, label: `培养工作` },
+                    { value: `xwgz`, label: `学位工作` },
+                    { value: `xsgz`, label: `学生工作` },
+                    { value: `xzzx`, label: `下载中心` },
+                ],
+            },
+            subtype: {
+                description: `子分类，见下表`,
+                options: [
+                    { value: `tzgg`, label: `通知公告` },
+                    { value: `xwsd`, label: `新闻速递` },
+                    { value: `gzzd`, label: `规章制度` },
+                    { value: `dsgl`, label: `导师管理` },
+                    { value: `xwgl`, label: `学位管理` },
+                    { value: `pggz`, label: `评估工作` },
+                    { value: `xshd`, label: `学生活动` },
+                    { value: `jzgz`, label: `奖助工作` },
+                    { value: `zsxz`, label: `招生下载` },
+                    { value: `pyxz`, label: `培养下载` },
+                    { value: `xwxz`, label: `学位下载` },
+                ],
+            },
+        },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `研究生院`,
+        maintainers: [`FrankFahey`],
+        radar: [{ source: [`yjs.gmu.cn/:type/:subtype.htm`, `yjs.gmu.cn/`], target: `/yjs/:type/:subtype` }],
+        handler: o,
+    };
+async function o(a) {
+    let { type: o, subtype: s } = a.req.param();
+    if (!i[o] || !i[o][s]) throw Error(`Invalid type or subtype`);
+    let { title: c, path: l } = i[o][s],
+        u = `https://yjs.gmu.cn` + l,
+        d = r((await n(u, { https: { rejectUnauthorized: !1 } })).data),
+        f = d(`.n_listxx1 li`);
+    if (f.length === 0) throw Error(`No content found. The page structure might have changed.`);
+    let p = (
+        await Promise.all(
+            f.toArray().map(async (i) => {
+                let a = d(i),
+                    o = a.find(`a`),
+                    s = a.find(`span`).text(),
+                    c = o.attr(`href`),
+                    l = o.text().trim();
+                if (!c || !l) return null;
+                let f = t(s);
+                if (!f) return null;
+                let p = new URL(c, u).href;
+                return await e.tryGet(`gmu:yjs:${p}`, async () => {
+                    try {
+                        return { title: l, link: p, pubDate: f, description: r((await n(p, { https: { rejectUnauthorized: !1 } })).data)(`.v_news_content`).html() || `暂无详细内容` };
+                    } catch {
+                        return { title: l, link: p, pubDate: f, description: `暂无详细内容` };
+                    }
+                });
+            })
+        )
+    ).filter((e) => e !== null);
+    return { title: c, link: u, description: `广州医科大学研究生院 - ${c}`, item: p };
+}
+export { o as handler, a as route };

@@ -1,0 +1,133 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import { t as e } from './header-generator-BdIWHTob.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './timezone-CrV-DT8S.mjs';
+import { n as a } from './xwlb-P0pvFyp5.mjs';
+import o from 'node:path';
+import { load as s } from 'cheerio';
+var c = async () => {
+        let e = (await r({ method: `get`, url: `https://api.cntv.cn/video/videolistById?serviceId=cbox&vsid=C10354&em=01&p=1&n=50` })).data;
+        return {
+            title: `每周质量报告`,
+            link: `https://tv.cctv.com/lm/mzzlbg/videoset/index.shtml`,
+            description: `《每周质量报告》是CCTV-新闻频道一档以消费者为核心收视人群的新闻专题栏目。创办于2003年，始终致力于产品质量和食品安全领域的调查报道，以打假除劣扶优，推动质量进步为第一诉求，是我国电视新闻界质量新闻领域的旗帜性节目。首播时间：CCTV-新闻周日12:35—12:55。`,
+            item: await Promise.all(
+                e.video.map(async (e) => {
+                    let t = `https://vdn.apps.cntv.cn/api/getHttpVideoInfo.do?pid=${e.vid}`,
+                        a = { title: e.t, description: e.desc, link: e.url, pubDate: i(n(e.ptime), 8) },
+                        { data: o } = await r({ method: `get`, url: t });
+                    return ((a.description += `<br><video src="${o.hls_url}" controls="controls" poster="${e.img.replaceAll(/\?.+/g, ``)}" style="width: 100%"></video>`), a);
+                })
+            ),
+        };
+    },
+    l = async (a) => {
+        let s = await r({ method: `get`, url: `https://news.cctv.com/2019/07/gaiban/cmsdatainterface/page/${a}_1.jsonp`, headers: { Referer: `http://news.cctv.com/${a}` }, headerGeneratorOptions: e.MODERN_IOS }),
+            c = JSON.parse(s.data.slice(a.length + 1, -1)).data.list,
+            l = await Promise.all(
+                c.map(({ title: a, url: s, focus_date: c, image: l }) =>
+                    t.tryGet(`cctv-news: ${s}`, async () => {
+                        let t = { title: a, link: s, pubDate: i(n(c), 8) },
+                            u = o.parse(s).name,
+                            d = `未知类型，请点击<a href="https://github.com/DIYgod/RSSHub/issues">链接</a>提交issue`,
+                            f,
+                            p,
+                            m,
+                            h;
+                        if (
+                            (u.startsWith(`ART`)
+                                ? ((p = `https://api.cntv.cn/Article/getXinwenNextArticleInfo?serviceId=sjnews&id=${u}&t=json`), (m = `ART`))
+                                : u.startsWith(`PHO`)
+                                  ? ((p = `https://api.cntv.cn/Article/contentinfo?id=${u}&serviceId=sjnews&t=json`), (m = `PHO`))
+                                  : u.startsWith(`VIDE`)
+                                    ? ((p = `https://vdn.apps.cntv.cn/api/getHttpVideoInfo.do?pid=${o.parse(l).name.split(`-`)[0]}`), (m = `VIDE`))
+                                    : (f = d),
+                            p)
+                        ) {
+                            let { data: t } = await r({ method: `get`, url: p, headerGeneratorOptions: e.MODERN_IOS });
+                            switch (m) {
+                                case `ART`:
+                                    ((f = t.article_content), (h = t.article_source));
+                                    break;
+                                case `PHO`:
+                                    f = ``;
+                                    for (let { photo_url: e, photo_name: n, photo_brief: r } of t.photo_album_list)
+                                        f += `
+                                    <img src=${e} /><br>
+                                    <strong>${n}</strong><br>
+                                    ${r}<br>
+                                `;
+                                    h = t.source;
+                                    break;
+                                case `VIDE`:
+                                    ((f = `<video src="${t.hls_url}" controls="controls" poster="${l}" style="width: 100%"></video>`), (h = t.article_source));
+                                    break;
+                                default:
+                                    f = d;
+                            }
+                        }
+                        return ((t.description = f), (t.author = h), t);
+                    })
+                )
+            );
+        return { title: `央视新闻 ${a}`, link: `https://news.cctv.com/${a}`, description: `央视新闻 ${a}`, item: l };
+    };
+async function u(e) {
+    let t = s((await r({ method: `get`, url: e })).data),
+        n = (`` + t(`script`)).split(`guid_Ad_VideoCode = "`)[1].split(`";`)[0],
+        { data: i } = await r({ method: `get`, url: `http://vdn.apps.cntv.cn/api/getHttpVideoInfo.do?pid=${n}` });
+    return { description: `${t(`meta[name=description]`).attr(`content`)}<br><video src="${i.hls_url}" controls="controls"  style="width: 100%"></video>` };
+}
+const d = (e) =>
+    Promise.all(
+        e.list.map(async (e) => {
+            let r = e.title,
+                i = e.url,
+                a = { title: r, link: i, author: `央视新闻`, guid: i, pubDate: n(e.focus_date) },
+                o = await t.tryGet(i, () => u(i));
+            return { ...a, ...o };
+        })
+    );
+var f = async () => {
+    let e = `https://api.cntv.cn/NewVideo/getVideoListByColumn?id=TOPC1451559066181661&n=20&sort=desc&p=1&mode=0&serviceId=tvcctv`,
+        t = (await r({ method: `get`, url: e, headers: { Referer: `https://tv.cctv.com/lm/xinwen1j1/videoset/index.shtml#&Type=0` } })).data.data;
+    return {
+        title: `《新闻1+1》- 中央电视台新闻频道`,
+        link: e,
+        description: `《新闻1+1》是中央电视台新闻频道的一档访谈类栏目。周一至周五，从时事政策、公共话题、突发事件等大型选题中选取当天最新、最热、最快的新闻话题，还原新闻全貌、解读事件真相，力求以精度、纯度和锐度为新闻导向，呈现最质朴的新闻。首播：CCTV-新闻：周一至周五21:30—21:55；重播：次日01:30，04:30。`,
+        item: await d(t),
+    };
+};
+const p = {
+    path: `/:category`,
+    categories: [`traditional-media`],
+    example: `/cctv/world`,
+    parameters: { category: `分类名` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`news.cctv.com/:category`] }],
+    name: `专题`,
+    maintainers: [`idealclover`, `xyqfer`],
+    handler: m,
+    description: `| 新闻 | 国内  | 国际  | 社会    | 法治 | 文娱 | 科技 | 生活 | 教育 | 每周质量报告 | 新闻 1+1  |
+| ---- | ----- | ----- | ------- | ---- | ---- | ---- | ---- | ---- | ------------ | --------- |
+| news | china | world | society | law  | ent  | tech | life | edu  | mzzlbg       | xinwen1j1 |`,
+};
+async function m(e) {
+    let t = e.req.param(`category`);
+    switch (t) {
+        case `mzzlbg`:
+            return await c();
+        case `xinwen1j1`:
+            return await f();
+        case `xwlb`:
+            return await a();
+        default:
+            return await l(t);
+    }
+}
+export { p as route };

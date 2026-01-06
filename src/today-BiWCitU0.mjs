@@ -1,0 +1,29 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { n as e } from './puppeteer-BbZGb8cd.mjs';
+import { n as t, t as n } from './utils-Cm4ljMif.mjs';
+const r = {
+    path: `/today`,
+    categories: [`traditional-media`],
+    example: `/cw/today`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !0, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`cw.com.tw/today`, `cw.com.tw/`] }],
+    name: `最新上線`,
+    maintainers: [`TonyRL`],
+    handler: i,
+    url: `cw.com.tw/today`,
+};
+async function i(r) {
+    let i = await e(),
+        { $: a, items: o } = await t(`today`, i, r);
+    return (
+        await i.close(),
+        { title: a(`head title`).text(), description: a(`meta[name=description]`).attr(`content`), link: `${n}/today`, image: `${n}/assets_new/img/fbshare.jpg`, language: a(`meta[property="og:locale"]`).attr(`content`), item: o }
+    );
+}
+export { r as route };

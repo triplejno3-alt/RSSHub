@@ -1,0 +1,25 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import * as t from 'cheerio';
+const n = {
+    path: `/game`,
+    categories: [`game`],
+    example: `/psnine/game`,
+    name: `游戏`,
+    maintainers: [`betta-cyber`],
+    handler: async () => {
+        let n = `https://www.psnine.com/psngame`,
+            r = await e(n),
+            i = t.load(r),
+            a = i(`table tr`)
+                .toArray()
+                .map((e) => {
+                    let t = i(e);
+                    return { title: t.find(`.title a`).text(), link: t.find(`.title a`).attr(`href`), description: t.find(`.title span`).text() + ` ` + t.find(`.twoge`).text() };
+                });
+        return { title: i(`head title`).text(), link: n, item: a };
+    },
+    radar: [{ source: [`psnine.com/psngame`, `psnine.com`] }],
+};
+export { n as route };

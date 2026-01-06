@@ -1,0 +1,51 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './invalid-parameter-DGZgOgO2.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/ranking/:type`,
+    categories: [`new-media`],
+    example: `/ithome/ranking/24h`,
+    parameters: { type: `类别` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `热榜`,
+    maintainers: [`immmortal`, `luyuhuang`],
+    handler: a,
+    description: `| 24h           | 7days    | monthly |
+| ------------- | -------- | ------- |
+| 24 小时阅读榜 | 7 天最热 | 月榜    |`,
+};
+async function a(i) {
+    let a = i.req.param(`type`),
+        o = r((await t({ method: `get`, url: `https://www.ithome.com/block/rank.html` })).data),
+        s = { '24h': `24 小时最热`, '7days': `7 天最热`, monthly: `月榜` },
+        c = { '24h': `d-1`, '7days': `d-2`, monthly: `d-3` },
+        l = s[a],
+        u = c[a];
+    if (!u) throw new n(`Bad type. See <a href="https://docs.rsshub.app/routes/new-media#it-zhi-jia">https://docs.rsshub.app/routes/new-media#it-zhi-jia</a>`);
+    let d = o(`#${u} > li`)
+            .toArray()
+            .map((e) => ({ title: o(e).find(`a`).text(), link: o(e).find(`a`).attr(`href`) })),
+        f = await Promise.all(
+            d.map((n) =>
+                e.tryGet(n.link, async () => {
+                    let e = r((await t({ method: `get`, url: n.link })).data),
+                        i = e(`#paragraph`);
+                    return (
+                        i.find(`img[data-original]`).each((e, t) => {
+                            ((t = o(t)), t.attr(`src`, t.attr(`data-original`)), t.removeAttr(`class`), t.removeAttr(`data-original`));
+                        }),
+                        (n.description = i.html()),
+                        (n.pubDate = new Date(e(`#pubtime_baidu`).text() + ` GMT+8`).toUTCString()),
+                        n
+                    );
+                })
+            )
+        );
+    return { title: `IT之家-${l}`, link: `https://www.ithome.com`, item: f };
+}
+export { i as route };

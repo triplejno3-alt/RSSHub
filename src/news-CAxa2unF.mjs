@@ -1,0 +1,56 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/news`,
+    categories: [`anime`],
+    example: `/news`,
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.acgvinyl.com`], target: `/news` }],
+    name: `News`,
+    maintainers: [`williamgateszhao`],
+    handler: a,
+    url: `www.acgvinyl.com/col.jsp?id=103`,
+    zh: { name: `黑胶新闻` },
+};
+async function a(i) {
+    let a = `http://www.acgvinyl.com`,
+        o = r(await e(`${a}/col.jsp?id=103`))(`script:contains("window.__INITIAL_STATE__")`)
+            .text()
+            .replaceAll(`window.__INITIAL_STATE__=`, ``),
+        s = JSON.parse(o),
+        c = await e(`${a}/rajax/news_h.jsp?cmd=getWafNotCk_getList`, {
+            method: `POST`,
+            headers: { 'content-type': `application/x-www-form-urlencoded` },
+            body: new URLSearchParams({
+                page: `1`,
+                pageSize: String(i.req.query(`limit`) ?? 20),
+                fromMid: s.modules.module366.id,
+                idList: `[${s.modules.module366.prop3}]`,
+                sortKey: s.modules.module366.blob0.sortKey,
+                sortType: s.modules.module366.blob0.sortType,
+            }).toString(),
+        }),
+        l = JSON.parse(c);
+    return !l?.success || !Array.isArray(l?.list)
+        ? null
+        : {
+              title: `ACG Vinyl - 黑胶 - 黑胶新闻`,
+              link: `http://www.acgvinyl.com/col.jsp?id=103`,
+              item: await Promise.all(
+                  l.list.map((i) =>
+                      t.tryGet(i.url, async () => {
+                          let t = r(await e(`${a}${i.url}`))(`script:contains("window.__INITIAL_STATE__")`)
+                                  .text()
+                                  .replaceAll(`window.__INITIAL_STATE__=`, ``),
+                              o = r(JSON.parse(t).modules.module2.newsInfo.content);
+                          return (o(`[style]`).removeAttr(`style`), { title: i.title, link: `${a}${i.url}`, pubDate: n(i.date), description: o.html() });
+                      })
+                  )
+              ),
+          };
+}
+export { i as route };

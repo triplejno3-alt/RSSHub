@@ -1,0 +1,41 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/news/:type1/:type2`,
+    categories: [`government`],
+    example: `/samrdprc/news/xfpzh/xfpgnzh`,
+    parameters: { type1: `召回类型ID1，见下表`, type2: `召回类型ID2，见下表` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    description: `
+| 类型中文 | 召回类型ID1 | 召回类型ID2 |
+| --- | --- | --- |
+| 消费品召回 | xfpzh | xfpgnzh |
+| 汽车召回 | qczh | gnzhqc |
+`,
+    name: `召回信息`,
+    maintainers: [`a180285`],
+    radar: [{ source: [`www.samrdprc.org.cn/:type1/:type2`], target: `/news/:type1/:type2` }],
+    handler: async (i) => {
+        let a = `https://www.samrdprc.org.cn/${i.req.param(`type1`)}/${i.req.param(`type2`)}`,
+            o = r((await n(a)).body),
+            s = o(`div.box_main > div.boxl.fl > div.boxl_tit > div > span.fl`).text(),
+            c = o(`div.main > div.box1 > div.box_main > div.boxl.fl > div.boxl_ul > ul > li`),
+            l = await Promise.all(
+                c.toArray().map((i) => {
+                    let s = o(i),
+                        c = s.find(`a`).text(),
+                        l = a + `/` + s.find(`a`).attr(`href`),
+                        u = t(s.find(`span`).text().trim());
+                    return e.tryGet(l, async () => ({ title: c, link: l, pubDate: u, description: r((await n(l)).body)(`div.main > div.box1 > div.box_main > div.boxl.fl > div.show_txt > div.TRS_Editor > div`).html() || `` }));
+                })
+            );
+        return { title: `${s} - 国家市场监督管理总局`, link: a, item: l };
+    },
+};
+export { i as route };

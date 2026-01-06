@@ -1,0 +1,46 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+const n = {
+    path: `/disclosure/:query?`,
+    categories: [`finance`],
+    example: `/sse/disclosure/beginDate=2018-08-18&endDate=2020-08-25&productId=600696`,
+    parameters: { query: `筛选条件，见示例` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `上市公司信息最新公告披露`,
+    maintainers: [`harveyqiu`],
+    handler: r,
+};
+async function r(n) {
+    let r = n.req.param(`query`) ?? ``,
+        i = {};
+    if (r)
+        for (let e of r.split(`&`)) {
+            let [t, n] = e.split(`=`);
+            t && (i[t] = n);
+        }
+    let a = `https://www.sse.com.cn/assortment/stock/list/info/announcement/index.shtml?productId=${i.productId}`,
+        o = await t(`https://query.sse.com.cn/security/stock/queryCompanyBulletin.do`, {
+            searchParams: {
+                isPagination: !0,
+                securityType: `0101,120100,020100,020200,120200`,
+                reportType: `ALL`,
+                'pageHelp.pageSize': 25,
+                'pageHelp.pageCount': 50,
+                'pageHelp.pageNo': 1,
+                'pageHelp.beginPage': 1,
+                'pageHelp.cacheSize': 1,
+                'pageHelp.endPage': 5,
+                _: Date.now(),
+                ...i,
+            },
+            headers: { Referer: a },
+        }),
+        s = `https://static.sse.com.cn`,
+        c = o.data.result.map((t) => ({ title: t.TITLE, description: `${s}${t.URL}`, pubDate: e(t.ADDDATE), link: `${s}${t.URL}`, author: t.SECURITY_NAME }));
+    return { title: `上海证券交易所 - 上市公司信息 - ${c[0].author}最新公告`, link: a, item: c };
+}
+export { n as route };

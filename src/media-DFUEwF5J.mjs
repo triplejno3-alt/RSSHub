@@ -1,0 +1,51 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/gzic/media`,
+    categories: [`university`],
+    example: `/scut/gzic/media`,
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `广州国际校区 - 媒体报道`,
+    maintainers: [`gdzhht`],
+    handler: o,
+    description: `::: warning
+由于学校网站对非大陆 IP 的访问存在限制，可能需自行部署。
+:::`,
+};
+async function o() {
+    let a = `https://www2.scut.edu.cn/gzic/30281/list.htm`,
+        { data: o } = await r(a),
+        s = i(o),
+        c = s(`.right-nr .row .col-lg-4`)
+            .toArray()
+            .map((e) => {
+                e = s(e);
+                let t = e.find(`.thr-box a`),
+                    r = e.find(`.thr-box a span`);
+                return { title: e.find(`.thr-box a p`).text(), link: t.attr(`href`)?.startsWith(`http`) ? t.attr(`href`) : `https://www2.scut.edu.cn${t.attr(`href`)}`, pubDate: n(r.text()) };
+            });
+    return {
+        title: `华南理工大学广州国际校区 - 媒体报道`,
+        link: a,
+        item: await Promise.all(
+            c.map((n) =>
+                t.tryGet(n.link, async () => {
+                    try {
+                        n.description = i(await e(n.link))(`div.wp_articlecontent`).html();
+                    } catch (e) {
+                        if (e.response && e.response.status === 404) n.description = ``;
+                        else throw e;
+                    }
+                    return n;
+                })
+            )
+        ),
+    };
+}
+export { a as route };

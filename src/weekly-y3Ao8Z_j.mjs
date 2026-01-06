@@ -1,0 +1,25 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import { n as r, t as i } from './utils-C-VFa3b4.mjs';
+import { load as a } from 'cheerio';
+const o = { path: `/weekly`, categories: [`picture`], example: `/jpxgmn/weekly`, radar: [{ source: [`mei5.vip/`], target: `/weekly` }], name: `本周热门`, maintainers: [`Urabartin`], handler: s, features: { nsfw: !0 } };
+async function s() {
+    let o = await e.raw(await r()),
+        s = new URL(o.url).origin,
+        c = a(o._data),
+        l = c(`aside div:nth-child(2) li`)
+            .toArray()
+            .map((e) => {
+                let t = c(e).find(`a`).attr(`title`) || ``,
+                    r = t.match(/([^.]+)\.\D+([\d-]+)/),
+                    i = { title: t, link: new URL(c(e).find(`a`).attr(`href`), s).href };
+                return (r !== null && ((i.title = r[1]), (i.pubDate = n(r[2]))), i);
+            });
+    return { title: `极品性感美女 - 本周热门推荐`, link: o.url, item: await Promise.all(l.map((e) => t.tryGet(e.link, async () => ((e.description = await i(e.link)), e)))) };
+}
+export { o as route };

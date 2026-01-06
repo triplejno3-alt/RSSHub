@@ -1,0 +1,78 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = `明日方舟期刊《回归线》 | 泰拉创作者联合会`,
+    a = `aneot.arktca.com`,
+    o = `Bendancom`,
+    s = {
+        path: `/arknights/arktca`,
+        categories: [`game`],
+        example: `/hypergryph/arknights/arktca`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `回归线`,
+        url: a,
+        maintainers: [o],
+        radar: [{ source: [a] }],
+        description: i,
+        handler: c,
+    };
+async function c() {
+    let s = `https://${a}`,
+        { data: c } = await n(`${s}/posts/`),
+        l = r(c),
+        u = l(`div.theme-hope-content > table`)
+            .find(`a`)
+            .toArray()
+            .map((e) => s + l(e).prop(`href`)),
+        d = await Promise.all(
+            u.map(async (e) => {
+                let { data: t } = await n(e),
+                    i = r(t),
+                    a = /(?<=Vol. )(\w+)/.exec(i(`div.vp-page-title`).find(`h1`).text());
+                return {
+                    volume: a ? a[0] : ``,
+                    links: i(`div.theme-hope-content > ul a`)
+                        .toArray()
+                        .map((e) => s + l(e).prop(`href`)),
+                };
+            })
+        ),
+        f = await Promise.all(
+            d.map(
+                async (i) =>
+                    await Promise.all(
+                        i.links.map((a) =>
+                            e.tryGet(a, async () => {
+                                let { data: e } = await n(a),
+                                    o = r(e);
+                                o(`div.ads-container`).remove();
+                                let s = o(`html`).prop(`lang`),
+                                    c = o(`div.vp-page-title`),
+                                    l = `Vol.${i.volume} ` + c.children(`h1`).text(),
+                                    u = c.children(`div.page-info`);
+                                return {
+                                    title: l,
+                                    language: s,
+                                    author: u.children(`span.page-author-info`).find(`span.page-author-item`).text(),
+                                    pubDate: t(u.children(`span.page-date-info`).children(`meta`).prop(`content`)),
+                                    category: u.find(`span.page-category-info`).children(`meta`).prop(`content`),
+                                    description: o(`div.theme-hope-content`).html(),
+                                    comments: Number.parseInt(o(`span.wl-num`).text()),
+                                    guid: a,
+                                    link: a,
+                                };
+                            })
+                        )
+                    )
+            )
+        ),
+        p = `${s}/logo.svg`;
+    return { title: `回归线`, link: s, description: i, icon: p, logo: p, image: p, author: o, language: `zh-CN`, item: f.flat(1 / 0) };
+}
+export { s as route };

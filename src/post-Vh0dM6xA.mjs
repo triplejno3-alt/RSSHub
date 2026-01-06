@@ -1,0 +1,64 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { t } from './types-Bl_lnefZ.mjs';
+import n from 'query-string';
+const r = {
+    path: [`/post/popular_recent/:period?`, `/sfw/post/popular_recent/:period?`],
+    categories: [`picture`],
+    view: t.Pictures,
+    example: `/konachan/post/popular_recent/1d`,
+    parameters: {
+        period: {
+            description: `展示时间`,
+            options: [
+                { value: `1d`, label: `最近 24 小时` },
+                { value: `1w`, label: `最近一周` },
+                { value: `1m`, label: `最近一月` },
+                { value: `1y`, label: `最近一年` },
+            ],
+            default: `1d`,
+        },
+        safe_search: { description: '是否使用无r18的站点konachan.net，若是,则在路径前加上 `/sfw`，如`/konachan/sfw/post/popular_recent/1d`，若否则默认使用 konachan.com', default: `false` },
+    },
+    radar: [{ source: [`konachan.com/post`, `konachan.net/post`] }],
+    name: `Popular Recent Posts`,
+    maintainers: [`magic-akari`, `NekoAria`, `sineeeee`],
+    description: `| 最近 24 小时    | 最近一周     | 最近一月    | 最近一年     |
+| ------- | -------- | ------- | -------- |
+| 1d | 1w | 1m | 1y |`,
+    handler: i,
+    features: { nsfw: !0 },
+};
+async function i(t) {
+    let { period: r = `1d` } = t.req.param(),
+        i = t.req.path.includes(`/sfw`),
+        a = i ? `https://konachan.net` : `https://konachan.com`,
+        o = (await e({ url: `${a}/post/popular_recent.json`, searchParams: n.stringify({ period: r }) })).data,
+        s = { '1d': `Last 24 hours`, '1w': `Last week`, '1m': `Last month`, '1y': `Last year` },
+        c = { jpg: `jpeg`, png: `png` };
+    return {
+        title: `${s[r]} - ${i ? `konachan.net` : `konachan.com`}`,
+        link: `${a}/post/popular_recent?period=${r}`,
+        item: o.map((e) => ({
+            title: e.tags,
+            id: `${t.req.path}#${e.id}`,
+            guid: `${t.req.path}#${e.id}`,
+            link: `${a}/post/show/${e.id}`,
+            author: e.author,
+            pubDate: new Date(e.created_at * 1e3).toUTCString(),
+            description: (() =>
+                [
+                    `<img src="${e.sample_url}" />`,
+                    `<p>Rating: ${e.rating}</p><p>Score: ${e.score}</p>`,
+                    ...(e.source ? [`<a href="${e.source}">Source</a>`] : []),
+                    ...(e.parent_id ? [`<a href="${a}/post/show/${e.parent_id}">Parent</a>`] : []),
+                ].join(``))(),
+            media: { content: { url: e.file_url, type: `image/${c[e.file_ext]}` }, thumbnail: { url: e.preview_url } },
+            category: e.tags.split(/\s+/),
+        })),
+    };
+}
+export { r as route };

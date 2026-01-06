@@ -1,0 +1,76 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './rss-parser-CKuAfhVS.mjs';
+import { load as r } from 'cheerio';
+const i = (n) =>
+        e.tryGet(n, async () => {
+            let e = r((await t(n)).data),
+                i = e(`.tag`)
+                    .toArray()
+                    .map((t) => e(t).text().trim());
+            if (i.length < 1) {
+                let t = e(`.slug a`).contents().first().text().trim();
+                t && (i = [t]);
+            }
+            if (e(`.audio-availability-message`).length > 0) return null;
+            for (let t of e(`.audio-module`).toArray()) {
+                let n = `<audio controls><source src="${e(e(t).find(`.audio-tool-download a`)).attr(`href`)}" type="audio/mp3"></audio>`;
+                e(t).replaceWith(n);
+            }
+            let a = e(`#headlineaudio`).length > 0 ? e(`#headlineaudio`).html() + `<br>` : ``,
+                o = e.html().match(/\?storyId=(\d+)&amp;mediaId=(\d+)/);
+            if (o) {
+                let t = `<iframe width="740" height="416" src="https://www.npr.org/embedded-video?storyId=${o[1]}&mediaId=${o[2]}&jwMediaType=music" frameborder="0" scrolling="no"></iframe>`,
+                    n = e(`.npr-video`);
+                n.length === 1 && n.replaceWith(t);
+            }
+            return (
+                e(`div.bucketwrap.internallink.insettwocolumn.inset2col`).remove(),
+                e(`aside.ad-wrap`).remove(),
+                e(`.enlarge_measure`).remove(),
+                e(`.enlarge_html`).remove(),
+                e(`.hide-caption`).remove(),
+                e(`.toggle-caption`).remove(),
+                e(`.credit-caption b.credit`).remove(),
+                e(`.credit-caption span.credit`).wrap(`<figcaption></figcaption>`),
+                e(`.caption > p`).wrap(`<figcaption></figcaption>`),
+                {
+                    article:
+                        a +
+                        e(`.storytext`)
+                            .toArray()
+                            .map((t) => e(t).html())
+                            .join(``),
+                    categories: i,
+                }
+            );
+        }),
+    a = {
+        path: `/:endpoint?`,
+        categories: [`traditional-media`],
+        example: `/npr/1001`,
+        parameters: { endpoint: 'Channel ID, can be found in Official RSS URL, `1001` by default' },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `News`,
+        maintainers: [`bennyyip`],
+        handler: o,
+        description: `Provide full article RSS for CBC topics.`,
+    };
+async function o(e) {
+    let t = e.req.param(`endpoint`) || `1001`,
+        r = await n.parseURL(`https://feeds.npr.org/${t}/rss.xml`),
+        a = (
+            await Promise.all(
+                r.items.map(async (e) => {
+                    let t = await i(e.link);
+                    return t === null ? null : { ...e, description: t.article, category: t.categories };
+                })
+            )
+        ).filter(Boolean);
+    return { title: r.title, link: r.link, description: r.description, icon: `https://media.npr.org/images/podcasts/primary/npr_generic_image_300.jpg?s=200`, item: a };
+}
+export { a as route };

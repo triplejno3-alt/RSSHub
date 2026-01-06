@@ -1,0 +1,74 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = `https://www.mee.gov.cn/`,
+    o = {
+        szyw: { name: `时政要闻`, order: 1 },
+        hjywnews: { name: `环境要闻`, order: 2 },
+        dfnews: { name: `地方快讯`, order: 3 },
+        xwfb: { name: `新闻发布`, order: 4 },
+        spxw: { name: `视频新闻`, order: 5 },
+        gsgg: { name: `公示公告`, order: 6 },
+    },
+    s = {
+        path: `/mee/ywdt/:category?`,
+        categories: [`government`],
+        example: `/gov/mee/ywdt/hjywnews`,
+        parameters: { category: '分类名，预设 `szyw`' },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`www.mee.gov.cn/ywdt/:category`], target: `/mee/ywdt/:category` }],
+        name: `要闻动态`,
+        maintainers: [`liuxsdev`],
+        handler: c,
+        description: `| 时政要闻 | 环境要闻 | 地方快讯 | 新闻发布 | 视频新闻 | 公示公告 |
+| :------: | :------: | :------: | :------: | :------: | :------: |
+|   szyw   | hjywnews |  dfnews  |   xwfb   |   spxw   |   gsgg   |`,
+    };
+async function c(s) {
+    let c = s.req.param(`category`) ?? `szyw`,
+        l = `${a}ywdt/`,
+        u = `${o[c].name} - 要闻动态 - 中华人民共和国生态环境部`,
+        d = i((await n(l)).data),
+        f = d(`.bd`)
+            .find(`div:nth-child(${o[c].order})`)
+            .find(`.mobile_none li , .mobile_clear li`)
+            .toArray()
+            .map((e) => {
+                let t = d(e).find(`a.cjcx_biaob`).text().trim(),
+                    n = d(e).find(`a`).attr(`href`),
+                    r;
+                return ((r = n.search(String.raw`\./`) === 0 ? `${l}${n.slice(2)}` : n.search(String.raw`\./`) === 1 ? `${a}${n.slice(3)}` : n), { title: t, link: r });
+            });
+    return {
+        title: u,
+        link: l,
+        item: await Promise.all(
+            f.map((a) =>
+                e.tryGet(a.link, async () => {
+                    let e = i((await n(a.link)).data);
+                    try {
+                        if (((a.pubDate = r(t(e(`meta[name=PubDate]`).attr(`content`)), 8)), c === `spxw`)) {
+                            ((a.title = e(`meta[name=ArticleTitle]`).attr(`content`)), e(`.neiright_JPZ_GK_CP video`).removeAttr(`autoplay`));
+                            let t = e(`.neiright_JPZ_GK_CP source`),
+                                n = t.attr(`src`),
+                                r = a.link.split(`/`).at(-1),
+                                i = a.link.replace(r, n.slice(2));
+                            t.attr(`src`, i);
+                        }
+                        a.description = e(`.neiright_JPZ_GK_CP`).html();
+                    } catch {
+                        a.description = ``;
+                    }
+                    return a;
+                })
+            )
+        ),
+    };
+}
+export { s as route };

@@ -1,0 +1,48 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/yzb/:type`,
+    categories: [`university`],
+    example: `/seu/yzb/6676`,
+    parameters: { type: `分类名，见下表` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`yzb.seu.edu.cn/:type/list.htm`] }],
+    name: `研究生招生网通知公告`,
+    maintainers: [`fuzy112`],
+    handler: a,
+    description: `| 硕士招生 | 博士招生 | 港澳台及中外合作办学 |
+| -------- | -------- | -------------------- |
+| 6676     | 6677     | 6679                 |`,
+};
+async function a(i) {
+    let a = `https://yzb.seu.edu.cn`,
+        o = { 6676: { id: 1 }, 6677: { id: 2 }, 6679: { id: 3 } },
+        s = i.req.param(`type`),
+        c = s.length === 1 ? Object.keys(o).find((e) => o[e].id === Number.parseInt(s)) : Number.parseInt(s),
+        l = new URL(`${c}/list.htm`, a).href,
+        { data: u } = await n(l),
+        d = r(u),
+        f = d(`#wp_news_w3 td tbody tr`)
+            .toArray()
+            .map((e) => {
+                e = d(e);
+                let n = e.find(`td a`);
+                return { title: n.attr(`title`), link: new URL(n.attr(`href`), a).href, pubDate: t(e.find(`td div`).text()) };
+            }),
+        p = await Promise.all(
+            f.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let { data: e } = await n(t.link);
+                    return ((t.description = r(e)(`.Article_Content`).html()), t);
+                })
+            )
+        );
+    return { link: l, title: `东南大学研究生招生网 -- ${d(`head title`).text()}`, item: p };
+}
+export { i as route };

@@ -1,0 +1,83 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+import { t as r } from './parse-date-DjdQS_Nt.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+const l = {
+    path: `/today`,
+    categories: [`other`],
+    example: `/producthunt/today`,
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.producthunt.com/`] }],
+    name: `Top Products Launching Today`,
+    maintainers: [`miaoyafeng`, `Fatpandac`],
+    handler: u,
+    url: `www.producthunt.com/`,
+};
+async function u() {
+    let i = s(await e(`https://www.producthunt.com/`, { headers: { 'User-Agent': t.trueUA } }))(`script:contains("ApolloSSRDataTransport")`)
+            .text()
+            .match(/"events":(\[.+\])\}\)/)?.[1]
+            ?.trim()
+            .replaceAll(`undefined`, `null`),
+        a = JSON.parse(i)
+            .find((e) => e.type === `next` && e.value.data.homefeed)
+            .value.data.homefeed.edges.find((e) => e.node.id === `FEATURED-0`)
+            .node.items.filter((e) => e.__typename === `Post`)
+            .map((e) => ({
+                title: e.name,
+                link: `https://www.producthunt.com/products/${e.product.slug}`,
+                postSlug: e.slug,
+                description: e.tagline,
+                pubDate: r(e.createdAt),
+                image: `https://ph-files.imgix.net/${e.thumbnailImageUuid}`,
+                categories: e.topics.edges.map((e) => e.node.name),
+            }));
+    return {
+        title: `Product Hunt Today Popular`,
+        link: `https://www.producthunt.com/`,
+        item: await Promise.all(
+            a.map((r) =>
+                n.tryGet(r.link, async () => {
+                    let n = (
+                        await e(`https://www.producthunt.com/frontend/graphql`, {
+                            method: `POST`,
+                            headers: { 'User-Agent': t.trueUA },
+                            body: { operationName: `PostPage`, variables: { slug: r.postSlug }, extensions: { persistedQuery: { version: 1, sha256Hash: `488585149898ee974a51884b11e205c34ea8ad34ee01d47d7936a66a6db799ff` } } },
+                        })
+                    ).data.post;
+                    return ((r.author = n.user.name), (r.description = d({ tagline: n.tagline, description: n.description, media: n.media })), r);
+                })
+            )
+        ),
+    };
+}
+const d = ({ tagline: e, description: t, media: n }) =>
+    c(
+        o(i, {
+            children: [
+                e ? a(`blockquote`, { children: e }) : null,
+                t ? a(`div`, { children: t }) : null,
+                n?.map((e) =>
+                    e.mediaType === `image` && e.imageUuid
+                        ? o(i, { children: [a(`img`, { src: `https://ph-files.imgix.net/${e.imageUuid}` }), a(`br`, {})] })
+                        : e.mediaType === `video` && e.metadata?.platform === `youtube` && e.metadata.videoId
+                          ? a(`iframe`, {
+                                id: `ytplayer`,
+                                type: `text/html`,
+                                width: `640`,
+                                height: `360`,
+                                src: `https://www.youtube-nocookie.com/embed/${e.metadata.videoId}`,
+                                frameborder: `0`,
+                                allowfullscreen: !0,
+                                referrerpolicy: `strict-origin-when-cross-origin`,
+                            })
+                          : null
+                ),
+            ],
+        })
+    );
+export { l as route };

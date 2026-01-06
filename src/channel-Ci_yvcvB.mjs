@@ -1,0 +1,111 @@
+import { t as e } from './cache-DLkCV5c7.mjs';
+import { a as t, n, r, t as i } from './client-Cwi66Y2q.mjs';
+import { Api as a } from 'telegram';
+import { returnBigInt as o } from 'telegram/Helpers.js';
+import { getDisplayName as s } from 'telegram/Utils.js';
+import { HTMLParser as c } from 'telegram/extensions/html.js';
+function l(e) {
+    return `<a href="https://www.google.com/maps/search/?api=1&query=${e.lat}%2C${e.long}" target="_blank">Geo LatLon: ${e.lat}, ${e.long}</a>`;
+}
+async function u(e, t, n) {
+    let r = await e.invoke(new a.messages.GetPollResults({ peer: t.peerId, msgId: t.id })),
+        i;
+    return (
+        r?.updates[0] instanceof a.UpdateMessagePoll && (i = r.updates[0].results),
+        `<h4>${n.poll.quiz ? `Quiz` : `Poll`}: ${n.poll.question.text}</h4>
+        <div><ul>${n.poll.answers
+            .map((e) => {
+                let t = e.text.text,
+                    n = i.results?.find((t) => t.option.buffer === e.option.buffer);
+                return (n && i.totalVoters && (t = `<strong>${Math.round((n.voters / i.totalVoters) * 100)}%</strong>: ${t}`), `<li>${t}</li>`);
+            })
+            .join(``)}</ul></div>
+    `
+    );
+}
+function d(e, t) {
+    let i = n(t),
+        o = i ? i.mimeType : ``;
+    if (t instanceof a.MessageMediaPhoto || o.startsWith(`image/`)) return `<img src="${e}" alt=""/>`;
+    if (i && o.startsWith(`video/`)) {
+        let t = i.attributes.find((e) => e instanceof a.DocumentAttributeVideo) ?? { w: 1080, h: 720 };
+        return `<video controls preload="metadata" poster="${e}?thumb" width="${t.w / 2}" height="${t.h / 2}"><source src="${e}" type="${o}"></video>`;
+    }
+    if (i && o.startsWith(`audio/`)) return `<div>${p(t)}</div><div><audio src="${e}"></audio></div>`;
+    if (i && o.startsWith(`application/`)) {
+        let n = `${r(t)} (${f(i.size.valueOf())})`;
+        return (o.endsWith(`x-tgsticker`) && (n = ``), (i.thumbs?.length ?? 0) > 0 && (n = `<div><img src="${e}?thumb" alt=""/></div><div>${n}</div>`), `<a href="${e}" target="_blank">${n}</a>`);
+    }
+    if ((t instanceof a.MessageMediaGeo || t instanceof a.MessageMediaGeoLive) && t.geo instanceof a.GeoPoint) return l(t.geo);
+    if (t instanceof a.MessageMediaWebPage) return ``;
+    if (t instanceof a.MessageMediaContact) return `Contact: <a href="tel:${t.phoneNumber}" target="_blank">${t.firstName} ${t.lastName} ${t.phoneNumber}</a>`;
+    if (t instanceof a.MessageMediaInvoice) {
+        let e = t.description;
+        return (t.photo?.url && (e = `<img src="${t.photo?.url}" /><br />${e}`), `<h4>${t.test ? `TEST ` : ``}Invoice: ${t.title}</h4><div>${e}</div>`);
+    }
+    return t.className;
+}
+function f(e) {
+    let t = e === 0 ? 0 : Math.floor(Math.log(e) / Math.log(1024));
+    return (e / 1024 ** t).toFixed(2) + ` ` + [`B`, `kB`, `MB`, `GB`, `TB`][t];
+}
+function p(e) {
+    if (e instanceof a.MessageMediaDocument && e.document instanceof a.Document) {
+        let t = e.document.attributes.find((e) => e instanceof a.DocumentAttributeAudio);
+        if (t) return `${t.performer} - ${t.title} (${m(t.duration)})`;
+    }
+    return r(e);
+}
+function m(e) {
+    let t = Math.floor(e / 3600),
+        n = Math.floor((e % 3600) / 60),
+        r = e % 60,
+        i = String(n).padStart(2, `0`),
+        a = String(r).padStart(2, `0`);
+    return t > 0 ? `${t}:${i}:${a}` : n > 0 ? `${n}:${a}` : `0:${a}`;
+}
+async function h(n) {
+    let r = await i(),
+        l = n.req.param(`username`),
+        f = await e.get(`telegram:inputEntity:${l}`);
+    if (!f) {
+        let t = await r.getInputEntity(l);
+        ((f = JSON.stringify(t.toJSON())), await e.set(`telegram:inputEntity:${l}`, f));
+    }
+    let p = JSON.parse(f, (e, t) => (e === `channelId` || e === `accessHash` ? o(t) : t)),
+        m = new a.InputPeerChannel(p),
+        h = await r.getEntity(m),
+        g = [],
+        _ = await r.getMessages(m, { limit: 50 }),
+        v = 0,
+        y = [];
+    for (let e of _) {
+        let i = e.text;
+        e.fwdFrom?.fromId && (i = `Forwarded From: ${s(await r.getEntity(e.fwdFrom.fromId))}: ${i}`);
+        let o = await t(e.media, e.peerId);
+        if ((e.media instanceof a.MessageMediaStory && o && (i = `Story From: ${s(await r.getEntity(e.media.peer))}: ${i}`), o)) {
+            if (o instanceof a.MessageMediaPoll) {
+                g.push(await u(r, e, o));
+                continue;
+            }
+            let t = `${new URL(n.req.url).origin}/telegram/media/${l}/${e.id}`;
+            g.push(d(t, o));
+        }
+        if (e.replyMarkup instanceof a.ReplyInlineMarkup) for (let t of e.replyMarkup.rows) for (let e of t.buttons) e instanceof a.KeyboardButtonUrl && g.push(`<div><a href="${e.url}" target="_blank">${e.text}</a></div>`);
+        if (i !== `` || ++v === _.length - 1) {
+            let t = g.join(`<br/>
+`);
+            ((g = []),
+                i &&
+                    (t += `<p>${c.unparse(e.message, e.entities).replaceAll(
+                        `
+`,
+                        `<br/>`
+                    )}</p>`));
+            let n = e.text ? e.text.slice(0, 80) + (e.text.length > 80 ? `...` : ``) : new Date(e.date * 1e3).toUTCString();
+            y.push({ title: n, description: t, pubDate: new Date(e.date * 1e3).toUTCString(), link: `https://t.me/s/${l}/${e.id}`, author: s(e.sender ?? h) });
+        }
+    }
+    return { title: s(h), language: null, link: `https://t.me/${l}`, item: y, allowEmpty: n.req.param(`id`) === `allow_empty`, description: `@${l} on Telegram` };
+}
+export { d as n, h as r, l as t };

@@ -1,0 +1,139 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { t as i } from './rss-parser-CKuAfhVS.mjs';
+import { n as a } from './puppeteer-BbZGb8cd.mjs';
+import { load as o } from 'cheerio';
+const s = (e, t) => {
+    let n = `<figure><img src='${e(t).find(`figure`).find(`picture`).find(`img`).attr(`src`)}'><br><figcaption>`,
+        r = e(t).find(`figcaption`);
+    return ((n += `${e(r[0]).text().trim()}</figcaption></figure>`), n);
+};
+var c = {
+    ProcessFeed: (e, n = !1) => {
+        let r = o(e),
+            i,
+            a = {};
+        n
+            ? ((i = r(`section[name="articleBody"]`)),
+              (a.title = `「英」${r(`h1`).text().trim()}`),
+              (a.author = r(`article#story span[itemprop="name"]`).text()),
+              r(`article#story > header`)
+                  .find(`div[data-testid="photoviewer-wrapper"]`)
+                  .each((e, t) => {
+                      r(s(r, t)).insertBefore(i[0].firstChild);
+                  }),
+              i.find(`div[data-testid="photoviewer-wrapper"]`).each((e, t) => {
+                  (r(s(r, t)).insertBefore(t), r(t).remove());
+              }),
+              i.find(`#CNB`).each((e, t) => {
+                  r(t).next().remove();
+              }),
+              i.find(`div[id]`).each((e, t) => {
+                  r(t).remove();
+              }),
+              i.find(`aside`).each((e, t) => {
+                  r(t).remove();
+              }))
+            : ((i = r(`section.article-body`)),
+              i.find(`div.big_ad, div.article-body-aside`).each((e, t) => {
+                  r(t).remove();
+              }),
+              i.find(`div.article-paragraph`).each((e, t) => {
+                  r(t).html(`<p>${r(t).html()}</p>`);
+              }),
+              r(`figure.article-span-photo`).length > 0 && r(r(`figure.article-span-photo`)).insertBefore(i[0].firstChild),
+              r(`footer.author-info`).length > 0 && r(r(`footer.author-info`)).insertAfter(i[0].lastChild));
+        let c = r(`time`).attr(`datetime`);
+        return (c && (a.pubDate = t(c)), (a.description = i.html()), a);
+    },
+    PuppeterGetter: async (t, n, r) =>
+        await e.tryGet(`nyt: ${r}`, async () => {
+            let e = await n.newPage();
+            return (
+                await e.setRequestInterception(!0),
+                e.on(`request`, (e) => {
+                    e.resourceType() === `document` ? e.continue() : e.abort();
+                }),
+                await e.goto(r, { waitUntil: `domcontentloaded` }),
+                await e.evaluate(() => document.querySelector(`body`).innerHTML)
+            );
+        }),
+};
+const l = {
+    path: `/:lang?`,
+    categories: [`traditional-media`],
+    view: r.Articles,
+    example: `/nytimes/dual`,
+    parameters: {
+        lang: {
+            description: `language, default to Chinese`,
+            options: [
+                { value: `dual`, label: `Chinese-English` },
+                { value: `en`, label: `English` },
+                { value: `traditionalchinese`, label: `Traditional Chinese` },
+                { value: `dual-traditionalchinese`, label: `Chinese-English (Traditional Chinese)` },
+            ],
+        },
+    },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`nytimes.com/`], target: `` }],
+    name: `News`,
+    maintainers: [`HenryQW`, `pseudoyu`],
+    handler: u,
+    url: `nytimes.com/`,
+    description: `By extracting the full text of articles, we provide a better reading experience (full text articles) over the official one.`,
+};
+async function u(t) {
+    let { lang: r = `` } = t.req.param();
+    r = r.toLowerCase();
+    let s = `纽约时报中文网`,
+        l = `https://cn.nytimes.com/rss/`;
+    switch (r) {
+        case `dual`:
+            s += ` - 中英对照版`;
+            break;
+        case `en`:
+            s += ` - 英文原版`;
+            break;
+        case `traditionalchinese`:
+            ((s = `紐約時報中文網`), (l = new URL(`zh-hant`, l).href));
+            break;
+        case `dual-traditionalchinese`:
+            ((s = `紐約時報中文網 - 中英對照版`), (l = new URL(`zh-hant`, l).href), (r = `dual`));
+            break;
+        default:
+    }
+    let u = await a(),
+        d = await i.parseURL(l),
+        f = await Promise.all(
+            d.items.splice(0, 10).map(async (i) => {
+                let a = i.link,
+                    s,
+                    l = !1,
+                    d = !1;
+                if (r === `dual`) {
+                    a = a.replace(`/?utm_source=RSS`, ``) + `/dual`;
+                    try {
+                        ((s = await e.tryGet(`nyt: ${a}`, async () => (await n(a)).data)), (d = !0));
+                    } catch {
+                        s = await e.tryGet(`nyt: ${i.link}`, async () => (await n(i.link)).data);
+                    }
+                } else if (((s = await e.tryGet(`nyt: ${i.link}`, async () => (await n(i.link)).data)), r === `en`)) {
+                    let e = o(s);
+                    e(`.dual-btn`).length > 0 && ((l = !0), (a = e(`.dual-btn a`).last().attr().href), (s = await c.PuppeterGetter(t, u, a)));
+                }
+                let f = { title: i.title, pubDate: i.pubDate, link: a, author: i[`dc:creator`] },
+                    p = c.ProcessFeed(s, l);
+                return ((f.description = p.description?.replaceAll(/&#x611F;(&#x8C22|&#x8B1D);.*?cn\.letters@nytimes\.com&#x3002;/g, ``)), l && ((f.title = p.title), (f.author = p.author)), d && (f.title = `「中英」${f.title}`), f);
+            })
+        );
+    return (await u.close(), { title: s, link: `https://cn.nytimes.com`, description: s, item: f });
+}
+export { l as route };

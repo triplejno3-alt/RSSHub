@@ -1,0 +1,64 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import * as r from 'cheerio';
+const i = { path: `/tag/:tag`, example: `/wired/tag/facebook`, parameters: { tag: `Tag name` }, radar: [{ source: [`www.wired.com/tag/:tag/`] }], name: `Tags`, maintainers: [`Naiqus`], handler: a };
+async function a(i) {
+    let a = `https://www.wired.com`,
+        { tag: o } = i.req.param(),
+        s = `${a}/tag/${o}/`,
+        c = await e(s),
+        l = r.load(c),
+        u = JSON.parse(
+            l(`script:contains("window.__PRELOADED_STATE__")`)
+                .text()
+                .match(/window\.__PRELOADED_STATE__ = (.*);/)?.[1] ?? `{}`
+        ),
+        d = u.transformed.tag.items.map((e) => ({
+            title: e.dangerousHed,
+            description: e.dangerousDek,
+            link: `${a}${e.url}`,
+            pubDate: n(e.date),
+            author: e.contributors.author.items.map((e) => e.name).join(`, `),
+            category: [e.rubric.name],
+        })),
+        f = await Promise.all(
+            d.map((n) =>
+                t.tryGet(n.link, async () => {
+                    let t = await e(n.link),
+                        i = r.load(t),
+                        a = JSON.parse(
+                            i(`script:contains("window.__PRELOADED_STATE__")`)
+                                .text()
+                                .match(/window\.__PRELOADED_STATE__ = (.*);/)?.[1] ?? `{}`
+                        ),
+                        o = i(`div[data-testid*="ContentHeaderLeadAsset"]`);
+                    (o.find(`button`).remove(),
+                        o.find(`video`) &&
+                            (o.find(`video`).attr(`src`, i(`link[rel="preload"][as="video"]`).attr(`href`)), o.find(`video`).attr(`controls`, ``), o.find(`video`).attr(`preload`, `metadata`), o.find(`video`).removeAttr(`autoplay`)));
+                    let s = i(`.body__inner-container`)
+                        .toArray()
+                        .map((e) => {
+                            let t = i(e);
+                            return (
+                                t.find(`noscript`).each((e, t) => {
+                                    let n = i(t);
+                                    n.replaceWith(n.html() || ``);
+                                }),
+                                t.html()
+                            );
+                        })
+                        .join(``);
+                    return (
+                        (n.description = (i(`div[class^=ContentHeaderDek]`).prop(`outerHTML`) || ``) + o.prop(`outerHTML`) + s),
+                        (n.category = [...new Set([...n.category, ...a.transformed.article.tagCloud.tags.map((e) => e.tag)])]),
+                        n
+                    );
+                })
+            )
+        );
+    return { title: u.transformed[`head.title`], description: u.transformed[`head.description`], link: s, image: `${a}${u.transformed.logo.sources.sm.url}`, language: `en`, item: f };
+}
+export { i as route };

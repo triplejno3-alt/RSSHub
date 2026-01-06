@@ -1,0 +1,40 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { n as r } from './wechat-mp-HNgcLN2K.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/ershicimi/:id`,
+    categories: [`new-media`],
+    example: `/wechat/ershicimi/813oxJOl`,
+    parameters: { id: `公众号id，打开公众号页，在 URL 中找到 id` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `公众号（二十次幂来源）`,
+    maintainers: [`sanmmm`],
+    handler: o,
+};
+async function o(a) {
+    let o = `https://www.cimidata.com/a/${a.req.param(`id`)}`,
+        s = i((await t(o)).data),
+        c = s(`.weui_media_box`)
+            .toArray()
+            .map((t) => {
+                let r = i(t),
+                    a = r(`.weui_media_title a`).attr(`href`);
+                return { title: r(`.weui_media_title a`).text(), description: r(`.weui_media_desc`).text(), link: a, pubDate: n(e(r(`.weui_media_extra_info`).attr(`title`)), 8) };
+            });
+    return {
+        title: `微信公众号 - ${s(`span.name`).text()}`,
+        link: o,
+        description: s(`div.Profile-sideColumnItemValue`).text(),
+        item: await Promise.all(c.map((e) => r(e))).catch((e) => {
+            throw e;
+        }),
+    };
+}
+export { a as route };

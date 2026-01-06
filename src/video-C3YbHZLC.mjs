@@ -1,0 +1,61 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { t as r } from './invalid-parameter-DGZgOgO2.mjs';
+const i = { archive: `LATEST_BROADCASTS`, highlights: `LATEST_NON_BROADCASTS`, all: `ALL_VIDEOS` },
+    a = {
+        path: `/video/:login/:filter?`,
+        categories: [`live`],
+        view: n.Videos,
+        example: `/twitch/video/riotgames/highlights`,
+        parameters: {
+            login: `Twitch username`,
+            filter: {
+                description: `Video type, Default to all`,
+                options: [
+                    { value: `archive`, label: `Archive` },
+                    { value: `highlights`, label: `Highlights` },
+                    { value: `all`, label: `All` },
+                ],
+                default: `all`,
+            },
+        },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`www.twitch.tv/:login/videos`], target: `/video/:login` }],
+        name: `Channel Video`,
+        maintainers: [`hoilc`],
+        handler: o,
+    };
+async function o(n) {
+    let a = n.req.param(`login`),
+        o = n.req.param(`filter`)?.toLowerCase() || `all`;
+    if (!i[o]) throw new r(`Unsupported filter type "${o}", please choose from { ${Object.keys(i).join(`, `)} }`);
+    let s = (
+        await t({
+            method: `post`,
+            url: `https://gql.twitch.tv/gql`,
+            headers: { Referer: `https://player.twitch.tv`, 'Client-ID': `kimne78kx3ncx6brgo4mv6wki5h1ko` },
+            json: [
+                { operationName: `ChannelVideoShelvesQuery`, variables: { channelLogin: a, first: 5 }, extensions: { persistedQuery: { version: 1, sha256Hash: `7b31d8ae7274b79d169a504e3727baaaed0d5ede101f4a38fc44f34d76827903` } } },
+            ],
+        })
+    ).data[0].data;
+    if (!s.user.id) throw new r(`Username does not exist`);
+    let c = s.user.displayName,
+        l = s.user.videoShelves.edges.find((e) => e.node.type === i[o]);
+    if (!l) throw new r(`No video under filter type "${o}"`);
+    let u = l.node.items.map((t) => ({
+        title: t.title,
+        link: `https://www.twitch.tv/videos/${t.id}`,
+        author: c,
+        pubDate: e(t.publishedAt),
+        description: `<img style="max-width: 100%;" src="${t.previewThumbnailURL}"><br/><img style="max-width: 100%;" src="${t.animatedPreviewURL}">`,
+        category: t.game && [t.game.displayName],
+    }));
+    return { title: `Twitch - ${c} - ${l.node.title}`, link: `https://www.twitch.tv/${a}`, item: u };
+}
+export { a as route };

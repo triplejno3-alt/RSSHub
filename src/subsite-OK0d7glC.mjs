@@ -1,0 +1,62 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './rss-parser-CKuAfhVS.mjs';
+import { load as r } from 'cheerio';
+var i = {
+    ProcessFeed: (e) => {
+        let t = r(e),
+            n = t(`div.post-content`),
+            i = t(`meta[property="og:image"]`);
+        return (
+            i.length > 0 && t(`<img src=${i[0].attribs.content}>`).insertBefore(n[0].firstChild),
+            n.find(`hr`).nextAll().remove(),
+            n.find(`hr, ins.adsbygoogle, script`).each((e, n) => {
+                t(n).remove();
+            }),
+            n.find(`div.ad-disclaimer-container`).remove(),
+            n.find(`div`).each((e, n) => {
+                if (t(n)[0].attribs.class) {
+                    let e = t(n)[0].attribs.class;
+                    /\w{10}\s\w{10}/g.test(e) && t(n).remove();
+                }
+            }),
+            n.html()
+        );
+    },
+};
+const a = { path: `/:subsite/:tag?`, name: `Unknown`, maintainers: [], handler: o };
+async function o(r) {
+    let a = `9To5`,
+        o,
+        s;
+    switch (r.req.param(`subsite`)) {
+        case `mac`:
+            ((o = `https://9to5mac.com`), (a += `Mac`), (s = `Apple News & Mac Rumors Breaking All Day`));
+            break;
+        case `google`:
+            ((o = `https://9to5google.com`), (a += `Google`), (s = `Google, Pixel news, Android, Home, Chrome OS, apps, more`));
+            break;
+        case `toys`:
+            ((o = `https://9to5toys.com`), (a += `Toys`), (s = `New Gear, reviews and deals`));
+            break;
+        default:
+            break;
+    }
+    r.req.param(`tag`) ? ((o = `${o}/guides/${r.req.param(`tag`)}/feed/`), (a = `${r.req.param(`tag`)} | ${a}`)) : (o = `${o}/feed/`);
+    let c = await n.parseURL(o),
+        l = await Promise.all(
+            c.items.splice(0, r.req.query(`limit`) ? Number.parseInt(r.req.query(`limit`)) : 10).map((n) =>
+                e.tryGet(n.link, async () => {
+                    let e = await t({ method: `get`, url: n.link }),
+                        r = i.ProcessFeed(e.data);
+                    return { title: n.title, description: r, pubDate: n.pubDate, link: n.link, author: n[`dc:creator`] };
+                })
+            )
+        );
+    return { title: a, link: o, description: s, item: l };
+}
+export { a as route };

@@ -1,0 +1,50 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/blog`,
+    categories: [`blog`],
+    example: `/langchain/blog`,
+    radar: [{ source: [`blog.langchain.dev/`] }],
+    url: `blog.langchain.dev/`,
+    name: `Blog`,
+    maintainers: [`liyaozhong`],
+    handler: i,
+    description: `LangChain Blog Posts`,
+};
+async function i() {
+    let r = `https://blog.langchain.dev`,
+        i = n((await t(r)).data);
+    return {
+        title: `LangChain Blog`,
+        link: r,
+        item: (
+            await Promise.all(
+                i(`.posts-feed .post-card`)
+                    .toArray()
+                    .map((e) => {
+                        let t = i(e),
+                            n = t.find(`.post-card__content-link`).first().attr(`href`),
+                            a = t.find(`.post-card__title`).text().trim(),
+                            o = t.find(`.post-card__excerpt`).text().trim();
+                        return !n || !a ? null : { title: a, description: o, link: new URL(n, r).href };
+                    })
+                    .filter((e) => e !== null)
+                    .map((r) =>
+                        e.tryGet(r.link, async () => {
+                            try {
+                                return ((r.description = n((await t(r.link)).data)(`.article-content`).html() || r.description), r);
+                            } catch {
+                                return r;
+                            }
+                        })
+                    )
+            )
+        ).filter((e) => e !== null),
+    };
+}
+export { r as route };

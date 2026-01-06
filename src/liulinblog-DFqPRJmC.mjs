@@ -1,0 +1,93 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = { path: `/:params{.+}?`, name: `Unknown`, maintainers: [], handler: a };
+async function a(i) {
+    let a = i.req.param(`params`),
+        o = i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`), 10) : 20,
+        s = `https://www.liulinblog.com`,
+        c = a ? new URL(a, s).href : s,
+        { data: l } = await n(c),
+        u = r(l),
+        d = u(`div.scroll`)
+            .first()
+            .find(`article`)
+            .slice(0, o)
+            .toArray()
+            .map((e) => {
+                e = u(e);
+                let n = e.find(`h2.entry-title a`);
+                return {
+                    title: n.prop(`title`),
+                    link: n.prop(`href`),
+                    description: e.find(`div.entry-excerpt`).html(),
+                    author: e
+                        .find(`span.meta-author a`)
+                        .toArray()
+                        .map((e) => u(e).prop(`title`))
+                        .join(` / `),
+                    category: e
+                        .find(`span.meta-category-dot a[rel="category"]`)
+                        .toArray()
+                        .map((e) => u(e).text()),
+                    guid: `liulinblog-${e.prop(`id`)}`,
+                    pubDate: t(e.find(`span.meta-date time`).prop(`datetime`)),
+                    comments: e.find(`span.meta-comment`).text() ? Number.parseInt(e.find(`span.meta-comment`).text().trim(), 10) : 0,
+                };
+            });
+    d = await Promise.all(
+        d.map((i) =>
+            e.tryGet(i.link, async () => {
+                let { data: e } = await n(i.link),
+                    a = r(e);
+                return (
+                    a(`div[role="alert"]`).remove(),
+                    (i.title = a(`meta[property="og:title"]`).prop(`content`)),
+                    (i.description = a(`div.entry-content`).html()),
+                    (i.author = a(`div.entry-meta`)
+                        .first()
+                        .find(`span.meta-author a`)
+                        .toArray()
+                        .map((e) => a(e).prop(`title`))
+                        .join(` / `)),
+                    (i.category = a(`div.entry-meta`)
+                        .first()
+                        .find(`span.meta-category a[rel="category"]`)
+                        .toArray()
+                        .map((e) => a(e).text())),
+                    (i.guid = `liulinblog-${a(`article`).first().prop(`id`)}`),
+                    (i.pubDate = t(a(`span.meta-date time`).first().prop(`datetime`))),
+                    (i.comments = a(`h3.comments-title`).text()
+                        ? Number.parseInt(
+                              a(`h3.comments-title`)
+                                  .text()
+                                  .match(/\((\d+)\)/),
+                              10
+                          )
+                        : 0),
+                    i
+                );
+            })
+        )
+    );
+    let f = u(`link[rel="icon"]`).prop(`href`),
+        p = u(`img.logo`).prop(`alt`);
+    return {
+        item: d,
+        title: `${p} - ${a ? u(`h1.term-title`).text().split(`搜索到`)[0] : `最新`}`,
+        link: c,
+        description: u(`meta[name="description"]`).prop(`content`),
+        language: `zh-cn`,
+        image: u(`img.logo`).prop(`src`),
+        icon: f,
+        logo: f,
+        subtitle: u(`p.term-description`).text(),
+        author: p,
+    };
+}
+export { i as route };

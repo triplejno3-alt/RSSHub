@@ -1,0 +1,40 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { load as t } from 'cheerio';
+const n = {
+    path: [`/movie/playing`, `/movie/playing/:score`],
+    categories: [`social-media`],
+    example: `/douban/movie/playing`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `正在上映的电影`,
+    maintainers: [`DIYgod`],
+    handler: r,
+};
+async function r(n) {
+    let r = Number.parseFloat(n.req.param(`score`)) || 0,
+        i = t((await e({ method: `get`, url: `https://movie.douban.com/cinema/nowplaying/beijing` })).data);
+    return {
+        title: `正在上映的${r ? `超过 ${r} 分的` : ``}电影`,
+        link: `https://movie.douban.com/cinema/nowplaying/`,
+        item: i(`.list-item`)
+            .toArray()
+            .map((e) => {
+                let t = i(e),
+                    n = Number.parseFloat(t.attr(`data-score`)) || 0;
+                return n >= r
+                    ? {
+                          title: t.attr(`data-title`),
+                          description: `标题：${t.attr(`data-title`)}<br>评分：${n}<br>片长：${t.attr(`data-duration`)}<br>制片国家/地区：${t.attr(`data-region`)}<br>导演：${t.attr(`data-director`)}<br>主演：${t.attr(`data-actors`)}<br><img src="${t.find(`.poster img`).attr(`src`)}">`,
+                          link: `https://movie.douban.com/subject/${t.attr(`id`)}`,
+                      }
+                    : null;
+            })
+            .filter(Boolean),
+        allowEmpty: !0,
+    };
+}
+export { n as route };

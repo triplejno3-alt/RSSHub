@@ -1,0 +1,42 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/:category?`,
+    categories: [`new-media`],
+    example: `/agora0/initium`,
+    parameters: { category: `分类，见下表，默认为 initium，即端传媒` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`agora0.gitlab.io/blog/:category`, `agora0.gitlab.io/`], target: `/:category` }],
+    name: `零博客`,
+    maintainers: [`nczitzk`],
+    handler: a,
+    description: `| muitinⒾ | aidemnⒾ | srettaⓂ | qⓅ | sucoⓋ |
+| ------- | ------- | -------- | -- | ----- |
+| initium | inmedia | matters  | pq | vocus |`,
+};
+async function a(i) {
+    let a = `https://agora0.gitlab.io/blog/${i.req.param(`category`) ?? `initium`}`,
+        o = r((await n({ method: `get`, url: a })).data),
+        s = o(`.card span:not(.comments) a`)
+            .slice(0, i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`)) : 50)
+            .toArray()
+            .map((e) => ((e = o(e)), { title: e.text(), link: e.attr(`href`) }));
+    return (
+        (s = await Promise.all(
+            s.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let e = r((await n({ method: `get`, url: i.link })).data);
+                    return ((i.author = e(`meta[name="author"]`).attr(`content`)), (i.pubDate = t(e(`meta[property="article:published_time"]`).attr(`content`))), (i.description = e(`.post-content`).html()), i);
+                })
+            )
+        )),
+        { title: o(`title`).text(), link: a, item: s }
+    );
+}
+export { i as route };

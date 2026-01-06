@@ -1,0 +1,13 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import { t as e } from './utils-DftYsei8.mjs';
+const t = { path: `/user/:id`, radar: [{ source: [`ruancan.com/i/:id`, `ruancan.com/`] }], name: `Unknown`, maintainers: [], handler: n, url: `ruancan.com/` };
+async function n(t) {
+    return await e(t, `/i/${t.req.param(`id`)}`);
+}
+export { t as route };

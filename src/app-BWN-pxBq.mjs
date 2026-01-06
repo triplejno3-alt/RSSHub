@@ -1,0 +1,129 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+import { raw as c } from 'hono/html';
+const l = ({ standfirst: e, coverImage: t, coverCaption: n, article: o }) =>
+        s(
+            a(r, {
+                children: [
+                    e ? i(`blockquote`, { children: i(`p`, { children: i(`em`, { children: e }) }) }) : null,
+                    t ? a(`figure`, { children: [i(`img`, { src: t }), n ? i(`figcaption`, { children: n }) : null] }) : null,
+                    o ? i(r, { children: c(o) }) : null,
+                ],
+            })
+        ),
+    u = `https://app.theinitium.com/`,
+    d = {
+        path: `/app/:category?`,
+        categories: [`new-media`],
+        example: `/theinitium/app`,
+        parameters: { category: `Category, see below, latest_sc by default` },
+        features: { requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `App`,
+        maintainers: [`quiniapiezoelectricity`],
+        radar: [{ source: [`app.theinitium.com/t/latest/:category`], target: `/app/:category` }],
+        handler: g,
+        description: `抓取[The Initium App](https://app.theinitium.com/)的文章列表
+
+::: warning
+此路由暂不支持登陆认证
+:::
+
+Category 栏目：
+
+| ----- | 简体中文     | 繁體中文      |
+| ----- | ----------------- | ---------------- |
+| 最新   | latest_sc | latest_tc |
+| 日报   | daily_brief_sc | daily_brief_tc |
+| 速递   | whats_new_sc | whats_new_tc |
+| 专题   | report_sc | report_tc |
+| 评论   | opinion_sc | opinion_tc |
+| 国际   | international_sc | international_tc |
+| 大陆   | mainland_sc | mainland_tc |
+| 香港   | hongkong_sc | hongkong_tc |
+| 台湾   | taiwan_sc | taiwan_tc |
+| 播客   | article_audio_sc | article_audio_tc |`,
+    },
+    f = (e, t, n, r) => {
+        let i = e(t);
+        if (r)
+            try {
+                let e = i.attr(n);
+                e && i.attr(n, new URL(e, r).href);
+            } catch {}
+    };
+async function p(t) {
+    return await e(t, { headers: { 'User-Agent': `PugpigBolt v4.1.8 (iPhone, iOS 18.2.1) on phone (model iPhone15,2)` } });
+}
+async function m(e) {
+    let t = o(await p(e.href));
+    (t(`a, area`).each((e, n) => {
+        f(t, n, `href`, u);
+    }),
+        t(`img, video, audio, source, iframe, embed, track`).each((e, n) => {
+            (f(t, n, `src`, u), t(n).removeAttr(`srcset`));
+        }),
+        t(`video[poster]`).each((e, n) => {
+            f(t, n, `poster`, u);
+        }));
+    let n = t(`.pp-article__body`);
+    return (
+        n.find(`.block-related-articles`).remove(),
+        n.find(`.copyright`).wrapInner(`<small></small>`).wrapInner(`<figure></figure>`),
+        n.find(`figure.wp-block-pullquote`).children().unwrap(),
+        n.find(`div.block-explanation-note`).wrapInner(`<blockquote></blockquote>`),
+        n.find(`div.wp-block-tcc-author-note`).wrapInner(`<em></em>`).after(`<hr>`),
+        n.find(`p.has-small-font-size`).wrapInner(`<small></small>`),
+        l({ standfirst: t(`.pp-header-group__standfirst`).html(), coverImage: t(`.pp-media__image`).attr(`src`), coverCaption: t(`.pp-media__caption`).html(), article: n.html() })
+    );
+}
+async function h(t) {
+    let n = o(await e(t.href)),
+        r = n(`.ghost-content`);
+    return (
+        r.find(`.kg-card, .gh-post-upgrade-cta`).remove(),
+        l({ standfirst: n(`p.caption1`).html(), coverImage: n(`.post-hero .object-cover`).attr(`src`)?.replace(`/size/w30`, ``), coverCaption: n(`.post-hero figcaption`).html(), article: r.html() })
+    );
+}
+async function g(e) {
+    let r = e.req.param(`category`) ?? `latest_sc`,
+        i = (await n.tryGet(new URL(`timelines.json`, u).href, async () => await p(new URL(`timelines.json`, u).href), t.cache.routeExpire, !1)).timelines.find((e) => e.id === r),
+        a = (await p(new URL(i.feed, u).href)).stories.filter((e) => e.type === `article`),
+        o = await Promise.all(
+            a.map((e) =>
+                n.tryGet(e.shareurl, async () => {
+                    let t = new URL(e.shareurl);
+                    ((e.link = t.href),
+                        (e.description = e.summary),
+                        (e.pubDate = e.published),
+                        (e.category = []),
+                        e.section && (e.category = [...e.category, e.section]),
+                        e.taxonomy && (e.taxonomy.collection_tag && (e.category = [...e.category, ...e.taxonomy.collection_tag]), e.taxonomy.sections && (e.category = [...e.category, ...e.taxonomy.sections])),
+                        (e.category = [...new Set(e.category)]));
+                    try {
+                        switch (t.hostname) {
+                            case `app.theinitium.com`:
+                                e.description = (await m(t)) ?? e.description;
+                                break;
+                            case `theinitium.com`:
+                                e.description = (await h(t)) ?? e.description;
+                                break;
+                            default:
+                                break;
+                        }
+                    } catch (e) {
+                        e?.response?.status;
+                    }
+                    return e;
+                })
+            )
+        ),
+        s = `zh-hans`,
+        c = `端传媒`;
+    return (i.timeline_sets[0] === `chinese-traditional` && ((s = `zh-hant`), (c = `端傳媒`)), { title: `${c} - ${i.title}`, link: `https://app.theinitium.com/t/latest/${r}/`, language: s, item: o });
+}
+export { d as route };

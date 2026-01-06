@@ -1,0 +1,33 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/jwc`,
+    url: `jwc.cupl.edu.cn/index/tzgg.htm`,
+    categories: [`university`],
+    example: `/cupl/jwc`,
+    description: `中国政法大学教务处通知公告`,
+    name: `教务处通知公告`,
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`jwc.cupl.edu.cn/index/tzgg.htm`, `jwc.cupl.edu.cn/`], target: `/jwc` }],
+    maintainers: [`Fgju`],
+    handler: async () => {
+        let r = n(await e(`https://jwc.cupl.edu.cn/index/tzgg.htm`));
+        return {
+            title: `通知公告`,
+            link: `https://jwc.cupl.edu.cn/index/tzgg.htm`,
+            description: `中国政法大学教务处通知公告`,
+            language: `zh-CN`,
+            item: r(`li[id^=line_u8_]`)
+                .toArray()
+                .map((e) => {
+                    let n = r(e),
+                        i = n.find(`a`);
+                    return { link: i[1].attribs.href, title: r(i[1]).text(), pubDate: t(n.find(`span`).text(), `YYYY-MM-DD`), category: r(i[0]).text().slice(0, -1), description: `` };
+                }),
+        };
+    },
+};
+export { r as route };

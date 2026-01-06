@@ -1,0 +1,29 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { a as e, i as t, n, o as r, r as i, s as a, t as o } from './common-CeVXaBVy.mjs';
+const s = {
+    ...i,
+    name: `Popular Posts`,
+    path: `/popular/:tab?/:time_range?/:category?`,
+    radar: [
+        { title: `Most Liked Posts`, source: [`www.voronoiapp.com/posts/most-popular`], target: `/popular/most-popular` },
+        { title: `Most Discussed Posts`, source: [`www.voronoiapp.com/posts/most-discussed`], target: `/popular/most-discussed` },
+        { title: `Most Viewed Posts`, source: [`www.voronoiapp.com/posts/most-viewed`], target: `/popular/most-viewed` },
+    ],
+    parameters: { tab: e, time_range: r, category: o },
+    example: `/voronoiapp/popular/most-popular/MONTH`,
+    handler: async (i) => {
+        let { tab: o = `most-popular`, time_range: s = `MONTH`, category: c = `` } = i.req.param();
+        if (!t[o.toLowerCase()]) throw Error(`Invalid tab: ${o}`);
+        let l = await a({ swimlane: `POPULAR`, tab: t[o.toLowerCase()], time_range: s === `` ? void 0 : s.toUpperCase(), category: c === `` ? void 0 : c });
+        return {
+            ...n,
+            title: `Voronoi ${e.options.find((e) => e.value === o.toLowerCase())?.label} Posts in ${r.options.find((e) => e.value === s.toUpperCase())?.label}${c ? ` - ${c}` : ``}`,
+            link: `https://www.voronoiapp.com/posts/${o}`,
+            item: l,
+        };
+    },
+};
+export { s as route };

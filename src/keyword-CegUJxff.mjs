@@ -1,0 +1,55 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { a as t, i as n, n as r, o as i, r as a, t as o } from './util-C05ioAwi.mjs';
+const s = {
+    path: `/:sort/:order/:status/:keyword`,
+    categories: [`shopping`],
+    parameters: {
+        sort: {
+            description: `排序方式`,
+            default: `default`,
+            options: [
+                { value: `default`, label: `默认排序` },
+                { value: `create_time`, label: `发布时间` },
+                { value: `score`, label: `评分` },
+                { value: `like`, label: `点赞` },
+                { value: `price`, label: `价格` },
+            ],
+        },
+        order: {
+            description: `排序顺序`,
+            default: `desc`,
+            options: [
+                { value: `desc`, label: `降序` },
+                { value: `asc`, label: `升序` },
+            ],
+        },
+        status: {
+            description: `商品状态`,
+            default: `default`,
+            options: [
+                { value: `default`, label: `全部` },
+                { value: `onsale`, label: `在售` },
+                { value: `soldout`, label: `已售` },
+            ],
+        },
+        keyword: { description: `关键词` },
+    },
+    example: `/mercari/create_time/desc/default/ふもふも`,
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `关键词`,
+    maintainers: [`yana9i`],
+    url: `jp.mercari.com`,
+    handler: c,
+};
+async function c(s) {
+    let { sort: c, order: l, status: u, keyword: d } = s.req.param(),
+        f = a[u] ? [a[u]] : [],
+        p = (await t(r[c], o[l], f, d)).items,
+        m = await Promise.all(p.map((t) => e.tryGet(`mercari:${t.id}:${t.updated}`, async () => await n(t.id, t.itemType).then((e) => i(e)))));
+    return { title: `${d} の検索結果`, link: `https://jp.mercari.com/search?sort=${r[c]}&order=${o[l]}&status=${a[u]}&keyword=${encodeURIComponent(d)}`, description: `Search results for keyword: ${d}`, item: m };
+}
+export { s as route };

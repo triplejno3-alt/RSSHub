@@ -1,0 +1,29 @@
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { n as e } from './puppeteer-BbZGb8cd.mjs';
+import { load as t } from 'cheerio';
+const n = { path: `/`, categories: [`shopping`], example: `/hottoys`, radar: [{ source: [`hottoys.com.hk/`] }], name: `Toys List`, maintainers: [`jw0903`], handler: r, url: `hottoys.com.hk/`, features: { requirePuppeteer: !0 } };
+async function r() {
+    let n = `https://www.hottoys.com.hk`,
+        r = await e(),
+        i = await r.newPage();
+    (await i.setRequestInterception(!0),
+        i.on(`request`, (e) => {
+            e.resourceType() === `document` ? e.continue() : e.abort();
+        }),
+        await i.goto(n, { waitUntil: `domcontentloaded` }));
+    let a = await i.content();
+    await i.close();
+    let o = t(a),
+        s = o(`li.productListItem`)
+            .toArray()
+            .map((e) => {
+                let t = o(e),
+                    r = t.find(`a`).first(),
+                    i = t.find(`img`).first();
+                return { title: i.attr(`title`) ?? `hottoys`, link: `${n}/${r.attr(`href`)}`, description: `<img src="${n}${i.attr(`src`)}" />`, guid: r.attr(`href`) };
+            });
+    return (await r.close(), { title: `Hot Toys New Products`, link: n, item: s });
+}
+export { n as route };

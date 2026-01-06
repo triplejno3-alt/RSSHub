@@ -1,0 +1,30 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { n as t, r as n, t as r } from './const-CBcqBA2o.mjs';
+const i = {
+    path: `/tag/:tag`,
+    categories: [`picture`],
+    example: `/4kup/tag/asian`,
+    parameters: { tag: `Tag` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+    radar: [{ source: [`4kup.net/tag/:tag`], target: `/tag/:tag` }],
+    name: `Tag`,
+    maintainers: [`AiraNadih`],
+    handler: a,
+    url: `4kup.net/`,
+};
+async function a(i) {
+    let a = Number.parseInt(i.req.query(`limit`)) || 20,
+        o = i.req.param(`tag`),
+        s = `${t}tag/${o}/`,
+        {
+            data: [{ id: c }],
+        } = await e(`${t}wp-json/wp/v2/tags?slug=${o}`),
+        { data: l } = await e(`${t}wp-json/wp/v2/posts?tags=${c}&per_page=${a}`);
+    return { title: `${r} - Tag: ${o}`, link: s, item: l.map((e) => n(e)) };
+}
+export { i as route };

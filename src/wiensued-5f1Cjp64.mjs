@@ -1,0 +1,57 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { r as t } from './common-utils-uYpL50sT.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    name: `Objekte`,
+    example: `/wiensued/city=Wien&search=&space-from=30&space-to=100&room-from=2&room-to=4&rent=1&property=1&state[]=inplanung&state[]=inbau&state[]=sofort&state[]=bestand`,
+    path: `*`,
+    maintainers: [`sk22`],
+    categories: [`other`],
+    description: '\nPass in the parameters (e.g. `city=Wien&state[]=sofort`) and/or the path\nleading up to the listing (e.g. `wohnen/sofort-verfuegbar`)\n',
+    async handler(r) {
+        let i = t(r).split(`/`),
+            a = i.filter((e) => e.length && !e.includes(`=`));
+        a.length === 0 && a.push(`wohnen`);
+        let o = i.at(-1).includes(`=`) ? i.at(-1) : ``;
+        o.startsWith(`&`) && (o = o.slice(1));
+        let s = `https://www.wiensued.at/${a.join(`/`)}?${o}`,
+            c = n(await e(s));
+        return {
+            title: c(`title`).text(),
+            language: `de`,
+            logo: `https://www.wiensued.at/wp-content/uploads/logo_wiensued_ohneclaim.svg`,
+            allowEmpty: !0,
+            item: c(`#search-results`)
+                .next()
+                .next()
+                .find(`.object-box`)
+                .toArray()
+                .map((e) => {
+                    let t = c(e),
+                        n = t.find(`.image img`),
+                        r = t.find(`.link a`).attr(`href`),
+                        i = n.attr(`data-lazy-src`) || n.attr(`src`),
+                        a = t.find(`.address h4`).first().text().trim(),
+                        o = t.find(`.address p`).first().text().trim(),
+                        s = t.find(`.text`),
+                        l = s
+                            .find(`.labtxtline`)
+                            .toArray()
+                            .map((e) =>
+                                c(e)
+                                    .children()
+                                    .toArray()
+                                    .map((e) => c(e).text().trim())
+                                    .join(`: `)
+                            )
+                            .join(`, `);
+                    return { title: `${a}, ${o}`, link: r, description: l, image: i, content: { html: s.html() ?? s.text(), text: s.text() } };
+                }),
+            link: s,
+        };
+    },
+};
+export { r as route };

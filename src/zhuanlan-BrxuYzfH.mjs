@@ -1,0 +1,63 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { n, t as r } from './utils-CAAmnNMo.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/zhuanlan/:id`,
+    categories: [`social-media`],
+    example: `/zhihu/zhuanlan/googledevelopers`,
+    parameters: { id: `专栏 id，可在专栏主页 URL 中找到` },
+    features: { requireConfig: [{ name: `ZHIHU_COOKIES`, description: `` }], requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`zhuanlan.zhihu.com/:id`] }],
+    name: `专栏`,
+    maintainers: [`DIYgod`],
+    handler: o,
+};
+async function o(a) {
+    let o = a.req.param(`id`),
+        s = `https://zhuanlan.zhihu.com/${o}`;
+    o.search(`c_`) === 0 && (s = `https://www.zhihu.com/column/${o}`);
+    let c = await r(s, `/api/v4/columns/${o}/items`),
+        l = await t({ method: `get`, url: `https://www.zhihu.com/api/v4/columns/${o}/items`, headers: { ...c, Referer: `https://zhuanlan.zhihu.com/${o}` } }),
+        u = await t({ method: `get`, url: `https://www.zhihu.com/api/v4/columns/${o}/pinned-items/v2`, headers: { ...n, ...c, Referer: `https://zhuanlan.zhihu.com/${o}` } });
+    l.data.data = [...l.data.data, ...u.data.data];
+    let d = i((await t(s, { headers: { ...c, Referer: s } })).data),
+        f = d(`.css-zyehvu`).text();
+    return {
+        description: d(`.css-1bnklpv`).text(),
+        item: l.data.data.map((t) => {
+            let n = ``;
+            (t.content && (n = i(t.content).html()), d(`img`).css(`max-width`, `100%`));
+            let r = ``,
+                a = ``,
+                o = ``,
+                s;
+            switch (t.type) {
+                case `answer`:
+                    ((r = t.question.title), (o = t.question.author ? t.question.author.name : ``), (a = `https://www.zhihu.com/question/${t.question.id}/answer/${t.id}`), (s = e(t.created_time * 1e3)));
+                    break;
+                case `article`:
+                    ((r = t.title), (a = t.url), (o = t.author.name), (s = e(t.created * 1e3)));
+                    break;
+                case `zvideo`:
+                    ((r = t.title),
+                        (a = `https://www.zhihu.com/zvideo/${t.id}`),
+                        (o = t.author.name),
+                        (s = e(t.created_at * 1e3)),
+                        (n = t.description ? `${t.description} <br> <br> <a href="${a}">视频内容请跳转至原页面观看</a>` : `<a href="${a}">视频内容请跳转至原页面观看</a>`));
+                    break;
+                default:
+                    throw Error(`Unknown type: ${t.type}`);
+            }
+            return { title: r, link: a, description: n, pubDate: s, author: o };
+        }),
+        title: `知乎专栏-${f}`,
+        link: s,
+    };
+}
+export { a as route };

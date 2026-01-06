@@ -1,0 +1,86 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { n as t, t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './timezone-CrV-DT8S.mjs';
+import { load as a } from 'cheerio';
+const o = {
+        review: { title: `评论 & 研究`, query: `.module-news-main` },
+        story: { title: `要闻`, query: `.img-List` },
+        fengwen: { title: `风闻`, query: `.fengwen-list` },
+        redian: { title: `热点` },
+        gundong: { title: `滚动` },
+        all: { title: `全部` },
+        home: { title: `首页` },
+        others: { title: `热点 & 滚动` },
+    },
+    s = {
+        path: `/:category?`,
+        categories: [`new-media`],
+        example: `/guancha`,
+        parameters: { category: `分类，见下表，默认为全部` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`guancha.cn/`] }],
+        name: `首页`,
+        maintainers: [`nczitzk`, `Jeason0228`],
+        handler: c,
+        url: `guancha.cn/`,
+        description: `| 全部 | 评论 & 研究 | 要闻  | 风闻    | 热点新闻 | 滚动新闻 |
+| ---- | ----------- | ----- | ------- | -------- | -------- |
+| all  | review      | story | fengwen | redian   | gundong  |
+
+  home = 评论 & 研究 + 要闻 + 风闻
+
+  others = 热点新闻 + 滚动新闻
+
+::: tip
+  观察者网首页左中右的三个 column 分别对应 **评论 & 研究**、**要闻**、**风闻** 三个部分。
+:::`,
+    };
+async function c(s) {
+    let c = s.req.param(`category`) ?? `all`,
+        l = `https://www.guancha.cn`,
+        u = [],
+        d = [],
+        f = [];
+    if (c === `review` || c === `story` || c === `fengwen` || c === `all` || c === `home`) {
+        let e = a((await r({ method: `get`, url: l })).data),
+            t = (t) =>
+                t
+                    .find(`h4.module-title a`)
+                    .toArray()
+                    .filter((t) => e(t).attr(`href`) !== `https://user.guancha.cn`)
+                    .map((t) => {
+                        t = e(t);
+                        let n = t.attr(`href`);
+                        return { title: t.text(), link: `${n.indexOf(`http`) === 0 ? `` : l}${n.replace(/\.shtml/, `_s.shtml`)}` };
+                    });
+        u = c === `all` || c === `home` ? [...t(e(o.review.query)).slice(0, 10 / 3), ...t(e(o.story.query)).slice(0, 10 / 3), ...t(e(o.fengwen.query)).slice(0, 10 / 3)] : t(e(o[c].query)).slice(0, 10);
+    }
+    ((c === `redian` || c === `all` || c === `others`) &&
+        (d = (await r({ method: `get`, url: `${l}/api/redian.htm` })).data.items.map((e) => ({ title: e.TITLE, link: `${l}${e.HTTP_URL.replace(/\.shtml/, `_s.shtml`)}` })).slice(0, c === `all` ? 10 / 3 : 10)),
+        (c === `gundong` || c === `all` || c === `others`) &&
+            (f = (await r({ method: `get`, url: `${l}/api/gundong.htm` })).data.items.map((e) => ({ title: e.TITLE, link: `${l}${e.HTTP_URL.replace(/\.shtml/, `_s.shtml`)}` })).slice(0, c === `all` ? 10 / 3 : 10)));
+    let p = await Promise.all(
+        [...u, ...d, ...f].map((o) =>
+            e.tryGet(o.link, async () => {
+                let e = await r({ method: `get`, url: o.link }),
+                    s = e.data.match(/user.guancha.cn\/main\/content\?id=(.*)";/);
+                s !== null && ((o.link = `https://user.guancha.cn/main/content?id=${s[1]}&page=0`), (e = await r({ method: `get`, url: o.link })));
+                let c = a(e.data),
+                    l = e.data.match(/"pubDate": "(.*)"/);
+                return (
+                    (o.pubDate = l === null ? t(c(`.time1`).text()) : i(n(l[1]), 8)),
+                    (o.description = c(`.all-txt`).html() || c(`.article-txt-content`).html()),
+                    (o.author = c(`.author-intro p a`).text() || c(`.article-content div div h4 a`).text() || c(`.editor-intro p a`).text() || c(`.left-main > div.time.fix > span`).eq(2).text()),
+                    o
+                );
+            })
+        )
+    );
+    return { title: `观察者网 - ${o[c].title}`, link: l, item: p };
+}
+export { s as route };

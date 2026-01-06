@@ -1,0 +1,64 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+const n = {
+    path: `/user/:id`,
+    categories: [`shopping`],
+    example: `/dianping/user/808259118`,
+    parameters: { id: 'User id，打开网页端从 URL 中获取，在 `/member/:id` 中' },
+    features: { requireConfig: [{ name: `DIANPING_COOKIE`, optional: !1, description: `大众点评的 Cookie` }], requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`dianping.com/member/:id`, `m.dianping.com/userprofile/:id`], target: `/dianping/user/:id` }],
+    name: `用户动态`,
+    maintainers: [`pseudoyu`],
+    handler: a,
+    description: `获取用户点评、签到、攻略等动态。`,
+};
+function r(e) {
+    let t = ``;
+    return ((t += e.pictureList ? e.pictureList.map((e) => `<img src="${e.picUrl}" />`).join(`<br>`) : ``), (t += e.videoUrl ? `<img src="${e.videoUrl}" />` : ``), t);
+}
+const i = { 0: `无`, 10: `一星`, 20: `二星`, 30: `三星`, 35: `三星半`, 40: `四星`, 45: `四星半`, 50: `五星` };
+async function a(n) {
+    let a = n.req.param(`id`),
+        o = `https://m.dianping.com/userprofile/${a}`,
+        s = t.dianping.cookie,
+        c = { 'User-Agent': `Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1`, Referer: o };
+    s && (c.Cookie = s);
+    let l = await e(o, { headers: c }),
+        u = /window\.nickName = "(.*?)"/g.exec(l)?.[1],
+        d = (await e(`https://m.dianping.com/member/ajax/NobleUserFeeds?userId=${a}`, { headers: c })).data.map((e) => {
+            let t = ``,
+                n = ``,
+                a = ``,
+                o = e.poi ? `地点：<a href="http://www.dianping.com/shop/${e.poi.shopId}">${e.poi.name} - ${e.poi.regionCategory}</a>` : ``,
+                s = e.poi ? e.poi.name : ``;
+            switch (e.feedType) {
+                case 1101:
+                    ((t = `https://m.dianping.com/ugcdetail/${e.mainId}?sceneType=0&bizType=3`), (a = o), (n = `签到成功: ${s} `));
+                    break;
+                case 101:
+                    ((t = `https://m.dianping.com/ugcdetail/${e.mainId}?sceneType=0&bizType=1`),
+                        (a = e.content.replaceAll(/\n+/g, `<br>`) + `<br>`),
+                        (a += `评分：${i[e.star]}<br>`),
+                        (a += o + `<br>`),
+                        (a += r(e)),
+                        (n = `发布点评: ${s}`));
+                    break;
+                case 131:
+                    ((t = `https://m.dianping.com/ugcdetail/${e.mainId}?sceneType=0&bizType=29`), (a = e.content.replaceAll(/\n+/g, `<br>`) + `<br>`), (a += r(e)), (n = `发布点评: ${a}`));
+                    break;
+                case 4208:
+                    ((t = `https://m.dianping.com/cityinsight/${e.mainId}`),
+                        (a = e.content.replaceAll(/\n+/g, `<br>`) + `<br>`),
+                        (a += o + `<br>`),
+                        (a += e.moreDesc ? `<a href='${t}'>${e.moreDesc}</a><br>` : ``),
+                        (a += r(e)),
+                        (n = `发布攻略: ${s}`));
+                    break;
+                default:
+            }
+            return { description: a, title: n, link: t };
+        });
+    return { title: `大众点评 - ${u}`, link: o, description: `大众点评 - ${u}`, item: d };
+}
+export { n as route };

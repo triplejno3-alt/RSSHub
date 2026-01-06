@@ -1,0 +1,49 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import './puppeteer-BbZGb8cd.mjs';
+import { r as n } from './utils-Bu8-ZFdB.mjs';
+import { t as r } from './cache-BV7o58Cb.mjs';
+const i = {
+    path: `/user/fav/:uid/:embed?`,
+    categories: [`social-media`],
+    example: `/bilibili/user/fav/2267573`,
+    parameters: { uid: `用户 id, 可在 UP 主主页中找到`, embed: `默认为开启内嵌视频, 任意值为关闭` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`space.bilibili.com/:uid`, `space.bilibili.com/:uid/favlist`], target: `/user/fav/:uid` }],
+    name: `UP 主默认收藏夹`,
+    maintainers: [`DIYgod`],
+    handler: a,
+};
+async function a(i) {
+    let a = i.req.param(`uid`),
+        o = !i.req.param(`embed`),
+        s = await r.getUsernameFromUID(a),
+        c = (
+            await t({
+                method: `get`,
+                url: `https://api.bilibili.com/x/v2/fav/video?vmid=${a}&ps=30&tid=0&keyword=&pn=1&order=fav_time`,
+                headers: { Referer: `https://space.bilibili.com/${a}/#/favlist`, Cookie: e.bilibili.cookies[a] },
+            })
+        ).data;
+    return {
+        title: `${s} 的 bilibili 收藏夹`,
+        link: `https://space.bilibili.com/${a}/#/favlist`,
+        description: `${s} 的 bilibili 收藏夹`,
+        item:
+            c.data &&
+            c.data.archives &&
+            c.data.archives.map((e) => ({
+                title: e.title,
+                description: n.renderUGCDescription(o, e.pic, e.desc, e.aid, void 0, e.bvid),
+                pubDate: new Date(e.fav_at * 1e3).toUTCString(),
+                link: e.fav_at > n.bvidTime && e.bvid ? `https://www.bilibili.com/video/${e.bvid}` : `https://www.bilibili.com/video/av${e.aid}`,
+                author: e.owner.name,
+            })),
+    };
+}
+export { i as route };

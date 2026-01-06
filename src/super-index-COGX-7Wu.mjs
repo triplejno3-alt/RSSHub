@@ -1,0 +1,57 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import './puppeteer-BbZGb8cd.mjs';
+import { t as r } from './utils-CU9nJ7uH.mjs';
+import i from 'query-string';
+const a = {
+    path: `/super_index/:id/:type?/:routeParams?`,
+    categories: [`social-media`],
+    example: `/weibo/super_index/1008084989d223732bf6f02f75ea30efad58a9/sort_time`,
+    parameters: { id: `超话ID`, type: `类型：见下表`, routeParams: `额外参数；请参阅上面的说明和表格` },
+    features: { requireConfig: [{ name: `WEIBO_COOKIES`, optional: !0, description: `` }], requirePuppeteer: !0, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`weibo.com/p/:id/super_index`], target: `/super_index/:id` }],
+    name: `超话`,
+    maintainers: [`zengxs`, `Rongronggg9`],
+    handler: o,
+    description: `| type       | 备注             |
+| ---------- | ---------------- |
+| soul       | 精华             |
+| video      | 视频（暂不支持） |
+| album      | 相册（暂不支持） |
+| hot_sort  | 热门             |
+| sort_time | 最新帖子         |
+| feed       | 最新评论         |`,
+};
+async function o(a) {
+    let o = a.req.param(`id`),
+        s = a.req.param(`type`) ?? `feed`,
+        c = await r.tryWithCookies((a, c) =>
+            t.tryGet(
+                `weibo:super_index:container:${o}:${s}`,
+                async () => {
+                    let e = await n(`https://m.weibo.cn/api/container/getIndex`, {
+                        searchParams: i.stringify({ containerid: `${o}_-_${s}`, luicode: `10000011`, lfid: `${o}_-_main` }),
+                        headers: { Referer: `https://m.weibo.cn/p/index?containerid=${o}_-_soul&luicode=10000011&lfid=${o}_-_main`, Cookie: a, ...r.apiHeaders },
+                    });
+                    return (c(e), e.data.data);
+                },
+                e.cache.routeExpire,
+                !1
+            )
+        ),
+        l = [];
+    function u(e, t, n) {
+        if (t.card_type === `9` && `mblog` in t) {
+            let i = r.formatExtended(e, t.mblog, void 0);
+            n.push(i);
+        }
+    }
+    for (let e of c?.cards ?? []) if ((u(a, e, l), `card_group` in e)) for (let t of e.card_group) u(a, t, l);
+    return r.sinaimgTvax({ title: `微博超话 - ${c?.pageInfo?.page_title}`, link: `https://weibo.com/p/${o}/super_index`, description: `#${c?.pageInfo?.page_title}# 的超话`, item: l });
+}
+export { a as route };

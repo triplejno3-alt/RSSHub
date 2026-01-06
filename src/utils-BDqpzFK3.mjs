@@ -1,0 +1,30 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './config-not-found-DGyG6Tbz.mjs';
+import { Category as i, MixiClient as a } from 'mixi2';
+function o() {
+    let { authToken: n, authKey: i } = t.mixi2;
+    if (!n || !i) throw new r(`MIXI2_AUTH_TOKEN and MIXI2_AUTH_KEY are required`);
+    return new a(`auth_token=${n}`, i, { httpAdapter: e });
+}
+function s(e) {
+    let t = e.text ? `<p>${e.text}</p>` : ``;
+    for (let n of e.medias ?? [])
+        n.category === i.CATEGORY_POST_IMAGE
+            ? (t += `<img src="${n.postImage?.largeImageUrl ?? n.postImage?.smallImageUrl}"${n.description ? `alt="${n.description}"` : ``} />`)
+            : n.category === i.CATEGORY_POST_VIDEO && (t += `<img src="${n.postVideo?.previewImageUrl}" alt="${n.description}" />`);
+    return t;
+}
+function c(e, t) {
+    let r = t.find((t) => t.personaId === e.personaId);
+    return { description: s(e), pubDate: n(e.createdAt.seconds * 1e3), guid: e.postId, author: r?.name, link: `https://mixi.social/@${r?.name}/posts/${e.postId}` };
+}
+const l = [
+    { name: `MIXI2_AUTH_TOKEN`, description: 'mixi2ログイン後の情報。ブラウザのコンソールでクッキーから `auth_token` の値を取得してください' },
+    { name: `MIXI2_AUTH_KEY`, description: 'mixi2ログイン後の情報。ブラウザのコンソールでリクエストヘッダーから `x-auth-key` の値を取得してください' },
+];
+function u(e) {
+    return !e.isDeleted && e.personaId;
+}
+export { u as a, s as i, c as n, o as r, l as t };

@@ -1,0 +1,66 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './types-Bl_lnefZ.mjs';
+import { load as a } from 'cheerio';
+const o = {
+    path: `/news/:category?`,
+    name: `新闻网`,
+    url: `news.hrbust.edu.cn`,
+    maintainers: [`cscnk52`],
+    handler: s,
+    example: `/hrbust/news`,
+    parameters: { category: `栏目标识，默认为 lgyw（理工要闻）` },
+    description: `| 理工要闻 | 新闻导读 | 图文报道 | 综合新闻 | 教学科研 | 院处动态 | 学术科创 | 交流合作 | 学生天地 | 招生就业 | 党建思政 | 在线播放 | 理工人物 | 理工校报 | 媒体理工 | 讲座论坛 | 人才招聘 | 学科建设 |
+|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|
+| lgyw     | xwdd     | twbd     | zhenew   | jxky     | ycdt     | xskc     | jlhz     | xstd     | zsjy     | djsz     | zxbf     | lgrw     | lgxb     | mtlg     | jzlt     | rczp     | xkjs     |`,
+    categories: [`university`],
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, supportRadar: !0 },
+    radar: [
+        { source: [`news.hrbust.edu.cn/:category.htm`], target: `/news/:category` },
+        { source: [`news.hrbust.edu.cn/`], target: `/news/` },
+    ],
+    view: i.Notifications,
+};
+async function s(i) {
+    let o = `https://news.hrbust.edu.cn/`,
+        { category: s = `lgyw` } = i.req.param(),
+        c = `${o}${s}.htm`,
+        l = a(await e(c)),
+        u = l(`title`).text().split(`-`)[0].trim(),
+        d = l(`li[id^=line_u10]`)
+            .toArray()
+            .map((e) => {
+                let t = l(e),
+                    i = new URL(t.find(`a`).attr(`href`), o).href,
+                    a = t.find(`span`).text().trim(),
+                    s = a ? r(n(a), 8) : null;
+                return { title: t.find(`a`).text().trim(), pubDate: s, link: i };
+            }),
+        f = await Promise.all(
+            d.map((i) =>
+                t.tryGet(i.link, async () => {
+                    if (!i.link.startsWith(o)) return ((i.description = `本文需跳转，请点击原文链接后阅读`), i);
+                    let t = a(await e(i.link)),
+                        s = t(`p.xinxi span:contains("日期时间：")`).text().replace(`日期时间：`, ``).trim(),
+                        c = s ? r(n(s), 8) : null;
+                    (c && (i.pubDate = c), (i.author = t(`p.xinxi span:contains("作者：")`).text().replace(`作者：`, ``).trim() || null));
+                    let l = t(`div.v_news_content`) || `解析正文失败`,
+                        u = t(`ul[style="list-style-type:none;"] a`),
+                        d = ``;
+                    return (
+                        u.each((e, n) => {
+                            d += `<br />` + t(n).prop(`outerHTML`);
+                        }),
+                        (i.description = l + d),
+                        i
+                    );
+                })
+            )
+        );
+    return { title: `${u} - 哈尔滨理工大学新闻网`, link: c, language: `zh-CN`, item: f };
+}
+export { o as route };

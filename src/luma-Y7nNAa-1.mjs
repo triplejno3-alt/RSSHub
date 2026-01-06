@@ -1,0 +1,68 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+const n = {
+    path: `/:url`,
+    name: `Events`,
+    url: `lu.ma`,
+    maintainers: [`cxheng315`],
+    example: `/luma/yieldnest`,
+    categories: [`other`],
+    parameters: { url: `LuMa URL` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`lu.ma/:url`], target: `/:url` }],
+    handler: r,
+};
+async function r(n) {
+    let r = await e(`https://api.lu.ma/url?url=` + n.req.param(`url`)),
+        i;
+    switch (r.kind) {
+        case `calendar`:
+            i = r.data.featured_items.map((e) => ({
+                title: e.event.name,
+                link: `https://lu.ma/` + e.event.url,
+                author: e.hosts ? e.hosts.map((e) => e.name).join(`, `) : ``,
+                guid: e.event.api_id,
+                pubDate: t(e.event.start_at),
+                itunes_item_image: e.event.cover_url,
+                itunes_duration: (new Date(e.event.end_at).getTime() - new Date(e.event.start_at).getTime()) / 1e3,
+            }));
+            break;
+        case `event`:
+            i = [
+                {
+                    title: r.data.event.name,
+                    link: `https://lu.ma/` + r.data.event.url,
+                    author: r.data.hosts ? r.data.hosts.map((e) => e.name).join(`, `) : ``,
+                    guid: r.data.event.api_id,
+                    pubDate: t(r.data.event.start_at),
+                    itunes_item_image: r.data.event.cover_url,
+                    itunes_duration: (new Date(r.data.event.end_at).getTime() - new Date(r.data.event.start_at).getTime()) / 1e3,
+                },
+            ];
+            break;
+        case `discover-place`:
+            i = r.data.events.map((e) => ({
+                title: e.event.name,
+                link: `https://lu.ma/` + e.event.url,
+                author: e.hosts ? e.hosts.map((e) => e.name).join(`, `) : ``,
+                guid: e.event.api_id,
+                pubDate: t(e.event.start_at),
+                itunes_item_image: e.event.cover_url,
+                itunes_duration: (new Date(e.event.end_at).getTime() - new Date(e.event.start_at).getTime()) / 1e3,
+            }));
+            break;
+        default:
+            i = [{ title: `Not Found`, link: `Not Found` }];
+            break;
+    }
+    return {
+        title: r.data.calendar ? r.data.calendar.name : r.data.place.name,
+        description: r.data.place ? r.data.place.description : ``,
+        link: `https://lu.ma/` + n.req.param(`url`),
+        image: r.data.calendar ? r.data.calendar.cover_url : r.data.place.cover_url,
+        item: i,
+    };
+}
+export { n as route };

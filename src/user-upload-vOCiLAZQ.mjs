@@ -1,0 +1,30 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { n as r, t as i } from './utils-BZcfIILG.mjs';
+const a = {
+    path: `/user/:handle/upload`,
+    categories: [`design`],
+    example: `/makerworld/user/@Wcad00/upload`,
+    parameters: { handle: `User handle` },
+    name: `User Uploads`,
+    maintainers: [`TonyRL`],
+    handler: o,
+    radar: [{ source: [`makerworld.com/:lang/:handle/upload`, `makerworld.com/:lang/:handle`] }],
+};
+async function o(a) {
+    let { handle: o } = a.req.param(),
+        { userInfo: s, designs: c } = (await e(`${i}/_next/data/${await r()}/en/${o}/upload.json`, { headers: { 'User-Agent': t.trueUA }, query: { handle: o } })).pageProps,
+        l = c.map((e) => ({
+            title: e.title,
+            link: `${i}/en/models/${e.id}-${e.slug}`,
+            pubDate: n(e.createTime),
+            author: e.designCreator.name,
+            category: e.tags,
+            description: e.instances.map((t) => `<figure><img src="${t.cover}" alt="${e.title}"><figcaption>${t.title}</figcaption></figure>`).join(``),
+        }));
+    return { title: `${s.name} | Published - MakerWorld`, link: `${i}/en/${o}/upload`, description: s.personal.bio, image: s.avatar, item: l };
+}
+export { a as route };

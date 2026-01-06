@@ -1,0 +1,55 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { t as i } from './invalid-parameter-DGZgOgO2.mjs';
+import { t as a } from './valid-host-Bsy2BS2p.mjs';
+import { n as o, t as s } from './utils-CCkTzzSZ.mjs';
+import { load as c } from 'cheerio';
+const l = {
+    path: `/user/:uid`,
+    categories: [`design`],
+    view: r.Pictures,
+    example: `/zcool/user/baiyong`,
+    parameters: { uid: `个性域名前缀或者用户ID` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.zcool.com.cn/u/:id`], target: `/user/:id` }],
+    name: `用户作品`,
+    description: '  例如:\n\n    站酷的个人主页 `https://baiyong.zcool.com.cn` 对应 rss 路径 `/zcool/user/baiyong`\n\n    站酷的个人主页 `https://www.zcool.com.cn/u/568339` 对应 rss 路径 `/zcool/user/568339`',
+    maintainers: [`junbaor`],
+    handler: u,
+};
+async function u(r) {
+    let l = r.req.param(`uid`),
+        u = `https://www.zcool.com.cn/u/${l}`;
+    if (Number.isNaN(l)) {
+        if (!a(l)) throw new i(`Invalid uid`);
+        u = `https://${l}.zcool.com.cn`;
+    }
+    let { data: d } = await n(u),
+        f = c(d),
+        p = JSON.parse(f(`script#__NEXT_DATA__`).text()),
+        m = p.props.pageProps.workList.map((e) => ({ title: e.title, link: e.pageUrl, pubDate: t(e.publishTime, `x`), category: [e.objectTypeStr, e.cateStr, e.subCateStr, ...e.tags] })),
+        h = await Promise.all(
+            m.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let { data: e } = await n(t.link),
+                        r = c(e),
+                        i = JSON.parse(r(`script#__NEXT_DATA__`).text());
+                    return (t.link.startsWith(`https://www.zcool.com.cn/article/`) ? (t.description = s(i)) : t.link.startsWith(`https://www.zcool.com.cn/work/`) && (t.description = o(i)), t);
+                })
+            )
+        );
+    return {
+        title: p.props.pageProps.seo.title,
+        description: p.props.pageProps.seo.description,
+        image: p.props.pageProps.userInfo.avatar.includes(`?x-oss-process`) ? p.props.pageProps.userInfo.avatar.split(`?`)[0] : p.props.pageProps.userInfo.avatar,
+        link: u,
+        item: h,
+    };
+}
+export { l as route };

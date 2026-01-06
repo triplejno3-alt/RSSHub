@@ -1,0 +1,32 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { load as t } from 'cheerio';
+import n from 'iconv-lite';
+const r = {
+    path: `/chapter/:id`,
+    categories: [`reading`],
+    example: `/wenku8/chapter/74`,
+    parameters: { id: `小说 id, 可在对应小说页 URL 中找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `章节`,
+    maintainers: [`zsakvo`],
+    handler: i,
+};
+async function i(r) {
+    let i = r.req.param(`id`),
+        a = Number.parseInt(i / 1e3),
+        o = await e({ method: `get`, url: `https://www.wenku8.net/novel/${a}/${i}/index.htm`, responseType: `buffer` }),
+        s = t(n.decode(o.data, `gbk`)),
+        c = s(`#title`).text(),
+        l = [];
+    return (
+        s(`.ccss>a`).each(function () {
+            l.push({ title: s(this).text(), link: `https://www.wenku8.net/novel/${a}/${i}/` + s(this).attr(`href`) });
+        }),
+        { title: `轻小说文库 ${c}`, link: `https://www.wenku8.net/book/${i}.htm`, item: l }
+    );
+}
+export { r as route };

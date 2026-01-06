@@ -1,0 +1,46 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+const t = {
+    path: `/link/news/:product`,
+    categories: [`social-media`],
+    example: `/bilibili/link/news/live`,
+    parameters: { product: `公告分类, 包括 直播:live 小视频:vc 相簿:wh` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `link 公告`,
+    maintainers: [`Qixingchen`],
+    handler: n,
+};
+async function n(t) {
+    let n = t.req.param(`product`),
+        r = ``;
+    switch (n) {
+        case `live`:
+            r = `直播`;
+            break;
+        case `vc`:
+            r = `小视频`;
+            break;
+        case `wh`:
+            r = `相簿`;
+            break;
+    }
+    let i = (await e({ method: `get`, url: `https://api.vc.bilibili.com/news/v1/notice/list?platform=pc&product=${n}&category=all&page_no=1&page_size=20`, headers: { Referer: `https://link.bilibili.com/p/eden/news` } })).data.data
+        .items;
+    return {
+        title: `bilibili ${r}公告`,
+        link: `https://link.bilibili.com/p/eden/news#/?tab=${n}&tag=all&page_no=1`,
+        description: `bilibili ${r}公告`,
+        item:
+            i &&
+            i.map((e) => ({
+                title: e.title,
+                description: `${e.mark}<br><img src="${e.cover_url}">`,
+                pubDate: new Date(e.ctime.replace(` `, `T`) + `+08:00`).toUTCString(),
+                link: e.announce_link ?? `https://link.bilibili.com/p/eden/news#/newsdetail?id=${e.id}`,
+            })),
+    };
+}
+export { t as route };

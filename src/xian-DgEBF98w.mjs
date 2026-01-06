@@ -1,0 +1,32 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { load as t } from 'cheerio';
+import n from 'iconv-lite';
+const r = {
+    path: `/xian`,
+    categories: [`forecast`],
+    example: `/tingshuitz/xian`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `西安市`,
+    maintainers: [`ciaranchen`],
+    handler: i,
+};
+async function i() {
+    let r = (await e(`http://www.xazls.com/tsgg/index.htm`, { responseType: `buffer` })).data,
+        i = t(n.decode(r, `gb2312`)),
+        a = i(`#body > div.M > div.AboutUsDetail > ul > li`);
+    return {
+        title: i(`title`).text() || `停水通知 - 西安市自来水有限公司`,
+        link: `http://www.xazls.com/tsgg/index.htm`,
+        item: a.toArray().map((e) => {
+            let t = i(e),
+                n = t.find(`a`);
+            return { title: n.text().trim(), description: t.text().trim(), link: `http://www.xazls.com` + n.attr(`href`) };
+        }),
+    };
+}
+export { r as route };

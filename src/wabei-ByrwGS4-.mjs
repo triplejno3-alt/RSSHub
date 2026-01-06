@@ -1,0 +1,43 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = { path: `/hot-recommend`, categories: [`finance`], example: `/wabei/hot-recommend`, url: `www.wabei.cn`, name: `热门推荐`, maintainers: [`p3psi-boo`], handler: a };
+async function a() {
+    let i = `https://www.wabei.cn`,
+        a = r((await n({ method: `get`, url: i })).data),
+        o = a(`.hot-news.visible-lg`)
+            .toArray()
+            .map((e) => {
+                let t = a(e),
+                    n = t.find(`h4 a`).text().trim(),
+                    r = t.find(`h4 a`).attr(`href`),
+                    o = t.find(`span.author`).text().trim(),
+                    s = t.find(`p.visible-lg a`).text().trim(),
+                    c = [
+                        t.find(`span.lable`).text().trim(),
+                        ...t
+                            .find(`span.blue-btn`)
+                            .toArray()
+                            .map((e) => a(e).text().trim()),
+                    ];
+                return { title: n, link: `${i}${r}`, category: c, author: o, description: s };
+            });
+    return {
+        title: `挖贝网 - 热门推荐`,
+        link: i,
+        item: await Promise.all(
+            o.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let e = r((await n({ method: `get`, url: i.link })).data);
+                    return ((i.description = e(`.subject-content`).html() || i.description), (i.pubDate = t(e(`.attr .time`).text().trim(), `YYYY/MM/DD HH:mm:ss`)), i);
+                })
+            )
+        ),
+    };
+}
+export { i as route };

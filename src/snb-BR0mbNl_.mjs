@@ -1,0 +1,44 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import { t as e } from './header-generator-BdIWHTob.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+const r = {
+    path: `/snb/:id`,
+    categories: [`finance`],
+    example: `/xueqiu/snb/ZH1288184`,
+    parameters: { id: `组合代码, 可在组合主页 URL 中找到.` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`xueqiu.com/P/:id`, `xueqiu.com/p/:id`] }],
+    name: `组合最新调仓信息`,
+    maintainers: [`ZhishanZhang`],
+    handler: i,
+};
+async function i(r) {
+    let i = r.req.param(`id`),
+        a = `https://xueqiu.com/p/` + i,
+        o = (await n(a, { headerGeneratorOptions: e.MODERN_ANDROID })).data,
+        s = /SNB.cubeInfo = {(.+)}/.exec(o),
+        c = JSON.parse(`{` + s[1] + `}`),
+        l = c.sell_rebalancing.rebalancing_histories,
+        u = c.name + ` 的调仓历史`,
+        d = c.description,
+        f = c.name + ` 的上一笔调仓`,
+        p = ``;
+    for (let e of l) {
+        let t = e.prev_weight_adjusted ?? 0;
+        p +=
+            e.stock_name +
+            ` from ` +
+            t +
+            ` to ` +
+            e.target_weight +
+            `，
+`;
+    }
+    let m = c.sell_rebalancing.updated_at;
+    return { title: u, link: a, description: d, item: [{ title: f, description: p, pubDate: t(m), link: a, guid: `xueqiu::snb::${i}::${m}` }] };
+}
+export { r as route };

@@ -1,0 +1,51 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+import a from 'iconv-lite';
+const o = (e) => a.decode(e, `gbk`),
+    s = {
+        path: `/xyxw`,
+        categories: [`university`],
+        example: `/stbu/xyxw`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`stbu.edu.cn/html/news/xueyuan`, `stbu.edu.cn`] }],
+        name: `学院新闻`,
+        maintainers: [`HyperCherry`],
+        handler: c,
+        url: `stbu.edu.cn/html/news/xueyuan`,
+    };
+async function c() {
+    let a = `http://www.stbu.edu.cn`,
+        s = `${a}/html/news/xueyuan/`,
+        { data: c } = await n(s, { responseType: `buffer`, https: { rejectUnauthorized: !1 } }),
+        l = i(o(c)),
+        u = l(`.style_2 .Simple_title`)
+            .toArray()
+            .map((e) => {
+                e = l(e);
+                let t = e.find(`a`).first();
+                return { title: t.text(), link: `${a}${t.attr(`href`)}` };
+            });
+    return {
+        title: `四川工商学院 - 学院新闻`,
+        link: s,
+        description: `四川工商学院 - 学院新闻`,
+        item: await Promise.all(
+            u.map((a) =>
+                e.tryGet(a.link, async () => {
+                    let { data: e } = await n(a.link, { responseType: `buffer`, https: { rejectUnauthorized: !1 } }),
+                        s = i(o(e));
+                    return ((a.description = s(`.artmainl .articlemain`).first().html()), (a.pubDate = r(t(s(`.artmainl .info`).text().split(`|`)[2].split(`：`)[1].trim()), 8)), a);
+                })
+            )
+        ),
+    };
+}
+export { s as route };

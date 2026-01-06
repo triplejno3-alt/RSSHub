@@ -1,0 +1,23 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = `https://is.cas.cn`,
+    a = { path: `/is/:path{.+}`, name: `Unknown`, maintainers: [], handler: o };
+async function o(a) {
+    let o = a.req.param(`path`),
+        s = await n(`${i}/${o}/`),
+        c = r(s.data),
+        l = c(`.list-news ul li`)
+            .toArray()
+            .map((e) => ((e = c(e)), { title: e.find(`a`).text(), link: new URL(e.find(`a`).attr(`href`), s.url).href, pubDate: t(e.find(`span`).text().replaceAll(`[]`, ``)) }));
+    return (
+        await Promise.all(l.map((t) => e.tryGet(t.link, async () => (t.link.startsWith(`${i}/`) && (t.description = r((await n(t.link)).data)(`.TRS_Editor`).html()), t)))),
+        { title: c(`head title`).text(), link: `${i}/${o}`, item: l }
+    );
+}
+export { a as route };

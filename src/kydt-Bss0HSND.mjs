@@ -1,0 +1,46 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/iee/kydt`,
+    categories: [`university`],
+    example: `/cas/iee/kydt`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.iee.cas.cn/xwzx/kydt`, `www.iee.cas.cn/`] }],
+    name: `电工研究所 科研动态`,
+    maintainers: [`nczitzk`],
+    handler: o,
+    url: `www.iee.cas.cn/xwzx/kydt`,
+};
+async function o() {
+    let a = `http://www.iee.cas.cn/xwzx/kydt/`,
+        o = i((await n({ method: `get`, url: a })).data),
+        s = o(`li.entry .entry-content-title`)
+            .slice(0, 15)
+            .toArray()
+            .map((e) => {
+                e = o(e);
+                let t = e.find(`a`);
+                return { title: t.text(), link: t.attr(`href`) };
+            });
+    return {
+        title: `科研成果 - 中国科学院电工研究所`,
+        link: a,
+        item: await Promise.all(
+            s.map((a) =>
+                e.tryGet(a.link, async () => {
+                    let e = i((await n({ method: `get`, url: a.link })).data);
+                    return ((a.description = e(`.article-content`).html()), (a.pubDate = r(t(e(`time`).text().split(`：`)[1]), 8)), a);
+                })
+            )
+        ),
+    };
+}
+export { a as route };

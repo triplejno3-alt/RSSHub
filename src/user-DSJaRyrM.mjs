@@ -1,0 +1,74 @@
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import { t } from './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+import { t as r } from './parse-date-DjdQS_Nt.mjs';
+import { t as i } from './types-Bl_lnefZ.mjs';
+import { n as a } from './puppeteer-BbZGb8cd.mjs';
+import o from 'sanitize-html';
+const s = {
+        path: `/user/:id`,
+        categories: [`social-media`],
+        example: `/sotwe/user/_RSSHub`,
+        parameters: { id: `Twitter username` },
+        features: { requireConfig: !1, requirePuppeteer: !0, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`www.sotwe.com/:id`], target: `/user/:id` }],
+        name: `User timeline - Sotwe`,
+        maintainers: [`TonyRL`],
+        handler: u,
+        view: i.Pictures,
+    },
+    c = (e) =>
+        e
+            .map((e) => {
+                switch (e.type) {
+                    case `photo`:
+                        return `<img src="${e.mediaURL}">`;
+                    case `video`: {
+                        let t = e.videoInfo.variants.filter((e) => e.type === `video/mp4`).toSorted((e, t) => t.bitrate - e.bitrate)[0];
+                        return `<video controls preload="metadata" poster="${e.mediaURL}"><source src="${t.url}" type="video/mp4"></video>`;
+                    }
+                    default:
+                        return ``;
+                }
+            })
+            .join(`<br>`),
+    l = (e) =>
+        `${c(e.mediaEntities)}<br>${e.text.replaceAll(
+            `
+`,
+            `<br>`
+        )}${e.quotedStatus ? `<br>${l(e.quotedStatus)}` : ``}${e.retweetedStatus ? `<br>${l(e.retweetedStatus)}` : ``}`;
+async function u(i) {
+    let s = `https://www.sotwe.com`,
+        { id: c } = i.req.param(),
+        u = await n.tryGet(
+            `sotwe:user:${c}`,
+            async () => {
+                let e = await a(),
+                    n = await e.newPage();
+                (await n.setRequestInterception(!0),
+                    n.on(`request`, (e) => {
+                        [`document`, `script`, `xhr`, `fetch`].includes(e.resourceType()) ? e.continue() : e.abort();
+                    }));
+                let r = `${s}/api/v3/user/${c}/`;
+                (t.http(`Requesting ${r}`), await n.goto(r, { waitUntil: `domcontentloaded` }));
+                let i = await n.evaluate(() => document.documentElement.textContent);
+                return (await n.close(), await e.close(), JSON.parse(i || `{}`));
+            },
+            e.cache.routeExpire,
+            !1
+        ),
+        d = u.data.map((e) => ({
+            title: o(
+                e.text.split(`
+`)[0],
+                { allowedTags: [], allowedAttributes: {} }
+            ),
+            description: l(e),
+            link: `https://x.com/${c}/status/${e.id}`,
+            pubDate: r(e.createdAt, `x`),
+        }));
+    return { title: `${u.info.name} @${u.info.screenName} - Twitter Profile | Sotwe`, description: u.info.description, link: `${s}/${c}`, image: u.info.profileImageThumbnail, item: d };
+}
+export { s as route };

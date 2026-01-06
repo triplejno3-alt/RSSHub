@@ -1,0 +1,94 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+import { raw as l } from 'hono/html';
+const u = ({ intro: e, description: t }) => o(i, { children: [e ? a(`blockquote`, { children: e }) : null, t ? a(i, { children: l(t) }) : null] }),
+    d = (e) => c(a(u, { ...e })),
+    f = async (r) => {
+        let i = Number.parseInt(r.req.query(`limit`) ?? `30`, 10),
+            a = `https://www.ltaaa.cn`,
+            o = new URL(`article`, a).href,
+            c = s(await e(o)),
+            l = c(`html`).attr(`lang`) ?? `zh-CN`,
+            u = [];
+        ((u = c(`ul.wlist li`)
+            .slice(0, i)
+            .toArray()
+            .map((e) => {
+                let t = c(e),
+                    r = t.find(`div.li-title a`),
+                    i = r.text(),
+                    o = d({ intro: t.find(`div.dbody p`).first().text() }),
+                    s = t.find(`i.icon-time`).next().text().trim(),
+                    u = r.attr(`href`),
+                    f = t
+                        .find(`i.icon-user`)
+                        .parent()
+                        .find(`a`)
+                        .toArray()
+                        .map((e) => {
+                            let t = c(e);
+                            return { name: t.text(), url: new URL(t.attr(`href`) ?? ``, a).href, avatar: void 0 };
+                        }),
+                    p = t.find(`div.li-thumb img`).attr(`src`),
+                    m = s;
+                return { title: i, description: o, pubDate: s ? n(s) : void 0, link: u ? new URL(u, a).href : void 0, author: f, content: { html: o, text: o }, image: p, banner: p, updated: m ? n(m) : void 0, language: l };
+            })),
+            (u = (
+                await Promise.all(
+                    u.map((r) =>
+                        r.link
+                            ? t.tryGet(r.link, async () => {
+                                  let t = s(await e(r.link)),
+                                      i = t(`div.post-title`).text(),
+                                      o = t(`i.icon-time`).next().text().trim(),
+                                      c = t(`span.keywords a`).toArray(),
+                                      u = [...new Set(c.map((e) => t(e).text()).filter(Boolean))],
+                                      f = t(`i.icon-user`)
+                                          .first()
+                                          .nextAll(`a`)
+                                          .toArray()
+                                          .map((e) => {
+                                              let n = t(e);
+                                              return { name: n.text(), url: new URL(n.attr(`href`) ?? ``, a).href, avatar: void 0 };
+                                          }),
+                                      p = o;
+                                  (t(`div.post-tip`).each((e, n) => {
+                                      let r = t(n),
+                                          i = r.html() ?? ``;
+                                      i && r.replaceWith(`<h1>${i}</h1>`);
+                                  }),
+                                      t(`div.post-param, div.post-title, div.post-keywords`).remove(),
+                                      t(`div.attitude, div.clear`).remove());
+                                  let m = d({ description: t(`div.post-body`).html() }),
+                                      h = { title: i, description: m, pubDate: o ? n(o) : r.pubDate, category: u, author: f, content: { html: m, text: m }, updated: p ? n(p) : r.updated, language: l };
+                                  return { ...r, ...h };
+                              })
+                            : r
+                    )
+                )
+            ).filter((e) => !0)));
+        let f = c(`title`).text();
+        return { title: f, description: c(`meta[name="description"]`).attr(`content`), link: o, item: u, allowEmpty: !0, image: new URL(`static/home/images/logo.png`, a).href, author: f.split(/-/).pop(), language: l, id: o };
+    },
+    p = {
+        path: `/article`,
+        name: `网站翻译`,
+        url: `www.ltaaa.cn`,
+        maintainers: [`nczitzk`],
+        handler: f,
+        example: `/ltaaa/article`,
+        parameters: void 0,
+        description: void 0,
+        categories: [`new-media`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`www.ltaaa.cn/article`], target: `/article` }],
+        view: r.Articles,
+    };
+export { f as handler, p as route };

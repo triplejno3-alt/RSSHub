@@ -1,0 +1,29 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = { path: `/lib/:category?`, radar: [{ source: [`www.lib.bnu.edu.cn/:category/index.htm`], target: `/lib/:category` }], name: `Unknown`, maintainers: [`TonyRL`], handler: a };
+async function a(i) {
+    let a = `http://www.lib.bnu.edu.cn`,
+        { category: o = `zydt` } = i.req.param(),
+        s = `${a}/${o}/index.htm`,
+        { data: c } = await n(s),
+        l = r(c),
+        u = l(`.view-content .item-list li`)
+            .toArray()
+            .map((e) => ((e = l(e)), { title: e.find(`a`).text(), link: `${a}/${o}/${e.find(`a`).attr(`href`)}`, pubDate: t(e.find(`span > span`).eq(1).text(), `YYYY-MM-DD`) })),
+        d = await Promise.all(
+            u.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let { data: e } = await n(t.link);
+                    return ((t.description = r(e)(`#block-system-main .content .content`).html()), t);
+                })
+            )
+        );
+    return { title: l(`head title`).text(), link: s, item: d };
+}
+export { i as route };

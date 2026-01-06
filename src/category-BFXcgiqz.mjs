@@ -1,0 +1,23 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { t as e } from './common-BpwhCOya.mjs';
+const t = {
+    name: `分类`,
+    path: [`/category/:id`],
+    example: `/cnbeta/category/movie`,
+    maintainers: [`nczitzk`],
+    parameters: { id: `分类 id，可在对应分类页的 URL 中找到` },
+    radar: [{ source: [`cnbeta.com.tw/category/:id`], target: (e) => `/cnbeta/category/${e.id.replace(`.htm`, ``)}` }],
+    handler: e,
+    url: `cnbeta.com.tw`,
+    description: `| 影视  | 音乐  | 游戏 | 动漫  | 趣闻  | 科学    | 软件 |
+| ----- | ----- | ---- | ----- | ----- | ------- | ---- |
+| movie | music | game | comic | funny | science | soft |`,
+};
+export { t as route };

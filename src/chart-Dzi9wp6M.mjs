@@ -1,0 +1,51 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { Fragment as t, jsx as n, jsxs as r } from 'hono/jsx/jsx-runtime';
+import { load as i } from 'cheerio';
+import { renderToString as a } from 'hono/jsx/dom/server';
+const o = `https://www.openrice.com`,
+    s = {
+        path: `/:lang/hongkong/explore/chart/:category`,
+        maintainers: [`after9`],
+        handler: c,
+        categories: [`shopping`],
+        example: `/openrice/zh/hongkong/explore/chart/most-bookmarked`,
+        parameters: { lang: `语言，缺省为 zh`, category: `类别，缺省为 most-bookmarked` },
+        name: `香港餐廳排行榜`,
+        description: `
+| 简体 | 繁體 | EN |
+| ----- | ------ | ----- |
+| zh-cn | zh | en |
+
+| 最多收藏 | 每周最高评分 | 最高浏览 | 最佳甜品餐厅 |
+| ----- | ------ | ----- | ----- |
+| most-bookmarked | best-rating | most-popular | best-dessert |
+  `,
+    };
+async function c(s) {
+    let c = `/${s.req.param(`lang`) ?? `zh`}/hongkong/explore/chart/${s.req.param(`category`) ?? `most-bookmarked`}`,
+        l = i(await e(o + c)),
+        u = l(`title`).text() ?? `Hong Kong Restaurant Chart`,
+        d = l(`title`).text() ?? `Hong Kong Restaurant Chart`,
+        f = l(`.poi-chart-main-grid-item-desktop-wrapper`)
+            .toArray()
+            .map((e) => {
+                let i = l(e),
+                    o =
+                        i
+                            .find(`.rank-icon`)
+                            .attr(`class`)
+                            ?.match(/rank-(\d+)/)?.[1] ?? ``,
+                    s = i
+                        .find(`.pcmgidtr-left-section-poi-info-details .pcmgidtrls-poi-info-details-text`)
+                        .toArray()
+                        .map((e) => l(e).text()),
+                    c = i.find(`.pcmgidtr-left-section-poi-info-name .link`).text() ?? ``,
+                    u = i.find(`.pcmgidtr-left-section-poi-info-name .link`).attr(`href`) ?? ``,
+                    d = i.find(`.pcmgidtr-left-section-door-photo img`).attr(`src`) ?? null;
+                return { title: c, description: a(r(t, { children: [n(`h3`, { children: `Rank: ${o} / ${c}` }), n(`p`, { children: s.join(` `) }), d ? n(`img`, { src: d }) : null] })), link: u };
+            });
+    return { title: u, link: o + c, description: d, item: f };
+}
+export { s as route };

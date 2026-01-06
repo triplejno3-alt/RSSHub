@@ -1,0 +1,66 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+import a from 'node:querystring';
+const o = {
+        url: `idolmaster-official.jp/news`,
+        path: `/news/:routeParams?`,
+        categories: [`anime`],
+        example: `/idolmaster/news/brand=MILLIONLIVE&brand=SHINYCOLORS&category=GAME&category=ANIME`,
+        parameters: { routeParams: 'The `brand` and `category` params in the path. The available values are as follows.' },
+        description: `**Brand**
+| THE IDOLM@STER | シンデレラガールズ | ミリオンライブ！ | SideM | シャイニーカラーズ | 学園アイドルマスター | その他 |
+| -------------- | --------------- | ------------- | ----- | --------------- | ----------------- | ----- |
+| IDOLMASTER | CINDERELLAGIRLS | MILLIONLIVE | SIDEM | SHINYCOLORS | GAKUEN | OTHER |
+
+**Category**
+| ゲーム | ライブ・イベント | アニメ | 配信番組 | ラジオ | グッズ | コラボ・キャンペーン | ミュージック | ブック・コミック | メディア | その他 |
+| ----- | ------------- | ----- | ------- | ----- | ----- | ----------------- | --------- | -------------- | ------ | ----- |
+| GAME | LIVE-EVENT | ANIME | LIVESTREAM | RADIO | GOODS | COLLABO-CAMP | CD | BOOK | MEDIA | OTHER |
+    `,
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`idolmaster-official.jp/news`], target: `/news` }],
+        name: `ニュース News`,
+        maintainers: [`keocheung`],
+        handler: c,
+    },
+    s = `https://cmsapi-frontend.idolmaster-official.jp`;
+async function c(o) {
+    let c = (await n(`${s}/sitern/api/cmsbase/Token/get`)).data.data.token,
+        u = { category: [`NEWS`] },
+        d = o.req.param(`routeParams`);
+    if (d) {
+        let e = a.parse(d);
+        ((u.subcategory = l(e.category)), (u.brand = l(e.brand)));
+    }
+    let f = o.req.query(`limit`),
+        p = f ? Number.parseInt(f) : 12;
+    p > 30 && (p = 30);
+    let m = (await n(`${s}/sitern/api/idolmaster/Article/list?site=jp&ip=idolmaster&token=${c}&sort=desc&data=${JSON.stringify(u)}&limit=${p}&start=0`)).data.data.article_list.map((e) => ({
+        title: e.title,
+        link: e.url,
+        pubDate: r(t(e.dspdate), 9),
+        category: e.categories.subcategory.map((e) => e.name),
+    }));
+    return (
+        (m = await Promise.all(
+            m.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = i((await n(t.link)).data);
+                    return ((t.description = `<div lang="ja">${JSON.parse(e(`script#__NEXT_DATA__`).text()).props.pageProps.data.content?.replaceAll(`<img src="`, `<img src="${s}/sitern/api/idolmaster/Image/get?path=`)}</div>`), t);
+                })
+            )
+        )),
+        { title: `NEWS | アイドルマスター`, link: `https://idolmaster-official.jp/news`, item: m, language: `ja` }
+    );
+}
+function l(e) {
+    return e && (typeof e == `string` ? e.toUpperCase() : e.map((e) => e.toUpperCase()));
+}
+export { o as route };

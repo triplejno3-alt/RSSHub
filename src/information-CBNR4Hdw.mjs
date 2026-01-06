@@ -1,0 +1,43 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+const i = {
+    path: `/information/:type?`,
+    categories: [`new-media`],
+    example: `/aliresearch/information`,
+    parameters: { type: `类型，见下表，默认为新闻` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`aliresearch.com/cn/information`, `aliresearch.com/`], target: `/information` }],
+    name: `资讯`,
+    maintainers: [`nczitzk`],
+    handler: a,
+    url: `aliresearch.com/cn/information`,
+    description: `| 新闻 | 观点 | 案例 |
+| ---- | ---- | ---- |`,
+};
+async function a(i) {
+    let a = i.req.param(`type`) ?? `新闻`,
+        o = i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`)) : 50,
+        s = `http://www.aliresearch.com`,
+        c = `${s}/cn/information`,
+        l = (await n({ method: `post`, url: `${s}/ch/listArticle`, json: { pageNo: 1, pageSize: 10, type: a } })).data.data
+            .slice(0, o)
+            .map((e) => ({ title: e.articleCode, author: e.author, pubDate: r(t(e.gmtCreated), 8), link: `${s}/ch/information/informationdetails?articleCode=${e.articleCode}` }));
+    return (
+        (l = await Promise.all(
+            l.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = (await n({ method: `post`, url: `${s}/ch/getArticle`, json: { articleCode: t.title } })).data.data;
+                    return ((t.title = e.title), (t.description = e.content), (t.category = e.special.split(`,`)), t);
+                })
+            )
+        )),
+        { title: `阿里研究院 - ${a}`, link: c, item: l }
+    );
+}
+export { i as route };

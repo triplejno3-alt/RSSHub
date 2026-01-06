@@ -1,0 +1,68 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = new Map([
+        [`top-stories`, { title: `NL Times -- Top Stories`, suffix: `/top-stories` }],
+        [`health`, { title: `NL Times -- Health`, suffix: `/categories/health` }],
+        [`crime`, { title: `NL Times -- Crime`, suffix: `/categories/crime` }],
+        [`politics`, { title: `NL Times -- Politics`, suffix: `/categories/politics` }],
+        [`business`, { title: `NL Times -- Business`, suffix: `/categories/business` }],
+        [`tech`, { title: `NL Times -- Tech`, suffix: `/categories/tech` }],
+        [`culture`, { title: `NL Times -- Culture`, suffix: `/categories/culture` }],
+        [`sports`, { title: `NL Times -- Sports`, suffix: `/categories/sports` }],
+        [`weird`, { title: `NL Times -- Weird`, suffix: `/categories/weird` }],
+        [`1-1-2`, { title: `NL Times -- 1-1-2`, suffix: `/categories/1-1-2` }],
+    ]),
+    o = {
+        path: `/news/:category?`,
+        categories: [`new-media`],
+        example: `/nltimes/news/top-stories`,
+        parameters: { category: `category` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`nltimes.nl/categories/:category`], target: `/news/:category` }],
+        name: `News`,
+        maintainers: [`Hivol`],
+        handler: s,
+        description: `| Top Stories (default) | Health | Crime | Politics | Business | Tech | Culture | Sports | Weird | 1-1-2 |
+| --------------------- | ------ | ----- | -------- | -------- | ---- | ------- | ------ | ----- | ----- |
+| top-stories           | health | crime | politics | business | tech | culture | sports | weird | 1-1-2 |`,
+    };
+async function s(o) {
+    let s = o.req.param(`category`) ?? `top-stories`,
+        c = a.get(s).suffix,
+        l = `https://www.nltimes.nl`,
+        u = l + c,
+        d = i((await n({ method: `get`, url: u })).data),
+        f = d(`.news-card`)
+            .slice(0, 10)
+            .toArray()
+            .map((e) => ({
+                link: d(e).children(`.news-card__title`).first().children(`a`).first().attr(`href`),
+                title: d(e).children(`.news-card__title`).first().children(`a`).first().text(),
+                date: d(e).children(`.news-card__date`).first().text(),
+                category: d(e)
+                    .children(`.news-card__categories`)
+                    .first()
+                    .children(`a`)
+                    .toArray()
+                    .map((e) => d(e).text()),
+            })),
+        p = (e) => i(e)(`.news-article--body`).html(),
+        m = await Promise.all(
+            f.map((i) => {
+                let a = i.title,
+                    o = r(t(i.date, `DD MMMM YYYY - HH:mm`), 1),
+                    s = l + i.link,
+                    c = i.category;
+                return e.tryGet(s, async () => ({ title: a, category: c, description: p((await n({ method: `get`, url: s })).data), pubDate: o, link: s }));
+            })
+        );
+    return { title: a.get(s).title, language: `en`, link: u, description: a.get(s).title, item: m };
+}
+export { o as route };

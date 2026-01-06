@@ -1,0 +1,60 @@
+import { t as e } from './md5-DQN6cWFb.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { jsx as n } from 'hono/jsx/jsx-runtime';
+import { load as r } from 'cheerio';
+import { renderToString as i } from 'hono/jsx/dom/server';
+const a = `https://www.iyingdi.com`,
+    o = async (e, n) =>
+        await Promise.all(
+            n.map((n) =>
+                e.tryGet(n.link, async () => {
+                    let e = { post_id: n.postId, timestamp: `` },
+                        { body: r } = await t({ method: `post`, url: `https://api.iyingdi.com/web/post/info`, headers: { Host: `api.iyingdi.com`, 'Login-Token': `nologin`, Origin: a, Platform: `pc`, Referer: `${a}/` }, form: s(e) });
+                    return ((n.description = c(JSON.parse(r).post.content)), n);
+                })
+            )
+        ),
+    s = (t, n) => ((t.key = n ? `8a11ed3712b699e749185674f1dc20b4` : `b8d5b38577b8bb382b0c783b474b95f9`), (t.timestamp = Math.floor(Date.now() / 1e3)), (t.sign = e(new URLSearchParams(t).toString())), delete t.key, t),
+    c = (e) => {
+        let t = r(e.replace(/(<p>|<div>)(.*?)?<strong>(标准|狂野)日报投稿.*?<\/strong>(.*?)?(<\/p>|<\/div>)(.|\n)*$/, ``));
+        return (
+            t(`.yingdi-car,.bbspost,.deck-set`).each((e, r) => {
+                let o = t(r).attr(`class`),
+                    s = t(r).attr(`data-id`),
+                    c = `${a}/web/tools/hearthstone/decks/setdetail?setid=${s}`,
+                    l = o === `yingdi-card bbspost` ? `${a}/tz/post/${s}` : c,
+                    u = t(r).find(`.card-status .time`).text();
+                (t(r)
+                    .find(`.card-info .title`)
+                    .text((e, t) => `${t} ${u}`),
+                    t(r).find(`.card-status`).remove(),
+                    t(r)
+                        .find(`.card-info`)
+                        .wrap(i(n(`a`, { href: l }))));
+            }),
+            t(`.yingdi-image.gif`).each((e, n) => {
+                let r = t(n).attr(`data-original`);
+                t(n).attr(`src`, r);
+            }),
+            t(`.yingdi-audio`).each((e, n) => {
+                (t(n).find(`.audio-cover`).remove(), t(n).find(`.audio-area.hidden`).attr(`class`, `audio-area`));
+            }),
+            t(`.yingdi-video iframe`).each((e, r) => {
+                let a = t(r)
+                    .attr(`src`)
+                    .match(/bvid=(.*?)&/)[1];
+                if (a) {
+                    let e = `https://www.bilibili.com/video/${a}`;
+                    t(r).after(i(n(`p`, { children: n(`a`, { href: e, children: e }) })));
+                }
+            }),
+            t(`.yingdi-card.user`).each((e, n) => {
+                (t(n).prev(`p`).remove(), t(n).remove());
+            }),
+            t(`.action-button`).remove(),
+            t(`.yingdi-ballot`).remove(),
+            t(`hr`).remove(),
+            t.html()
+        );
+    };
+export { s as n, o as t };

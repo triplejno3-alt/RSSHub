@@ -1,0 +1,157 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+import { raw as c } from 'hono/html';
+const l = ({ images: e, intro: t, description: n }) =>
+        s(
+            a(r, {
+                children: [
+                    e?.length ? e.map((e) => (e?.src ? i(`figure`, { children: e.alt ? i(`img`, { src: e.src, alt: e.alt }) : i(`img`, { src: e.src }) }) : null)) : null,
+                    t ? i(`blockquote`, { children: t }) : null,
+                    n ? c(n) : null,
+                ],
+            })
+        ),
+    u = async (r) => {
+        let { category: i = `` } = r.req.param(),
+            a = r.req.query(`limit`) ? Number.parseInt(r.req.query(`limit`), 10) : 18,
+            s = `423down.com`,
+            c = `https://www.${s}`,
+            u = new URL(i, c).href,
+            { data: d } = await n(u),
+            f = o(d),
+            p = f(`html`).prop(`lang`),
+            m = f(`ul.excerpt li`)
+                .toArray()
+                .filter((e) => {
+                    e = f(e);
+                    let t = e.find(`h2 a`).prop(`href`);
+                    return new RegExp(s).test(t);
+                })
+                .slice(0, a)
+                .map((e) => {
+                    e = f(e);
+                    let n = e.find(`h2`).text(),
+                        r = e.find(`a.pic img`).prop(`src`),
+                        i = l({ images: r ? [{ src: r, alt: n }] : void 0, intro: e.find(`div.note`).text() });
+                    return {
+                        title: n,
+                        description: i,
+                        pubDate: t(e.find(`span.time`).text(), `MM-DD`),
+                        link: e.find(`h2 a`).prop(`href`),
+                        category: e
+                            .find(`span.cat a`)
+                            .toArray()
+                            .map((e) => f(e).text()),
+                        content: { html: i, text: e.find(`div.note`).text() },
+                        image: r,
+                        banner: r,
+                        language: p,
+                        enclosure_url: r,
+                        enclosure_type: r ? `image/${r.split(/\./).pop()}` : void 0,
+                        enclosure_title: n,
+                    };
+                });
+        m = await Promise.all(
+            m.map((r) =>
+                e.tryGet(r.link, async () => {
+                    let { data: e } = await n(r.link),
+                        i = o(e),
+                        a = i(`h1.meta-tit a`).text(),
+                        s = r.description + l({ description: i(`div.entry`).html() });
+                    return (
+                        (r.title = a),
+                        (r.description = s),
+                        (r.pubDate = t(i(`p.meta-info`).contents().first().text().trim().split(/\s/)[0], `YYYY-MM-DD`)),
+                        (r.category = i(`p.meta-info a[rel="category tag"]`)
+                            .toArray()
+                            .map((e) => i(e).text())),
+                        (r.content = { html: s, text: i(`div.entry`).text() }),
+                        (r.language = p),
+                        r
+                    );
+                })
+            )
+        );
+        let h = f(`title`).first().text(),
+            g = new URL(`wp-content/themes/D7/img/423Down.png`, c).href;
+        return { title: h, description: f(`title`).last().text(), link: u, item: m, allowEmpty: !0, image: g, author: h.split(/-/).pop()?.trim(), language: p };
+    },
+    d = {
+        path: `/:category{.+}?`,
+        name: `423Down`,
+        url: `423down.com`,
+        maintainers: [`nczitzk`],
+        handler: u,
+        example: `/423down`,
+        parameters: { category: `分类，默认为首页，可在对应分类页 URL 中找到` },
+        description: `::: tip
+  若订阅 [Android - 423Down](https://www.423down.com/apk)，网址为 \`https://www.423down.com/apk\`。截取 \`https://www.423down.com/\` 到末尾的部分 \`apk\` 作为参数填入，此时路由为 [\`/423down/apk\`](https://rsshub.app/423down/apk)。
+:::
+
+#### [安卓软件](https://www.423down.com/apk)
+
+| [安卓软件](https://www.423down.com/apk) |
+| --------------------------------------- |
+| [apk](https://rsshub.app/423down/apk)   |
+
+#### 电脑软件
+
+| [原创软件](https://www.423down.com/zd423) | [媒体播放](https://www.423down.com/multimedia)      | [网页浏览](https://www.423down.com/browser)   | [图形图像](https://www.423down.com/image) | [聊天软件](https://www.423down.com/im) |
+| ----------------------------------------- | --------------------------------------------------- | --------------------------------------------- | ----------------------------------------- | -------------------------------------- |
+| [zd423](https://rsshub.app/423down/zd423) | [multimedia](https://rsshub.app/423down/multimedia) | [browser](https://rsshub.app/423down/browser) | [image](https://rsshub.app/423down/image) | [im](https://rsshub.app/423down/im)    |
+
+| [办公软件](https://www.423down.com/work) | [上传下载](https://www.423down.com/down) | [实用软件](https://www.423down.com/softtool)    | [系统辅助](https://www.423down.com/systemsoft)      | [系统必备](https://www.423down.com/systemplus)      |
+| ---------------------------------------- | ---------------------------------------- | ----------------------------------------------- | --------------------------------------------------- | --------------------------------------------------- |
+| [work](https://rsshub.app/423down/work)  | [down](https://rsshub.app/423down/down)  | [softtool](https://rsshub.app/423down/softtool) | [systemsoft](https://rsshub.app/423down/systemsoft) | [systemplus](https://rsshub.app/423down/systemplus) |
+
+| [安全软件](https://www.423down.com/security)    | [补丁相关](https://www.423down.com/patch) | [硬件相关](https://www.423down.com/hardware)    |
+| ----------------------------------------------- | ----------------------------------------- | ----------------------------------------------- |
+| [security](https://rsshub.app/423down/security) | [patch](https://rsshub.app/423down/patch) | [hardware](https://rsshub.app/423down/hardware) |
+
+#### 操作系统
+
+| [Windows 11](https://www.423down.com/win11) | [Windows 10](https://www.423down.com/win10) | [Windows 7](https://www.423down.com/win7) | [Windows XP](https://www.423down.com/win7/winxp)    | [WinPE](https://www.423down.com/pe-system)        |
+| ------------------------------------------- | ------------------------------------------- | ----------------------------------------- | --------------------------------------------------- | ------------------------------------------------- |
+| [win11](https://rsshub.app/423down/win11)   | [win10](https://rsshub.app/423down/win10)   | [win7](https://rsshub.app/423down/win7)   | [win7/winxp](https://rsshub.app/423down/win7/winxp) | [pe-system](https://rsshub.app/423down/pe-system) |
+  `,
+        categories: [`program-update`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            {
+                source: [`423down.com/:category`, `423down.com`],
+                target: (e) => {
+                    let t = e.category;
+                    return `/423down${t ? `/${t}` : ``}`;
+                },
+            },
+            { title: `首页`, source: [`www.423down.com`], target: `/` },
+            { title: `安卓软件`, source: [`www.423down.com/apk`], target: `/apk` },
+            { title: `电脑软件 - 原创软件`, source: [`www.423down.com/zd423`], target: `/zd423` },
+            { title: `电脑软件 - 媒体播放`, source: [`www.423down.com/multimedia`], target: `/multimedia` },
+            { title: `电脑软件 - 网页浏览`, source: [`www.423down.com/browser`], target: `/browser` },
+            { title: `电脑软件 - 图形图像`, source: [`www.423down.com/image`], target: `/image` },
+            { title: `电脑软件 - 聊天软件`, source: [`www.423down.com/im`], target: `/im` },
+            { title: `电脑软件 - 办公软件`, source: [`www.423down.com/work`], target: `/work` },
+            { title: `电脑软件 - 上传下载`, source: [`www.423down.com/down`], target: `/down` },
+            { title: `电脑软件 - 实用软件`, source: [`www.423down.com/softtool`], target: `/softtool` },
+            { title: `电脑软件 - 系统辅助`, source: [`www.423down.com/systemsoft`], target: `/systemsoft` },
+            { title: `电脑软件 - 系统必备`, source: [`www.423down.com/systemplus`], target: `/systemplus` },
+            { title: `电脑软件 - 安全软件`, source: [`www.423down.com/security`], target: `/security` },
+            { title: `电脑软件 - 补丁相关`, source: [`www.423down.com/patch`], target: `/patch` },
+            { title: `电脑软件 - 硬件相关`, source: [`www.423down.com/hardware`], target: `/hardware` },
+            { title: `操作系统 - Windows 11`, source: [`www.423down.com/win11`], target: `/win11` },
+            { title: `操作系统 - Windows 10`, source: [`www.423down.com/win10`], target: `/win10` },
+            { title: `操作系统 - Windows 7`, source: [`www.423down.com/win7`], target: `/win7` },
+            { title: `操作系统 - Windows XP`, source: [`www.423down.com/win7/winxp`], target: `/win7/winxp` },
+            { title: `操作系统 - WinPE`, source: [`www.423down.com/pe-system`], target: `/pe-system` },
+        ],
+    };
+export { u as handler, d as route };

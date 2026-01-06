@@ -1,0 +1,40 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+const r = {
+    path: `/column/:id`,
+    categories: [`new-media`],
+    example: `/sspai/column/262`,
+    parameters: { id: `专栏 id` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`sspai.com/column/:id`] }],
+    name: `专栏`,
+    maintainers: [`LogicJake`],
+    handler: i,
+};
+async function i(r) {
+    let i = r.req.param(`id`),
+        a = `https://sspai.com/column/${i}`,
+        o = await n({ method: `get`, url: `https://sspai.com/api/v1/special_columns/${i}`, headers: { Referer: a } }),
+        s = o.data,
+        c = s.title,
+        l = s.intro;
+    o = await n({ method: `get`, url: `https://sspai.com/api/v1/articles?offset=0&limit=10&special_column_ids=${i}&include_total=false`, headers: { Referer: a } });
+    let u = o.data.list,
+        d = await Promise.all(
+            u.map((r) => {
+                let i = r.title,
+                    a = r.created_at,
+                    o = `https://sspai.com/api/v1/article/info/get?id=${r.id}&view=second&support_webp=true`,
+                    s = `https://sspai.com/post/${r.id}`,
+                    c = r.author.nickname;
+                return e.tryGet(`sspai: ${r.id}`, async () => ({ title: i, link: s, author: c, description: (await n(o)).data.data.body, pubDate: t(a * 1e3) }));
+            })
+        );
+    return { title: `少数派专栏-${c}`, link: a, description: l, item: d };
+}
+export { r as route };

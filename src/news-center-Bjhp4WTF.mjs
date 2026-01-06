@@ -1,0 +1,40 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './utils-C9eTQXzw.mjs';
+import { load as a } from 'cheerio';
+const o = {
+    path: `/news/:category?`,
+    categories: [`game`],
+    example: `/3dmgame/news`,
+    parameters: { category: '分类名或 ID，见下表，默认为新闻推荐，ID 可从分类 URL 中找到，如 Steam 为 `22221`' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`3dmgame.com/news/:category?`, `3dmgame.com/news`] }],
+    name: `新闻中心`,
+    maintainers: [`zhboner`, `lyqluis`],
+    handler: s,
+    description: `| 新闻推荐 | 游戏新闻 | 动漫影视 | 智能数码 | 时事焦点    |
+| -------- | -------- | -------- | -------- | ----------- |
+|          | game     | acg      | next     | news_36_1 |`,
+};
+async function s(o) {
+    let { category: s = `` } = o.req.param(),
+        c = s && !Number.isNaN(Number(s)),
+        l = `https://www.3dmgame.com/${s === `news_36_1` ? s : `news/` + s}`,
+        u = a((await n(l)).data),
+        d = u(c ? `.selectarcpost` : `.selectpost`)
+            .toArray()
+            .map((e) => {
+                if (((e = u(e)), c)) return { title: e.find(`.bt`).text(), link: e.attr(`href`), description: e.find(`p`).text(), pubDate: r(t(e.find(`.time`).text().trim()), 8) };
+                let n = e.find(`.text a`);
+                return { title: n.first().text(), link: n.attr(`href`), description: e.find(`.miaoshu`).text(), pubDate: r(t(e.find(`.time`).text().trim()), 8) };
+            }),
+        f = await Promise.all(d.map((t) => i(t, e.tryGet)));
+    return { title: `3DM - ` + u(`title`).text().split(`_`)[0], description: u(`meta[name="Description"]`).attr(`content`), link: l, item: f };
+}
+export { o as route };

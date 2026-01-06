@@ -1,0 +1,68 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+const c = {
+    path: `/jiangsu/wlt/:page?`,
+    categories: [`government`],
+    example: `/gov/jiangsu/wlt`,
+    parameters: { page: `页数，默认第 1 页` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`wlt.jiangsu.gov.cn/`], target: `/jiangsu/wlt` }],
+    name: `江苏文旅局审批公告`,
+    maintainers: [`GideonSenku`],
+    handler: l,
+    url: `wlt.jiangsu.gov.cn/`,
+};
+async function l(c) {
+    let l = `http://58.213.82.179:18080/jsswlt_sgs/front`,
+        u = `${l}/list.do`,
+        d = o((await n({ method: `get`, url: u, searchParams: { type: 0, pageNo0: c.req.param(`page`) ?? 1 } })).data),
+        f = d(`.tg_tb1`)
+            .toArray()
+            .map((e) => {
+                let t = d(e),
+                    n = t.prop(`onclick`).match(/openDetail\('(\d+)'\)/)?.[1] || ``;
+                return { title: t.text(), link: n ? `${l}/detail.do?iid=${n}` : ``, description: ``, pubDate: `` };
+            })
+            .filter((e) => e.link),
+        p = await Promise.all(
+            f.map((c) =>
+                e.tryGet(c.link, async () => {
+                    let e = o((await n({ method: `get`, url: c.link })).data),
+                        l = e(`td:contains("许可决定日期")`).next().text().trim(),
+                        u = e(`td:contains("行政相对人名称")`).next().text().trim(),
+                        d = e(`td:contains("行政许可决定文书号")`).next().text().trim(),
+                        f = e(`td:contains("项目名称")`).next().text().trim(),
+                        p = e(`td:contains("许可内容")`).next().text().trim();
+                    return (
+                        (c.description = s(
+                            a(r, {
+                                children: [
+                                    a(`text`, { children: [`许可日期：`, l, ` `] }),
+                                    i(`br`, {}),
+                                    a(`text`, { children: [`行政名称：`, u, ` `] }),
+                                    i(`br`, {}),
+                                    a(`text`, { children: [`许可编号：`, d, ` `] }),
+                                    i(`br`, {}),
+                                    a(`text`, { children: [`项目名称：`, f, ` `] }),
+                                    i(`br`, {}),
+                                    a(`text`, { children: [`许可内容：`, p, ` `] }),
+                                ],
+                            })
+                        )),
+                        (c.pubDate = t(l)),
+                        c
+                    );
+                })
+            )
+        );
+    return { title: d(`title`).text(), link: u, item: p };
+}
+export { c as route };

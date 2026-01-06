@@ -1,0 +1,42 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/developer/group/:type`,
+    categories: [`programming`],
+    example: `/aliyun/developer/group/alitech`,
+    parameters: { type: `对应技术领域分类` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`developer.aliyun.com/group/:type`] }],
+    name: `开发者社区 - 主题`,
+    maintainers: [`umm233`],
+    handler: i,
+};
+async function i(r) {
+    let i = `https://developer.aliyun.com/group/${r.req.param(`type`)}`,
+        a = (await t({ method: `get`, url: i })).data,
+        o = n(a),
+        s = o(`div[class="header-information-title"]`)
+            .contents()
+            .filter((e) => e.nodeType === 3)
+            .text()
+            .trim(),
+        c = o(`div[class="header-information"]`).find(`span`).last().text().trim(),
+        l = o(`ul[class^="content-tab-list"] > li`);
+    return {
+        title: `阿里云开发者社区-${s}`,
+        link: i,
+        description: c,
+        item: l.toArray().map((t) => {
+            t = o(t);
+            let n = t.find(`.question-desc`),
+                r = t.find(`.browse`).text() + ` ` + n.find(`.answer`).text();
+            return { title: t.find(`.question-title`).text().trim() || t.find(`a p`).text().trim(), link: t.find(`a`).attr(`href`), pubDate: e(t.find(`.time`).text()), description: r };
+        }),
+    };
+}
+export { r as route };

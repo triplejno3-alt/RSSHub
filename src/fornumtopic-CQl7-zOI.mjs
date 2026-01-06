@@ -1,0 +1,76 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+import { raw as l } from 'hono/html';
+import u from 'iconv-lite';
+const d = `https://www.txrjy.com`,
+    f = {
+        path: `/fornumtopic/:channel?`,
+        categories: [`bbs`],
+        example: `/txrjy/fornumtopic`,
+        parameters: { channel: `频道的 id，见下表，默认为最新500个主题帖` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `论坛 频道`,
+        maintainers: [`Fatpandac`],
+        handler: p,
+        description: `| 最新 500 个主题帖 | 最新 500 个回复帖 | 最新精华帖 | 最新精华帖 | 一周热帖 | 本月热帖 |
+| :---------------: | :---------------: | :--------: | :--------: | :------: | :------: |
+|         1         |         2         |      3     |      4     |     5    |     6    |`,
+    };
+async function p(f) {
+    let p = `${d}/c114-listnewtopic.php?typeid=${f.req.param(`channel`) ?? `1`}`,
+        m = await n(p, { responseType: `buffer` }),
+        h = s(u.decode(m.data, `gbk`)),
+        g = h(`div.z > a`).last().text(),
+        _ = h(`tbody > tr`)
+            .slice(0, 25)
+            .toArray()
+            .map((e) => ({
+                title: h(e).find(`td.title2`).text(),
+                link: new URL(h(e).find(`td.title2 > a`).attr(`href`), d).href,
+                author: h(e).find(`td.author`).text(),
+                pubDate: r(t(h(e).find(`td.dateline`).text(), `YYYY-M-D HH:mm`), 8),
+                category: h(e).find(`td.forum`).text(),
+            }))
+            .filter((e) => e.title),
+        v = await Promise.all(
+            _.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = await n(t.link, { responseType: `buffer` }),
+                        r = s(u.decode(e.data, `gbk`));
+                    return (
+                        (t.description = r(`div.c_table`)
+                            .toArray()
+                            .map((e) => {
+                                let t = r(e)
+                                        .find(`td.t_f`)
+                                        .find(`div.a_pr`)
+                                        .remove()
+                                        .end()
+                                        .html()
+                                        ?.replaceAll(/(<img.*?) src=".*?"(.*?>)/g, `$1$2`)
+                                        .replaceAll(/(<img.*?)zoomfile(.*?>)/g, `$1src$2`),
+                                    n = r(e)
+                                        .find(`div.pattl`)
+                                        .html()
+                                        ?.replaceAll(/(<img.*?) src=".*?"(.*?>)/g, `$1$2`)
+                                        .replaceAll(/(<img.*?)zoomfile(.*?>)/g, `$1src$2`);
+                                return c(o(i, { children: [a(`h4`, { children: r(e).find(`a.xw1`).text().trim() }), t ? l(t) : null, n ? l(n) : null, a(`hr`, {})] }));
+                            }).join(`
+`)),
+                        t
+                    );
+                })
+            )
+        );
+    return { title: `通信人家园 - 论坛 ${g}`, link: p, item: v };
+}
+export { f as route };

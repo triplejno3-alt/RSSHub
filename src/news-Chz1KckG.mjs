@@ -1,0 +1,62 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { t as r } from './description-BZOcVPIx.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/news/:language`,
+    categories: [`design`],
+    view: n.Pictures,
+    example: `/jimmyspa/news/tw`,
+    parameters: {
+        language: {
+            description: `语言`,
+            options: [
+                { value: `tw`, label: `臺灣正體` },
+                { value: `en`, label: `English` },
+                { value: `jp`, label: `日本語` },
+            ],
+        },
+    },
+    radar: [{ source: [`www.jimmyspa.com/:language/News`] }],
+    name: `News`,
+    description: `
+| language | Description |
+| ---   | ---   |
+| tw | 臺灣正體 |
+| en | English |
+| jp | 日本語 |
+    `,
+    maintainers: [`Cedaric`],
+    handler: o,
+};
+async function o(e) {
+    let n = e.req.param(`language`),
+        a = `https://www.jimmyspa.com`,
+        o = new URL(`/${n}/News/Ajax/changeList?year=&keyword=&categoryId=0&page=1`, a).href,
+        c = i((await t(o)).data.view)(`ul#appendNews li.card_block`)
+            .toArray()
+            .map((e) => {
+                let t = i(e),
+                    n = t(`a.news_card .info_wrap h3`).text(),
+                    a = t(`a.news_card .card_img img`).prop(`src`) || ``,
+                    o = t(`a.news_card`).prop(`data-route`),
+                    c = s((t(`a.news_card div.date`).html() || ``).toString()),
+                    l = r({ images: a ? [{ src: a, alt: n }] : void 0, description: t(`a.news_card .info_wrap p`).text() });
+                return { title: n, link: o, description: l, pubDate: c, content: { html: l, text: n } };
+            });
+    return { title: `幾米 - 最新消息(${n})`, link: `${a}/${n}/News`, allowEmpty: !0, item: c };
+}
+function s(t) {
+    let n = t.match(/<p>(\d{1,2})<\/p>\s*<p>(\d{1,2})\s*\.\s*([A-Za-z]{3})<\/p>/);
+    if (n) {
+        let t = Number.parseInt(n[1]) + 1,
+            r = n[2];
+        return e(`20${r}-${{ Jan: `01`, Feb: `02`, Mar: `03`, Apr: `04`, May: `05`, Jun: `06`, Jul: `07`, Aug: `08`, Sep: `09`, Oct: `10`, Nov: `11`, Dec: `12` }[n[3]] || ``}-${t}`);
+    }
+}
+export { a as route };

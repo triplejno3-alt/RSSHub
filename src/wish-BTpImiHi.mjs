@@ -1,0 +1,57 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+import i from 'node:querystring';
+const a = {
+    path: `/people/:userid/wish/:routeParams?`,
+    categories: [`social-media`],
+    example: `/douban/people/exherb/wish`,
+    parameters: { userid: `用户id`, routeParams: `额外参数；见下` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `用户想看`,
+    maintainers: [`exherb`],
+    handler: o,
+    description: `对于豆瓣用户想看的内容，在 \`routeParams\` 参数中以 query string 格式设置如下选项可以控制输出的样式
+
+| 键         | 含义       | 接受的值 | 默认值 |
+| ---------- | ---------- | -------- | ------ |
+| pagesCount | 查询页面数 |          | 1      |`,
+};
+async function o(a) {
+    let o = a.req.param(`userid`),
+        s = i.parse(a.req.param(`routeParams`)),
+        c,
+        l = s.pagesCount ? Number.parseInt(s.pagesCount) : 1,
+        u = [];
+    for (let i = 0; i < l; i += 1) {
+        let a = `https://movie.douban.com/people/${o}/wish?start=${i * 15}`;
+        u.push(
+            t
+                .tryGet(a, async () => (await n({ method: `GET`, url: a, headers: { Referer: a, Cookie: e.douban.cookie || `` } })).data, e.cache.routeExpire, !1)
+                .then((e) => {
+                    let t = r(e),
+                        n = t(`div.article > div.grid-view > div.item`);
+                    if (((c ||= t(`div.side-info-txt > h3`).text()), n))
+                        return Promise.all(
+                            n.toArray().map((e) => {
+                                e = t(e);
+                                let n = e.find(`.pic a img`).attr(`src`),
+                                    r = e.find(`.info`),
+                                    i = r.find(`ul li.title a`).text(),
+                                    a = r.find(`ul li.title a`).attr(`href`),
+                                    o = i.split(`/`).find((e) => e.trim()),
+                                    s = r.find(`ul li .date`).text().trim();
+                                return { title: o, description: `${r.find(`.intro`).text()}<br><img src="${n}">`, link: a, pubDate: new Date(s) };
+                            })
+                        );
+                })
+        );
+    }
+    let d = (await Promise.all(u)).flat();
+    return { title: `豆瓣想看 - ${c || o}`, link: `https://movie.douban.com/people/${o}/wish`, item: d };
+}
+export { a as route };

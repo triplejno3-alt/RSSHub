@@ -1,0 +1,42 @@
+import { t as e } from './cache-DLkCV5c7.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+async function i(e) {
+    let t = r((await n(e.link)).body)(`.v_news_content`);
+    return (t.length ? (t.find(`script`).remove(), t.find(`style`).remove(), t.find(`.vsbcontent_end`).remove(), t.find(`iframe`).remove(), (e.description = t.html() || e.title)) : (e.description = e.title), e);
+}
+function a(e, n) {
+    return e(`.list ul li`)
+        .toArray()
+        .map((r) => {
+            let i = e(r),
+                a = i.find(`.newTitle`).text().trim(),
+                o = i.find(`a`).attr(`href`),
+                s = i.find(`.data1`).text().trim();
+            if (!o || !a) return null;
+            let c = s.match(/发布时间\s*[:：]\s*(\d{4}-\d{1,2}-\d{1,2})/),
+                l = c ? t(c[1]) : null;
+            return { title: a, link: o.startsWith(`http`) ? o : new URL(o, n).href, pubDate: l };
+        })
+        .filter((e) => e !== null);
+}
+function o({ listPath: t, feedTitle: o, feedDescription: s }) {
+    let c = `https://www.csust.edu.cn`;
+    return async function () {
+        let l = a(r((await n(`${c}${t}`)).body), c),
+            u = await Promise.all(
+                l.map((t) =>
+                    e.tryGet(t.link, async () => {
+                        try {
+                            return await i(t);
+                        } catch {
+                            return t;
+                        }
+                    })
+                )
+            );
+        return { title: o, link: `${c}${t}`, description: s, item: u };
+    };
+}
+export { o as t };

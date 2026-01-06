@@ -1,0 +1,65 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { load as i } from 'cheerio';
+async function a(t) {
+    let a = t;
+    try {
+        let t = (await r.get(a, { headers: { 'User-Agent': e.ua } })).body,
+            o = i(t);
+        return o(`#page-wrap > div.maim_pages > div > div.leftmain_page > div > ul > li`)
+            .toArray()
+            .map((e) => {
+                let t = o(e).find(`a.bt`),
+                    r = o(e).find(`a.time`);
+                return { title: t.attr(`title`), link: t.attr(`href`), pubDate: n(r.text().trim(), `YYYY-MM-DD`) };
+            });
+    } catch {}
+    return [];
+}
+async function o(t) {
+    let n = t.link;
+    if (n.includes(`sem.tongji.edu.cn/semch`))
+        try {
+            let a = (await r.get(n, { headers: { 'User-Agent': e.ua } })).body,
+                o = i(a)(`#page-wrap > div.maim_pages > div > div.leftmain_page > div`);
+            t.description = o ? o.html() : ``;
+        } catch {}
+    return t;
+}
+const s = {
+    path: `/sem/:type?`,
+    categories: [`university`],
+    example: `/tongji/sem/notice`,
+    parameters: { type: '通知类型，默认为 `notice`' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `经济与管理学院通知`,
+    maintainers: [`sitdownkevin`],
+    url: `sem.tongji.edu.cn/semch`,
+    handler: c,
+    description: `| 学院通知 | 招生通知 | 学术观点 | 新闻 | 活动 | 视点 | 教师与行政人员招聘 |
+| -------- | -------------- | ------------------ | ---- | ---------- | --------- | ------------------ |
+| notice   | enrollment     | academic-paper     | news | events     | focus     | collegerecruitment |
+`,
+};
+async function c(e) {
+    let n = e.req.param(`type`) || `notice`,
+        r = new Set([`enrollment`, `academic-paper`, `news`, `events`, `focus`, `collegerecruitment`]),
+        i = { notice: `学院通知`, enrollment: `招生通知`, 'academic-paper': `学术观点`, news: `新闻`, events: `活动`, focus: `视点`, collegerecruitment: `教师与行政人员招聘` },
+        s = await a(`https://sem.tongji.edu.cn/semch/category/frontpage/${r.has(n) ? n : `notice`}`),
+        c = await Promise.all(s.map((e) => t.tryGet(e.link, () => o(e))));
+    return {
+        title: `同济大学经济与管理学院`,
+        description: String(r.has(n) ? i[n] : `学院通知`),
+        image: `https://upload.wikimedia.org/wikipedia/zh/f/f8/Tongji_University_Emblem.svg`,
+        icon: `https://upload.wikimedia.org/wikipedia/zh/f/f8/Tongji_University_Emblem.svg`,
+        logo: `https://upload.wikimedia.org/wikipedia/zh/f/f8/Tongji_University_Emblem.svg`,
+        link: `https://sem.tongji.edu.cn/semch`,
+        item: c,
+    };
+}
+export { s as route };

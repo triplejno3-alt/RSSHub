@@ -1,0 +1,54 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+const r = {
+    path: `/repos/:user/:type?/:sort?`,
+    categories: [`programming`],
+    example: `/github/repos/DIYgod`,
+    parameters: { user: `GitHub username`, type: 'Type of repository, can be `all`, `owner`, `member`, `public`, `private`, `forks`, `sources`', sort: 'Sort by `created`, `updated`, `pushed`, `full_name`' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`github.com/:user`] }],
+    name: `User Repo`,
+    maintainers: [`DIYgod`],
+    handler: i,
+};
+async function i(r) {
+    let i = r.req.param(`user`),
+        a = r.req.param(`type`) || `all`,
+        o = r.req.param(`sort`) || `created`,
+        s = {};
+    e.github && e.github.access_token && (s = { ...s, Authorization: `token ${e.github.access_token}` });
+    let c = (await n({ method: `get`, url: `https://api.github.com/users/${i}/repos`, searchParams: { type: a, sort: o }, headers: s })).data
+        .filter((e) => {
+            switch (a) {
+                case `all`:
+                    return !0;
+                case `owner`:
+                    return e.owner.login === i;
+                case `member`:
+                    return e.owner.login !== i;
+                case `public`:
+                    return e.private === !1;
+                case `private`:
+                    return e.private === !0;
+                case `forks`:
+                    return e.fork === !0;
+                case `sources`:
+                    return e.fork === !1;
+                default:
+                    return !0;
+            }
+        })
+        .map((e) => {
+            let n = t(e.created_at);
+            return (
+                o === `updated` && e.updated_at ? (n = t(e.updated_at)) : o === `pushed` && e.pushed_at && (n = t(e.pushed_at)),
+                { title: e.name, description: e.description || `No description`, pubDate: n, updated: t(e.updated_at), link: e.html_url }
+            );
+        });
+    return { allowEmpty: !0, title: `${i}'s GitHub repositories`, link: `https://github.com/${i}`, item: c };
+}
+export { r as route };

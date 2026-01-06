@@ -1,0 +1,49 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = `https://yz.chsi.com.cn`,
+    o = {
+        path: `/kydt`,
+        categories: [`study`],
+        example: `/chsi/kydt`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`yz.chsi.com.cn/kyzx/kydt`] }],
+        name: `考研动态`,
+        maintainers: [`SunBK201`],
+        handler: s,
+        url: `yz.chsi.com.cn/kyzx/kydt`,
+    };
+async function s() {
+    let o = i((await n(`${a}/kyzx/kydt`)).data),
+        s = o(`ul.news-list`).children(),
+        c = await Promise.all(
+            s.map((s, c) => {
+                c = o(c);
+                let l = c.find(`a`).text(),
+                    u = c.find(`.span-time`).text(),
+                    d = c.find(`a`).attr(`href`),
+                    f = d.startsWith(`http`) ? d : a + d;
+                return e.tryGet(f, async () => {
+                    let e = ``;
+                    return (
+                        (e =
+                            !d.startsWith(`https://`) && !d.startsWith(`http://`)
+                                ? i((await n(f)).data)(`#article_dnull`)
+                                      .html()
+                                      .trim()
+                                : l),
+                        { title: l, link: f, pubDate: r(t(u), 8), description: e }
+                    );
+                });
+            })
+        );
+    return { title: `中国研究生招生信息网 - 考研动态`, link: `${a}/kyzx/kydt/`, description: `中国研究生招生信息网 - 考研动态`, item: c };
+}
+export { o as route };

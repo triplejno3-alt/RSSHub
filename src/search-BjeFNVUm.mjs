@@ -1,0 +1,86 @@
+import { t as e } from './invalid-parameter-DGZgOgO2.mjs';
+import { t } from './description-D7Hn9Z68.mjs';
+import n from 'query-string';
+import { GenreNotation as r, NarouNovelFetch as i, R18Site as a, SearchBuilder as o, SearchBuilderR18 as s } from 'narou';
+let c = (function (e) {
+    return ((e.YOMOU = `yomou`), (e.NOCTURNE = `noc`), (e.MOONLIGHT = `mnlt`), (e.MIDNIGHT = `mid`), e);
+})({});
+const l = { [c.YOMOU]: `小説を読もう`, [c.NOCTURNE]: `ノクターン`, [c.MOONLIGHT]: `ムーンライト`, [c.MIDNIGHT]: `ミッドナイト` },
+    u = {
+        path: `/search/:sub/:query`,
+        categories: [`reading`],
+        example: `/syosetu/search/noc/word=ハーレム&notword=&type=r&mintime=&maxtime=&minlen=30000&maxlen=&min_globalpoint=&max_globalpoint=&minlastup=&maxlastup=&minfirstup=&maxfirstup=&isgl=1&notbl=1&order=new?limit=5`,
+        parameters: { sub: { description: `The target Syosetu subsite.`, options: Object.entries(c).map(([, e]) => ({ value: e, label: l[e] })) }, query: `Search parameters in Syosetu format.` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `Search`,
+        maintainers: [`SnowAgar25`],
+        handler: h,
+    },
+    d = (e) => e ?? void 0;
+function f(e, t) {
+    let r = n.parse(e),
+        i = {
+            gzip: 5,
+            lim: t,
+            word: d(r.word),
+            notword: d(r.notword),
+            title: d(r.title),
+            ex: d(r.ex),
+            keyword: d(r.keyword),
+            wname: d(r.wname),
+            sasie: d(r.sasie),
+            iszankoku: d(r.iszankoku),
+            isbl: d(r.isbl),
+            isgl: d(r.isgl),
+            istensei: d(r.istensei),
+            istenni: d(r.istenni),
+            stop: d(r.stop),
+            notzankoku: d(r.notzankoku),
+            notbl: d(r.notbl),
+            notgl: d(r.notgl),
+            nottensei: d(r.nottensei),
+            nottenni: d(r.nottenni),
+            minlen: d(r.minlen),
+            maxlen: d(r.maxlen),
+            type: d(r.type),
+            order: d(r.order),
+            genre: d(r.genre),
+            nocgenre: d(r.nocgenre),
+        };
+    return ((r.mintime || r.maxtime) && (i.time = `${r.mintime || ``}-${r.maxtime || ``}`), i);
+}
+const p = (e) => e === c.YOMOU;
+function m(t, n) {
+    if (p(t)) return new o(n, new i());
+    let r = { ...n };
+    switch (t) {
+        case c.NOCTURNE:
+            r.nocgenre = a.Nocturne;
+            break;
+        case c.MOONLIGHT:
+            r.nocgenre ||= [a.MoonLight, a.MoonLightBL].join(`-`);
+            break;
+        case c.MIDNIGHT:
+            r.nocgenre = a.Midnight;
+            break;
+        default:
+            throw new e(`Invalid Syosetu subsite.
+Valid subsites are: yomou, noc, mnlt, mid`);
+    }
+    return new s(r, new i());
+}
+async function h(e) {
+    let { sub: n, query: i } = e.req.param(),
+        a = `https://${n}.syosetu.com/search/search/search.php?${i}`,
+        o = f(i, Math.min(Number(e.req.query(`limit`) ?? 40), 40)),
+        s = (await m(n, o).execute()).values.map((e) => ({
+            title: e.title,
+            link: `https://${p(n) ? `ncode` : `novel18`}.syosetu.com/${String(e.ncode).toLowerCase()}`,
+            description: t({ novel: e, genreText: r[e.genre] }),
+            author: e.writer,
+            category: e.keyword.split(/[\s/\uFF0F]/).filter(Boolean),
+        })),
+        c = [];
+    return (o.word && c.push(o.word), o.notword && c.push(`-${o.notword}`), { title: c.length > 0 ? `Syosetu Search: ${c.join(` `)}` : `Syosetu Search`, link: a, item: s });
+}
+export { u as route };

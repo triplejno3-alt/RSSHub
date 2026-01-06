@@ -1,0 +1,93 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { renderToString as s } from 'hono/jsx/dom/server';
+const c = {
+        path: `/music/djradio/:id/:info?`,
+        categories: [`multimedia`],
+        example: `/163/music/djradio/347317067`,
+        parameters: { id: `节目 id, 可在电台节目页 URL 中找到`, info: `默认在正文尾部显示节目相关信息，任意值为不显示` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !0, supportScihub: !1 },
+        name: `电台节目`,
+        maintainers: [`magic-akari`],
+        handler: d,
+    },
+    l = (e, t, n, r) =>
+        s(
+            o(i, {
+                children: [
+                    a(`img`, { src: e.coverUrl }),
+                    a(`div`, { children: t.map((e) => a(`p`, { children: e })) }),
+                    r
+                        ? o(`div`, {
+                              children: [
+                                  a(`audio`, { src: `https://music.163.com/song/media/outer/url?id=${e.mainTrackId}.mp3`, controls: `controls` }),
+                                  o(`p`, { children: [`时长: `, n] }),
+                                  a(`p`, { children: a(`a`, { href: `https://music.163.com/program/${e.id}`, children: `查看节目` }) }),
+                              ],
+                          })
+                        : null,
+                ],
+            })
+        ),
+    u = (n, i, a) =>
+        t.tryGet(
+            `163:music:djradio:${n}:${i}:${a}`,
+            async () => await r.post(`https://music.163.com/api/dj/program/byradio`, { headers: { Referer: `https://music.163.com/` }, form: { radioId: n, limit: i, offset: a } }),
+            e.cache.routeExpire,
+            !1
+        );
+async function d(e) {
+    let t = e.req.param(`id`),
+        r = !e.req.param(`info`),
+        i = await u(t, 1, 0),
+        { radio: a, dj: o } = (i.data.programs || [])[0] || { radio: {}, dj: {} },
+        s = i.data.count || 0,
+        c = Array.from({ length: Math.ceil(s / 500) }, (e, t) => t),
+        d = await Promise.all(
+            c.map(async (e) =>
+                ((await u(t, 500, e * 500)).data.programs || []).map((e) => {
+                    let t = (e.description || ``)
+                            .split(
+                                `
+`
+                            )
+                            .map((e) => e),
+                        i = Math.trunc(e.duration / 1e3),
+                        a = l(e, t, `${(i / 60).toFixed(0).padStart(2, `0`)}:${(i % 60).toFixed(0).padStart(2, `0`)}`, r);
+                    return {
+                        title: e.name,
+                        link: `https://music.163.com/program/` + e.id,
+                        pubDate: n(e.createTime),
+                        published: n(e.createTime),
+                        author: e.dj.nickname,
+                        description: a,
+                        content: { html: a },
+                        itunes_item_image: e.coverUrl,
+                        enclosure_url: `https://music.163.com/song/media/outer/url?id=${e.mainTrackId}.mp3`,
+                        enclosure_type: `audio/mpeg`,
+                        itunes_duration: i,
+                    };
+                })
+            )
+        );
+    return {
+        title: a.name,
+        link: `https://music.163.com/djradio?id=${t}`,
+        subtitle: a.desc,
+        description: a.desc,
+        author: o.nickname,
+        updated: a.lastProgramCreateTime,
+        icon: a.picUrl,
+        image: a.picUrl,
+        itunes_author: o.nickname,
+        itunes_category: a.category,
+        item: d.flat(),
+    };
+}
+export { c as route };

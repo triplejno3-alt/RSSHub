@@ -1,0 +1,51 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import { t as e } from './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import { t } from './types-Bl_lnefZ.mjs';
+import './puppeteer-BbZGb8cd.mjs';
+import { t as n } from './api-BlYmvzit.mjs';
+import { t as r } from './utils-DPcqKUMS.mjs';
+const i = {
+    path: `/media/:id/:routeParams?`,
+    categories: [`social-media`],
+    view: t.Pictures,
+    example: `/twitter/media/_RSSHub`,
+    parameters: { id: 'username; in particular, if starts with `+`, it will be recognized as a [unique ID](https://github.com/DIYgod/RSSHub/issues/12221), e.g. `+44196397`', routeParams: `extra parameters, see the table above.` },
+    features: {
+        requireConfig: [
+            { name: `TWITTER_USERNAME`, description: `Please see above for details.` },
+            { name: `TWITTER_PASSWORD`, description: `Please see above for details.` },
+            { name: `TWITTER_AUTH_TOKEN`, description: `Please see above for details.` },
+        ],
+        requirePuppeteer: !1,
+        antiCrawler: !1,
+        supportBT: !1,
+        supportPodcast: !1,
+        supportScihub: !1,
+    },
+    name: `User media`,
+    maintainers: [`DIYgod`, `yindaheng98`, `Rongronggg9`],
+    handler: a,
+    radar: [{ source: [`x.com/:id/media`], target: `/media/:id` }],
+};
+async function a(t) {
+    let i = t.req.param(`id`),
+        { count: a } = r.parseRouteParams(t.req.param(`routeParams`)),
+        o = a ? { count: a } : {};
+    await n.init();
+    let s = await n.getUser(i),
+        c;
+    try {
+        c = await n.getUserMedia(i, o);
+    } catch (t) {
+        e.error(t);
+    }
+    let l = s?.profile_image_url || s?.profile_image_url_https;
+    return { title: `Twitter @${s?.name}`, link: `https://x.com/${s?.screen_name}/media`, image: l.replace(/_normal.jpg$/, `.jpg`), description: s?.description, item: c && r.ProcessFeed(t, { data: c }), allowEmpty: !0 };
+}
+export { i as route };

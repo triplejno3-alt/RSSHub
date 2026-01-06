@@ -1,0 +1,27 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { n, r, s as i } from './common-CeVXaBVy.mjs';
+const a = {
+    ...r,
+    name: `Author Posts`,
+    path: `/author/:username`,
+    radar: [{ source: [`www.voronoiapp.com/author/:username`], target: `/author/:username` }],
+    example: `/voronoiapp/author/visualcapitalist`,
+    parameters: { username: `The username of the author` },
+    handler: async (e) => {
+        let { username: t } = e.req.param(),
+            r = await i({ order: `DESC`, author: await o(t) });
+        return { ...n, title: `Voronoi Posts by ${t}`, link: `https://www.voronoiapp.com/author/${t}`, item: r };
+    },
+};
+async function o(n) {
+    return await t.tryGet(`voronoiapp-author-${n}`, async () => {
+        let t = (await e(`https://www.voronoiapp.com/author/${n}`)).match(/\\"uid\\":\\"([\w-]+)\\"/);
+        if (!t) throw Error(`No UID found for username: ${n}`);
+        return t[1];
+    });
+}
+export { a as route };

@@ -1,0 +1,179 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './md5-DQN6cWFb.mjs';
+import { t as r } from './parse-date-DjdQS_Nt.mjs';
+import { t as i } from './timezone-CrV-DT8S.mjs';
+import { Fragment as a, jsx as o, jsxs as s } from 'hono/jsx/jsx-runtime';
+import { load as c } from 'cheerio';
+import { renderToString as l } from 'hono/jsx/dom/server';
+import { raw as u } from 'hono/html';
+const d = ({ images: e, title: t, keys: n, details: r, description: i, info: c, links: d }) =>
+        l(
+            s(a, {
+                children: [
+                    e?.map((e) => (e?.src ? o(`figure`, { children: o(`img`, { src: e.src, alt: e.alt ?? void 0 }) }) : null)),
+                    t ? o(`h1`, { children: t }) : null,
+                    n && r ? o(`table`, { children: o(`tbody`, { children: n.map((e) => s(`tr`, { children: [o(`th`, { children: e }), o(`td`, { children: r[e] })] })) }) }) : null,
+                    i ? o(`p`, { children: i }) : null,
+                    c ? o(`blockquote`, { children: u(c) }) : null,
+                    d
+                        ? o(`table`, { children: o(`tbody`, { children: d.map((e) => s(`tr`, { children: [o(`td`, { children: o(`a`, { href: e.link, children: e.title }) }), o(`td`, { children: e.tags?.join(``) ?? `` })] })) }) })
+                        : null,
+                ],
+            })
+        ),
+    f = {
+        path: `/:id?`,
+        name: `分类`,
+        url: `4ksj.com`,
+        maintainers: [`nczitzk`],
+        handler: m,
+        example: `/4ksj/4k-uhd-1`,
+        parameters: { id: `分类 id，默认为最新4K电影` },
+        description:
+            '::: tip\n  若订阅 [最新 4K 电影](https://www.4ksj.com/4k-uhd-1.html)，网址为 `https://www.4ksj.com/4k-uhd-1.html`。截取 `https://www.4ksj.com/` 到末尾 `.html` 的部分 `4k-uhd-1` 作为参数，此时路由为 [`/4ksj/4k-uhd-1`](https://rsshub.app/4ksj/4k-uhd-1)。\n\n  若订阅子分类 [Dolby Vision 动作 4K 电影](https://www.4ksj.com/4k-uhd-s7-display-3-dytypes-1-1.html)，网址为 `https://www.4ksj.com/4k-uhd-s7-display-3-dytypes-1-1.html`。截取 `https://www.4ksj.com/forum-` 到末尾 `.html` 的部分 `4kdianying-s7-dianyingbiaozhun-3-dytypes-9-1` 作为参数，此时路由为 [`/4ksj/4k-uhd-s7-display-3-dytypes-1-1`](https://rsshub.app/4ksj/4k-uhd-s7-display-3-dytypes-1-1)。\n:::',
+        categories: [`multimedia`],
+    };
+function p(e) {
+    let t = ``;
+    for (let n = 0; n <= e.length - 1; n++) {
+        let r = e.charAt(n).codePointAt();
+        t += r;
+    }
+    return t;
+}
+async function m(a) {
+    let { id: o = `4k-uhd-1` } = a.req.param(),
+        s = a.req.query(`limit`) ? Number.parseInt(a.req.query(`limit`)) : 25,
+        l = `https://www.4ksj.com`,
+        u = new URL(`${o}.html`, l).href,
+        f = await e(u, { responseType: `arrayBuffer` }),
+        m = new TextDecoder(`gbk`),
+        h = c(m.decode(f)),
+        g = h(`div.nexlogo img`).prop(`src`),
+        _ = h(`div.nex_cmo_piv a`)
+            .slice(0, s)
+            .toArray()
+            .map((e) => ((e = h(e)), { link: new URL(e.prop(`href`), l).href })),
+        v = await (() =>
+            t.tryGet(`4ksj:cookie`, async () => {
+                let t = c(await e(_[0].link))(`script`).attr(`src`),
+                    r = new URL(t, l).href,
+                    i = await e(r),
+                    a = i.match(/{var key="(.*?)"/)?.[1],
+                    o = i.match(/",value="(.*?)"/)?.[1],
+                    s = i.match(/\.get\("(.*?&key=)"/)?.[1];
+                if (!a || !o || !s) throw Error(`Failed to get cookie`);
+                return (await e.raw(`${l}${s}${a}&value=${n(p(o))}`)).headers
+                    .getSetCookie()
+                    .map((e) => e.split(`;`)[0])
+                    .join(`; `);
+            }))();
+    return (
+        (_ = await Promise.all(
+            _.map((n) =>
+                t.tryGet(n.link, async () => {
+                    let t = await e(n.link, { responseType: `arrayBuffer`, headers: { Cookie: v } }),
+                        a = c(m.decode(t));
+                    (a(`div.nex_drama_intros em`).first().remove(),
+                        a(`strong font`).each((e, t) => {
+                            ((t = a(t)), t.parent().remove());
+                        }));
+                    let o = a(`div.nex_drama_Top h5`).text(),
+                        s = a(`div.nex_drama_intros`).html(),
+                        l =
+                            a(`div.nex_drama_pic`)
+                                .html()
+                                .match(/background:url\((.*?)\)/)?.[1] ?? ``,
+                        u = a(`li.nex_drama_Detail_li, li.nex_drama_Detail_lis dd`)
+                            .toArray()
+                            .map((e) => {
+                                e = a(e);
+                                let t = e.find(`em`).text().replaceAll(/：|\s/g, ``),
+                                    n = e.find(`span`).length === 0 ? e.contents().last().text().trim() : e.find(`span`).text().trim();
+                                return { [t]: n };
+                            }),
+                        f = Object.assign({}, ...u),
+                        p =
+                            a(`td.t_f ignore_js_op`).length === 0
+                                ? a(`td.t_f strong`)
+                                      .toArray()
+                                      .map((e) => {
+                                          e = a(e);
+                                          let t = e.contents().first().text(),
+                                              r = e.next().prop(`href`) ?? e.nextUntil(`a`).next().prop(`href`);
+                                          return (
+                                              (n.enclosure_url = n.enclosure_url ?? r),
+                                              (n.enclosure_type = n.enclosure_type ?? `application/x-bittorrent`),
+                                              (n.enclosure_title = n.enclosure_title ?? t),
+                                              {
+                                                  title: t,
+                                                  tags: e
+                                                      .contents()
+                                                      .last()
+                                                      .text()
+                                                      .match(/【(.*?)】/g),
+                                                  link: r,
+                                              }
+                                          );
+                                      })
+                                : a(`div.newfujian`)
+                                      .toArray()
+                                      .map(
+                                          (e) => (
+                                              (e = a(e)),
+                                              {
+                                                  title: e.find(`p.filename`).prop(`title`) || e.find(`p.filename`).text(),
+                                                  tags: e
+                                                      .find(`div.fileaq`)
+                                                      .text()
+                                                      .match(/【(.*?)】/g),
+                                                  link: e.find(`div.down_2 a`).prop(`href`),
+                                              }
+                                          )
+                                      ),
+                        h = a(`table.boxtable em`).first(),
+                        g =
+                            h.find(`span[title]`).length === 0
+                                ? h
+                                      .first()
+                                      .text()
+                                      .replace(/发表于\s/, ``)
+                                : h.find(`span[title]`).prop(`title`);
+                    return (
+                        (n.title = o),
+                        (n.description = d({ images: l ? [{ src: l, alt: o }] : void 0, title: o, keys: Object.keys(f), details: f, description: s, info: a(`div.nex_drama_sums`).html(), links: p })),
+                        (n.pubDate = i(r(g, `YYYY-M-D HH:mm:ss`), 8)),
+                        (n.category = Object.values(f)
+                            .flatMap((e) => e.split(/\s/))
+                            .filter(Boolean)),
+                        (n.author = f.导演),
+                        (n.content = { html: s, text: a(`div.nex_drama_intros`).text() }),
+                        (n.image = l),
+                        (n.banner = l),
+                        (n.language = `zh`),
+                        n
+                    );
+                })
+            )
+        )),
+        {
+            title: `4k世界 - ${
+                h(`#fontsearch ul.cl li.a`)
+                    .toArray()
+                    .map((e) => h(e).text())
+                    .join(`+`) || `不限`
+            }`,
+            description: h(`meta[name="description"]`).prop(`content`),
+            link: u,
+            item: _,
+            allowEmpty: !0,
+            image: g,
+            author: h(`meta[name="application-name"]`).prop(`content`),
+            language: `zh`,
+        }
+    );
+}
+export { f as route };

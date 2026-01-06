@@ -1,0 +1,47 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { n as t, t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './timezone-CrV-DT8S.mjs';
+import { load as a } from 'cheerio';
+const o = {
+    path: `/user/:category/:id`,
+    categories: [`programming`],
+    example: `/quicker/user/Actions/3-CL`,
+    parameters: { category: `分类，见下表`, id: `用户 id，可在对应用户页 URL 中找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `用户更新`,
+    maintainers: [`Cesaryuan`, `nczitzk`],
+    handler: s,
+    description: `| 动作    | 子程序      | 动作单      |
+| ------- | ----------- | ----------- |
+| Actions | SubPrograms | ActionLists |`,
+};
+async function s(o) {
+    let s = o.req.param(`category`),
+        c = o.req.param(`id`),
+        l = `https://getquicker.net`,
+        u = `${l}/User/${s}/${c}`,
+        d = a((await r({ method: `get`, url: u })).data),
+        f = d(`table tbody tr`)
+            .slice(1, o.req.query(`limit`) ? Number.parseInt(o.req.query(`limit`)) : 25)
+            .toArray()
+            .map((e) => ((e = d(e).find(`td a`).first()), { title: e.text(), link: `${l}${e.attr(`href`)}` }));
+    return (
+        (f = await Promise.all(
+            f.map((o) =>
+                e.tryGet(o.link, async () => {
+                    let e = a((await r({ method: `get`, url: o.link })).data);
+                    (e(`section`).last().remove(), e(`#app`).children().slice(0, 2).remove());
+                    let s = e(`.text-secondary a`).not(`.text-secondary`).first().text()?.trim().replaceAll(/\s*/g, ``) || e(`div.note-text`).find(`span`).eq(3).text();
+                    return ((o.author = e(`.user-link`).first().text()), (o.description = e(`div[data-info="动作信息"]`).html() ?? e(`#app`).html() ?? e(`.row`).eq(1).html()), (o.pubDate = i(/-/.test(s) ? n(s) : t(s), 8)), o);
+                })
+            )
+        )),
+        { title: d(`title`).text(), link: u, item: f, allowEmpty: !0 }
+    );
+}
+export { o as route };

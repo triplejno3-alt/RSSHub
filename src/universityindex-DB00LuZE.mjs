@@ -1,0 +1,46 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './utils-CL2wn9gY.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/notice`,
+    categories: [`university`],
+    example: `/jsu/notice`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `通知公告`,
+    maintainers: [`wenjia03`],
+    handler: o,
+};
+async function o() {
+    let a = i((await n({ method: `get`, url: `https://www.jsu.edu.cn/index/tzgg.htm` })).data),
+        o = a(`body > div.container.container-fluid.dynava.no-padding.cleafix > div.con_wz_fr.fr.cleafix > div:nth-child(2) > ul > li`).toArray();
+    return {
+        title: `吉首大学 - 通知公告`,
+        link: `https://www.jsu.edu.cn/index/tzgg.htm`,
+        description: `吉首大学 - 通知公告`,
+        item: await Promise.all(
+            o.map((n) => {
+                n = a(n);
+                let i = new URL(n.find(`a`).attr(`href`), `https://www.jsu.edu.cn/`).href;
+                return e.tryGet(i, async () => {
+                    let e = await r(
+                            `#vsb_content`,
+                            i,
+                            `body > div.container.container-fluid.dynava.no-padding.cleafix > div.con_wz_fr.fr.cleafix > form > div > h1`,
+                            `body > div.container.container-fluid.dynava.no-padding.cleafix > div.con_wz_fr.fr.cleafix > form > div > div:nth-child(2)`,
+                            (e) => e.split(`时间：`)[1].split(` 作者：`)[0]
+                        ),
+                        n = t(e.date, `YYYY-MM-DD`);
+                    return { title: e.title, link: i, pubDate: n, description: e.pageInfo, category: `通知公告` };
+                });
+            })
+        ),
+    };
+}
+export { a as route };

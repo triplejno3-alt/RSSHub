@@ -1,0 +1,52 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import './puppeteer-BbZGb8cd.mjs';
+import { n } from './readable-social--hCfpJhv.mjs';
+import { r } from './utils-Bu8-ZFdB.mjs';
+import { t as i } from './cache-BV7o58Cb.mjs';
+const a = { title: `此 bilibili 频道不存在` },
+    o = {
+        path: `/user/collection/:uid/:sid/:embed?/:sortReverse?/:page?`,
+        categories: [`social-media`],
+        example: `/bilibili/user/collection/245645656/529166`,
+        parameters: { uid: `用户 id, 可在 UP 主主页中找到`, sid: `合集 id, 可在合集页面的 URL 中找到`, embed: `默认为开启内嵌视频, 任意值为关闭`, sortReverse: `默认:默认排序 1:升序排序`, page: `页码, 默认1` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `UP 主频道的合集`,
+        maintainers: [`shininome`, `cscnk52`],
+        handler: s,
+    };
+async function s(o) {
+    let s = Number.parseInt(o.req.param(`uid`)),
+        c = Number.parseInt(o.req.param(`sid`)),
+        l = n(o.req.param(`embed`) || `true`),
+        u = Number.parseInt(o.req.param(`sortReverse`)) === 1,
+        d = o.req.param(`page`) ? Number.parseInt(o.req.param(`page`)) : 1,
+        f = o.req.query(`limit`) ?? 25,
+        p = `https://space.bilibili.com/${s}/channel/collectiondetail?sid=${c}`,
+        [m, h] = await i.getUsernameAndFaceFromUID(s),
+        g = (await t(`https://api.bilibili.com/x/polymer/web-space/seasons_archives_list?mid=${s}&season_id=${c}&sort_reverse=${u}&page_num=${d}&page_size=${f}`, { headers: { Referer: p } })).data.data;
+    return g.archives
+        ? {
+              title: `${m} 的 bilibili 合集 ${g.meta.name}`,
+              link: p,
+              description: `${m} 的 bilibili 合集`,
+              image: h,
+              logo: h,
+              icon: h,
+              item: g.archives.map((t) => ({
+                  title: t.title,
+                  description: r.renderUGCDescription(l, t.pic, ``, t.aid, void 0, t.bvid),
+                  pubDate: e(t.pubdate, `X`),
+                  link: t.pubdate > r.bvidTime && t.bvid ? `https://www.bilibili.com/video/${t.bvid}` : `https://www.bilibili.com/video/av${t.aid}`,
+                  author: m,
+              })),
+          }
+        : a;
+}
+export { o as route };

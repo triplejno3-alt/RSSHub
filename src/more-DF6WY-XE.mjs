@@ -1,0 +1,52 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = { nba: `NBA`, zuqiu: `足球`, dianjing: `电竞`, other: `综合` },
+    o = {
+        path: `/more/:category?`,
+        categories: [`bbs`],
+        example: `/zhibo8/more/nba`,
+        parameters: { category: `分类，见下表，默认为 NBA` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`news.zhibo8.cc/:category`], target: `/more/:category` }],
+        name: `滚动新闻`,
+        description: `
+| NBA | 足球  | 电竞     | 综合   |
+| --- | ----- | -------- | ------ |
+| nba | zuqiu | dianjing | zonghe |`,
+        maintainers: [`nczitzk`],
+        handler: s,
+    };
+async function s(o) {
+    let s = o.req.param(`category`) ?? `nba`,
+        c = `https://news.zhibo8.cc`,
+        l,
+        u = ``,
+        d = ``,
+        f;
+    if (s === `nba` || s === `zuqiu`) {
+        ((d = `${c}/${s}/more.htm`), (f = await n(d)));
+        let e = i(f.data);
+        l = e(`ul.articleList li`)
+            .slice(0, o.req.query(`limit`) ? Number.parseInt(o.req.query(`limit`)) : 100)
+            .toArray()
+            .map((n) => {
+                n = e(n);
+                let i = n.find(`a`);
+                return { title: i.text(), link: `https:${i.attr(`href`)}`, pubDate: r(t(n.find(`span.postTime`).text()), 8), category: n.attr(`data-label`).split(`,`).filter(Boolean) };
+            });
+    } else
+        ((d = `${c}/${s}`),
+            (u = `https://api.qiumibao.com/application/app/index.php?_url=/news/${s}List`),
+            (f = await n(u)),
+            (l = f.data.data.list.map((e) => ({ title: e.title, link: `https:${e.url}`, pubDate: r(t(e.createtime), 8) }))));
+    let p = await Promise.all(l.map((t) => e.tryGet(t.link, async () => ((t.description = i((await n(t.link)).data)(`div.content`).html()), t))));
+    return { title: `${a[s]} - 直播吧`, link: d, item: p };
+}
+export { o as route };

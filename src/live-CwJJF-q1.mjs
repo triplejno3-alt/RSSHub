@@ -1,0 +1,53 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './config-not-found-DGyG6Tbz.mjs';
+import { l as a } from './google-Ewtr97IX.mjs';
+import { load as o } from 'cheerio';
+const s = {
+    path: `/live/:username/:embed?`,
+    categories: [`live`],
+    example: `/youtube/live/@GawrGura`,
+    parameters: { username: `YouTuber id`, embed: `Default to embed the video, set to any value to disable embedding` },
+    features: {
+        requireConfig: [{ name: `YOUTUBE_KEY`, description: 'YouTube API Key, support multiple keys, split them with `,`, [API Key application](https://console.developers.google.com/)' }],
+        requirePuppeteer: !1,
+        antiCrawler: !1,
+        supportBT: !1,
+        supportPodcast: !1,
+        supportScihub: !1,
+    },
+    name: `Live`,
+    maintainers: [`sussurr127`],
+    handler: c,
+};
+async function c(s) {
+    if (!e.youtube || !e.youtube.key) throw new i(`YouTube RSS is disabled due to the lack of <a href="https://docs.rsshub.app/deploy/config#route-specific-configurations">relevant config</a>`);
+    let c = s.req.param(`username`),
+        l = !s.req.param(`embed`),
+        u,
+        d,
+        f = o((await r(`https://www.youtube.com/${c}`)).data);
+    if (((d = f(`meta[itemprop="identifier"]`).attr(`content`)), (u = f(`meta[itemprop="name"]`).attr(`content`)), !d)) {
+        let e = (await a.getChannelWithUsername(c, `snippet`, t)).data.items[0];
+        ((d = e.id), (u = e.snippet.title));
+    }
+    let p = (await a.getLive(d, t)).data.items;
+    return {
+        title: `${u || c}'s Live Status`,
+        link: `https://www.youtube.com/channel/${d}`,
+        description: `$${u || c}'s live streaming status`,
+        item: p.map((e) => {
+            let t = e.snippet,
+                r = e.id.videoId,
+                i = a.getThumbnail(t.thumbnails);
+            return { title: t.title, description: a.renderDescription(l, r, i, a.formatDescription(t.description)), pubDate: n(t.publishedAt), guid: r, link: `https://www.youtube.com/watch?v=${r}`, image: i.url };
+        }),
+        allowEmpty: !0,
+    };
+}
+export { s as route };

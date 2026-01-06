@@ -1,0 +1,46 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = { path: `/genetics/:path{.+}`, name: `Unknown`, maintainers: [], handler: i };
+async function i(r) {
+    let i = r.req.param(`path`),
+        a = `https://genetics.cas.cn/${i}/`,
+        { data: o } = await t(a),
+        s = n(o),
+        c;
+    return (
+        (c =
+            i.slice(0, 3) === `edu`
+                ? s(`li.box-s.h16`)
+                      .toArray()
+                      .map((t) => {
+                          t = s(t);
+                          let n = t.find(`a`).first(),
+                              r = t.find(`.box-date`).first();
+                          return { title: n.text(), link: new URL(n.attr(`href`), a).href, pubDate: e(r.text(), `YYYY-MM-DD`) };
+                      })
+                : i.slice(0, 4) === `dqyd`
+                  ? s(`div.list-tab ul li`)
+                        .toArray()
+                        .map((t) => {
+                            t = s(t);
+                            let n = t.find(`a`).first(),
+                                r = t.find(`.right`).first();
+                            return { title: n.text(), link: new URL(n.attr(`href`), a).href, pubDate: e(r.text(), `YYYY-MM-DD`) };
+                        })
+                  : s(`li.row.no-gutters.py-1`)
+                        .toArray()
+                        .map((t) => {
+                            t = s(t);
+                            let n = t.find(`a`).first(),
+                                r = t.find(`.col-news-date`).first();
+                            return { title: n.text(), link: new URL(n.attr(`href`), a).href, pubDate: e(r.text(), `YYYY.MM.DD`) };
+                        })),
+        { title: s(`head title`).text(), link: a, item: c }
+    );
+}
+export { r as route };

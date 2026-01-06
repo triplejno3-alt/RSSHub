@@ -1,0 +1,64 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { t as r } from './description-CIM84RRv.mjs';
+const i = {
+    path: `/user/:username/:cat?`,
+    categories: [`social-media`],
+    view: n.Videos,
+    example: `/vimeo/user/filmsupply/picks`,
+    parameters: {
+        username: 'In this example [https://vimeo.com/filmsupply](https://vimeo.com/filmsupply)  is `filmsupply`',
+        cat: "deafult for all latest videos, others categories in this example such as `Docmentary`, `Narrative`, `Drama`. Set `picks` for promote orders, just orderd like web page. When `picks` added, published date won't show up",
+    },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `User Profile`,
+    maintainers: [`MisteryMonster`],
+    handler: a,
+    description: '::: tip Special category name attention\n  Some of the categories contain slash like `3D/CG` , must change the slash `/` to the vertical bar`|`.\n:::',
+};
+async function a(n) {
+    let i = (await t({ method: `get`, url: `https://vimeo.com/_rv/viewer` })).data.jwt,
+        { username: a, cat: o } = n.req.param(),
+        s = await t({ method: `get`, url: `https://api.vimeo.com/users/${a}?fields=name,gender,bio,uri,link,categories&fetch_user_profile=1`, headers: { Authorization: `jwt ${i}` } }),
+        c = s.data,
+        l = s.data.categories,
+        u;
+    if (o && l.length > 0) for (let e of l) decodeURIComponent(o).replaceAll(`|`, `/`) === e.name && (u = e.word);
+    let d = `&filter=category&filter_category=${u}`;
+    if ((o || (d = ``), !u && o && o !== `picks`)) return ``;
+    let f = o && o === `picks`,
+        p = `${c.uri}/videos?fields=name,uri,description,created_time&include_videos=1&page=1&per_page=10${d}`,
+        m = `/users/${a}/profile_sections?fields=videos.data.clip.name,videos.data.clip.uri,videos.data.clip.description,videos.data.clip.created_time&include_videos=1&badge=1&page=1&per_page=10`,
+        h = await t({ method: `get`, url: `https://api.vimeo.com${f ? m : p}`, headers: { Authorization: `jwt ${i}` } }),
+        g = f ? h.data.data[0].videos.data : h.data.data;
+    return {
+        title: `${c.name} ${u ? o.replace(`|`, `/`) : ``} ${f ? `picks` : ``} | Vimeo `,
+        link: c.link,
+        description: c.bio,
+        item: g.map((t) => {
+            let n = f ? t.clip.description : t.description;
+            return {
+                title: f ? t.clip.name : t.name,
+                description: r({
+                    videoUrl: f ? t.clip.uri.replace(`/videos`, ``) : t.uri.replace(`/videos`, ``),
+                    vdescription: n
+                        ? n.replaceAll(
+                              `
+`,
+                              `<br>`
+                          )
+                        : ``,
+                }),
+                pubDate: e(f || o ? `` : t.created_time),
+                link: `https://vimeo.com${f ? t.clip.uri.replace(`videos/`, ``) : t.uri.replace(`videos/`, ``)}`,
+                author: c.name,
+            };
+        }),
+    };
+}
+export { i as route };

@@ -1,0 +1,45 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/post/:id`,
+    categories: [`bbs`],
+    example: `/zhibo8/post/3050708`,
+    parameters: { id: `帖子 id，可在帖子 URL 找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `回帖`,
+    maintainers: [`LogicJake`],
+    handler: a,
+};
+async function a(i) {
+    let a = i.req.param(`id`),
+        o = `https://bbs.zhibo8.cc/forum/topic?tid=${a}`,
+        s = r((await t(o)).data),
+        c = s(`div.topic-title > h1`).text(),
+        l = s(`.topic-content .topic-table`)
+            .toArray()
+            .map((t) => {
+                t = s(t);
+                let r = t.find(`.topic-left > div > a`).text(),
+                    i = t.find(`p.topic-foot span:nth-child(2)`).text(),
+                    c = t.find(`.detail_ent`).html().replaceAll(`src="`, `src="https:`),
+                    l = n(
+                        e(
+                            t
+                                .find(`p.topic-foot`)
+                                .text()
+                                .match(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/)[0],
+                            `YYYY-MM-DD HH:mm`
+                        ),
+                        8
+                    );
+                return { title: `${i}：${r}发表了新回复`, author: r, description: c, link: o, pubDate: l, guid: `zhibo8:post:${a}:${i}` };
+            });
+    return { title: `“${c}”的新回复—直播吧`, link: o, item: l };
+}
+export { i as route };

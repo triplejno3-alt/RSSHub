@@ -1,0 +1,43 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import './puppeteer-BbZGb8cd.mjs';
+import './utils-Bu8-ZFdB.mjs';
+import { t as r } from './cache-BV7o58Cb.mjs';
+import { decodeHTML as i } from 'entities';
+const a = {
+    path: `/live/room/:roomID`,
+    categories: [`live`],
+    example: `/bilibili/live/room/3`,
+    parameters: { roomID: `房间号, 可在直播间 URL 中找到, 长短号均可` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`live.bilibili.com/:roomID`] }],
+    name: `直播开播`,
+    maintainers: [`Qixingchen`],
+    handler: o,
+};
+async function o(a) {
+    let o = a.req.param(`roomID`);
+    Number.parseInt(o, 10) < 1e4 && (o = await r.getLiveIDFromShortID(o));
+    let s = await r.getUserInfoFromLiveID(o),
+        c = (await e(`https://api.live.bilibili.com/room/v1/Room/get_info?room_id=${o}&from=room`, { headers: { Referer: `https://live.bilibili.com/${o}` } })).data,
+        l = [];
+    return (
+        c.live_status === 1 &&
+            l.push({
+                title: `${c.title} ${c.live_time}`,
+                description: `<img src="${c.keyframe}"><br>${i(c.description)}`,
+                pubDate: n(t(c.live_time), 8),
+                guid: `https://live.bilibili.com/${o} ${c.live_time}`,
+                link: `https://live.bilibili.com/${o}`,
+            }),
+        { title: `${s.uname} 直播间开播状态`, link: `https://live.bilibili.com/${o}`, description: `${s.uname} 直播间开播状态`, image: s.face, item: l, allowEmpty: !0 }
+    );
+}
+export { a as route };

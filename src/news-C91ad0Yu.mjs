@@ -1,0 +1,28 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { n, r, t as i } from './utils-DrHGekec.mjs';
+const a = {
+    path: `/news/:lang?`,
+    categories: [`social-media`],
+    example: `/plurk/news/:lang?`,
+    parameters: { lang: 'Language, see the table above, `en` by default' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`plurk.com/news`], target: `/news` }],
+    name: `Plurk News`,
+    maintainers: [`TonyRL`],
+    handler: o,
+    url: `plurk.com/news`,
+};
+async function o(a) {
+    let { lang: o = `en` } = a.req.param(),
+        { data: s } = await t(`${i}/PlurkTop/fetchOfficialPlurks`, { searchParams: { lang: o } }),
+        c = await n(s.map((e) => e.user_id)),
+        l = await Promise.all(s.map((t) => r(`plurk:${t.plurk_id}`, t, c[t.user_id].display_name, e.tryGet)));
+    return { title: `Plurk News - Plurk`, image: `https://s.plurk.com/2c1574c02566f3b06e91.png`, link: `${i}/news`, item: l };
+}
+export { a as route };

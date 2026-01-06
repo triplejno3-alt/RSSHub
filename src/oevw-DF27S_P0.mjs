@@ -1,0 +1,54 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { load as t } from 'cheerio';
+const n = `ÖVW Suche`,
+    r = `https://www.oevw.at`,
+    i = `${r}/suche`,
+    a = `${i}/filter`,
+    o = /csrfToken\s*=\s*['"](.*?)["']/,
+    s = {
+        name: n,
+        example: `/oevw/%7B%22rooms%22%3A%5B%222%22%2C%223%22%5D%7D`,
+        path: `/:json?`,
+        maintainers: [`sk22`],
+        categories: [`other`],
+        description: `
+When applying a filter on https://www.oevw.at/suche, a POST request is sent
+to https://www.oevw.at/suche/filter. You can take its JSON body, URL-encode it
+(\`encodeURIComponent('{...}')\`) and append it to the URL, see example URL.
+for this route.`,
+        parameters: { json: `JSON request body, as sent to oevw.at/suche` },
+        async handler(s) {
+            let c = JSON.parse(decodeURIComponent(s.req.param(`json`) || `{}`)),
+                l = await e.raw(i),
+                u = l.headers.getSetCookie().map((e) => e.split(`;`)[0].trim()),
+                d = o.exec(l._data)[1],
+                f = { Origin: r, Cookie: u.join(`;`), 'X-CSRF-Token': d, 'X-Requested-With': `XMLHttpRequest`, Accept: `*/*` },
+                p = t(await e(a, { body: JSON.stringify(c), method: `POST`, headers: f }));
+            return {
+                title: n,
+                language: `de`,
+                logo: `https://www.oevw.at/assetversion-035142/img/layout/touch-icon.png`,
+                allowEmpty: !0,
+                item: p(`.thumb`)
+                    .toArray()
+                    .map((e) => {
+                        let t = p(e),
+                            n = t.find(`.thumb__info`).text(),
+                            i = t.find(`.thumb__heading`).text(),
+                            a = t.find(`.thumb__badge`).text().trim(),
+                            o = t.find(`.thumb__link a`).attr(`href`),
+                            s = t.find(`.thumb__image`).attr(`src`),
+                            c = t
+                                .find(`.thumb__text__item`)
+                                .toArray()
+                                .map((e) => p(e).text())
+                                .join(`, `);
+                        return { title: `${n} – ${i}`, link: o, description: (a ? `${a}, ` : ``) + c, image: `${r}/${s}`, category: a ? [a] : void 0 };
+                    }),
+                link: i,
+            };
+        },
+    };
+export { s as route };

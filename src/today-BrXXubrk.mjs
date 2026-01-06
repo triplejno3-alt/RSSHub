@@ -1,0 +1,63 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/today/:category`,
+    categories: [`university`],
+    example: `/hit/today/10`,
+    parameters: { category: '分类编号，`10`为公告公示，`11`为新闻快讯，同时支持详细分类，使用方法见下' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`today.hit.edu.cn/category/:category`] }],
+    name: `今日哈工大`,
+    maintainers: [`ranpox`],
+    handler: o,
+    description: `::: tip
+  今日哈工大的文章分为公告公示和新闻快讯，每个页面右侧列出了更详细的分类，其编号为每个 URL 路径的最后一个数字。
+  例如会议讲座的路径为\`/taxonomy/term/10/25\`，则可以通过 [\`/hit/today/25\`](https://rsshub.app/hit/today/25) 订阅该详细类别。
+:::
+
+::: warning
+  部分文章需要经过统一身份认证后才能阅读全文。
+:::`,
+};
+async function o(a) {
+    let o = `https://today.hit.edu.cn`,
+        s = a.req.param(`category`),
+        c = i((await n(o + `/category/` + s, { headers: { Referer: o } })).data),
+        l = c(`.paragraph li`)
+            .toArray()
+            .map((e) => ({
+                link: new URL(c(`span span a`, e).attr(`href`), o).href,
+                title: c(`span span a`, e).text(),
+                author: c(`div a`, e).attr(`hreflang`, `zh-hans`).text(),
+                pubDate: r(t(c(`span span a`, e).attr(`href`).split(`/`).slice(-4, -1).join(`,`), `YYYYMMDD`), 8),
+            })),
+        u = await Promise.all(
+            l.map((a) =>
+                e.tryGet(a.link, async () => {
+                    try {
+                        let e = i((await n(a.link, { headers: { Referer: o } })).data);
+                        ((a.pubDate = r(t(e(`.left-attr.first`).text().trim()), 8)),
+                            (a.description =
+                                e(`.article-content`).html() &&
+                                e(`.article-content`)
+                                    .html()
+                                    .replaceAll(`src="/`, `src="${new URL(`.`, o).href}`)
+                                    .replaceAll(`href="/`, `href="${new URL(`.`, o).href}`)
+                                    .trim()));
+                    } catch {
+                        a.description = `请进行统一身份认证后查看全文`;
+                    }
+                    return a;
+                })
+            )
+        );
+    return { title: c(`head title`).text().trim(), link: o + `/category/` + s, item: u };
+}
+export { a as route };

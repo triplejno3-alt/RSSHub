@@ -1,0 +1,35 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { t } from './types-Bl_lnefZ.mjs';
+import { t as n } from './invalid-parameter-DGZgOgO2.mjs';
+import { t as r } from './valid-host-Bsy2BS2p.mjs';
+import { i, n as a, r as o } from './utils-cMJuIYwm.mjs';
+import { load as s } from 'cheerio';
+const c = {
+    path: `/model/:username/:language?/:sort?`,
+    categories: [`multimedia`],
+    view: t.Videos,
+    example: `/pornhub/model/stacy-starando`,
+    parameters: { language: `language, see below`, username: 'username, part of the url e.g. `pornhub.com/model/stacy-starando`', sort: `sorting method, see below` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+    radar: a(`/model/:username`),
+    name: `Model`,
+    maintainers: [`I2IMk`, `queensferryme`],
+    handler: l,
+};
+async function l(t) {
+    let { language: a = `www`, username: c, sort: l = `` } = t.req.param(),
+        u = `https://${a}.pornhub.com/model/${c}/videos${l ? `?o=${l}` : ``}`;
+    if (!r(a)) throw new n(`Invalid language`);
+    let { data: d } = await e(u, { headers: o }),
+        f = s(d),
+        p = f(`#mostRecentVideosSection .videoBox`)
+            .toArray()
+            .map((e) => i(f(e)));
+    return { title: f(`h1`).first().text(), description: f(`section.aboutMeSection`).text().trim(), link: u, image: f(`#getAvatar`).attr(`src`), language: f(`html`).attr(`lang`), item: p };
+}
+export { c as route };

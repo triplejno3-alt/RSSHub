@@ -1,0 +1,30 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './types-Bl_lnefZ.mjs';
+import { i as n, n as r, r as i, t as a } from './util-xG_rBmHY.mjs';
+const o = async (t) => {
+        let { name: o } = t.req.param(),
+            s = Number.parseInt(t.req.query(`limit`) ?? `30`, 10),
+            c = new URL(`article-list/1?tagName=${o}`, n).href,
+            l = new URL(`api/articles/tagId`, n).href,
+            u = i((await e(l, { query: { datasrc: `tagid`, tagname: o, current: 1, size: s } })).data.records, s);
+        return { title: `${a} - ${o}`, description: o, link: c, item: u, allowEmpty: !0, author: a, language: r };
+    },
+    s = {
+        path: `/n/tag/:name`,
+        name: `盐选故事专栏`,
+        url: `n.ifun.cool`,
+        maintainers: [`nczitzk`],
+        handler: o,
+        example: `/ifun/n/tag/zhihu`,
+        parameters: { name: `专栏 id，可在对应专栏页 URL 中找到` },
+        description:
+            '::: tip\n若订阅 [zhihu](https://n.ifun.cool/article-list/2?tagName=zhihu)，网址为 `https://n.ifun.cool/article-list/2?tagName=zhihu`，请截取 `tagName` 的值 `zhihu` 作为 `name` 参数填入，此时目标路由为 [`/ifun/n/tag/zhihu`](https://rsshub.app/ifun/n/tag/zhihu)。\n\n更多专栏请见 [盐选故事专栏](https://n.ifun.cool/tags)。\n:::\n    ',
+        categories: [`new-media`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`n.ifun.cool/article-list/1`], target: (e, t) => `/ifun/n/tag/${new URL(t).searchParams.get(`tagName`)}` }],
+        view: t.Articles,
+    };
+export { o as handler, s as route };

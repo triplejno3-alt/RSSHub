@@ -1,0 +1,33 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import { t } from './config-not-found-DGyG6Tbz.mjs';
+import { n } from './utils-BD0jSsK2.mjs';
+const r = {
+    path: `/following_works/:username`,
+    categories: [`picture`],
+    example: `/skeb/following_works/@brm2_1925`,
+    parameters: { username: `Skeb Username with @` },
+    features: {
+        requireConfig: [{ name: `SKEB_BEARER_TOKEN`, optional: !1, description: '在瀏覽器開發者工具（F12）的主控台中輸入 `localStorage.getItem("token")` 獲取' }],
+        requirePuppeteer: !1,
+        antiCrawler: !1,
+        supportBT: !1,
+        supportPodcast: !1,
+        supportScihub: !1,
+        nsfw: !0,
+    },
+    name: `Following Works`,
+    maintainers: [`SnowAgar25`],
+    handler: i,
+    radar: [{ title: `Following Works`, source: [`skeb.jp/:username`], target: `/following_works/:username` }],
+    description: `Get the latest works for the specified user's followings on Skeb.`,
+};
+async function i(r) {
+    let i = r.req.param(`username`);
+    if (!e.skeb || !e.skeb.bearerToken) throw new t(`Skeb followings RSS is disabled due to the lack of relevant config`);
+    let a = await n(i, `following_works`);
+    return { title: `Skeb - ${i} - フォロー中のクリエイターの新着作品`, link: `https://skeb.jp/${i}`, item: a };
+}
+export { r as route };

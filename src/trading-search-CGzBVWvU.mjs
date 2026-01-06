@@ -1,0 +1,28 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { r as t, t as n } from './utils-DS_1vX2H.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/trading/search/:keyword/:mainCat?`,
+    categories: [`new-media`],
+    example: `/dcfever/trading/search/Sony`,
+    parameters: { keyword: `關鍵字`, mainCat: `主要分類 ID，見上表` },
+    name: `二手市集 - 物品搜尋`,
+    maintainers: [`TonyRL`],
+    handler: a,
+};
+async function a(i) {
+    let { keyword: a, mainCat: o } = i.req.param(),
+        s = new URL(`${n}/trading/search.php`, n);
+    (s.searchParams.append(`keyword`, a), s.searchParams.append(`type`, `all`), o && s.searchParams.append(`main_cat`, o), s.searchParams.append(`form_action`, `search_action`));
+    let c = r(await e(s.href)),
+        l = c(`.item_list li a`)
+            .toArray()
+            .map((e) => ((e = c(e)), e.find(`.optional`).remove(), { title: e.find(`.trade_title`).text(), link: new URL(e.attr(`href`), s.href).href, author: e.find(`.trade_info`).text() })),
+        u = await Promise.all(l.map((e) => t(e)));
+    return { title: c(`head title`).text(), link: s.href, image: `https://cdn10.dcfever.com/images/android_192.png`, item: u };
+}
+export { i as route };

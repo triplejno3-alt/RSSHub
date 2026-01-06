@@ -1,0 +1,42 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = `https://ylxx.szftedu.cn/xx_5828/xygg_5832/`,
+    o = {
+        path: `/gonggao`,
+        categories: [`university`],
+        example: `/szftedu/gonggao`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `公告`,
+        maintainers: [`valuex`],
+        handler: s,
+        description: ``,
+    };
+async function s() {
+    let o = i((await n(a)).data),
+        s = o(`div.pagenews04 div ul li`)
+            .toArray()
+            .map((e) => ({ title: o(`a`, e).text().trim(), link: o(`a`, e).attr(`href`), pubDate: r(t(o(`span[class=canedit]`, e).text()), 8) }));
+    return {
+        title: `园岭小学公告`,
+        link: a,
+        description: `园岭小学公告`,
+        item: await Promise.all(
+            s.map((o) =>
+                e.tryGet(o.link, async () => {
+                    let e = o.link,
+                        s = i((await n(e.includes(`http`) ? e : a + e.slice(1))).data);
+                    return ((o.description = e.includes(`http`) ? s(`#page-content`).html() : s(`div.TRS_Editor`).html()), (o.pubDate = r(t(s(`.item`).first().text().replace(`发布时间：`, ``)), 8)), o);
+                })
+            )
+        ),
+    };
+}
+export { o as route };

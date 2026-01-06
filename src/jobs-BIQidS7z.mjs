@@ -1,0 +1,70 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { Fragment as n, jsx as r, jsxs as i } from 'hono/jsx/jsx-runtime';
+import { renderToString as a } from 'hono/jsx/dom/server';
+function o(e, t) {
+    return t.find((t) => t.value === e)?.label ?? e;
+}
+async function s() {
+    let { data: n } = await t.post(`https://jobs.b-ite.com/api/v1/postings/search`, {
+            json: {
+                key: `7d4ebad4ecdfd3e99a89596c85c5e4be21cd9c12`,
+                channel: 0,
+                locale: `en`,
+                sort: { by: `custom.bereich`, order: `asc` },
+                origin: `https://www.lmu.de/en/about-lmu/working-at-lmu/job-portal/academic-staff/`,
+                page: { offset: 0, num: 1e3 },
+                filter: { locale: { in: [`en`] }, 'custom.beschaeftigtengruppe': { in: [`02_wiss`] } },
+            },
+            headers: { 'content-type': `application/json`, 'bite-jobsapi-client': `v5-20230925-9df79de` },
+        }),
+        r = n.jobPostings,
+        i = n.fields[`custom.bereich`].options,
+        a = n.fields[`custom.verguetung`].options;
+    return {
+        title: `LMU Academic Staff Job Openings`,
+        link: `https://www.lmu.de/en/about-lmu/working-at-lmu/job-portal/academic-staff/`,
+        item: r.map((t) => {
+            let n = e(t.createdOn, `YYYY-MM-DDTHH:mm:ssZ`),
+                r = c(o(t.custom.bereich, i), o(t.custom.verguetung, a), t);
+            return { title: t.title, link: t.url, description: r, pubDate: n };
+        }),
+    };
+}
+const c = (e, t, o) =>
+        a(
+            i(n, {
+                children: [
+                    i(`p`, { children: [r(`strong`, { children: `Institution:` }), ` `, e] }),
+                    i(`p`, { children: [r(`strong`, { children: `Remuneration:` }), ` `, t] }),
+                    i(`p`, { children: [r(`strong`, { children: `Application deadline:` }), ` `, o.endsOn] }),
+                    r(`p`, { children: r(`strong`, { children: `Job Details:` }) }),
+                    r(`p`, { children: r(`strong`, { children: `About us:` }) }),
+                    o.custom?.das_sind_wir || ``,
+                    r(`br`, {}),
+                    r(`p`, { children: r(`strong`, { children: `Your qualifications:` }) }),
+                    o.custom?.das_sind_sie || ``,
+                    r(`br`, {}),
+                    r(`p`, { children: r(`strong`, { children: `Benefits:` }) }),
+                    o.custom?.das_ist_unser_angebot || ``,
+                    r(`br`, {}),
+                    i(`p`, { children: [r(`strong`, { children: `Contact:` }), ` `, o.custom?.kontakt || ``] }),
+                ],
+            })
+        ),
+    l = {
+        path: `/jobs`,
+        name: `Job Openings`,
+        url: `lmu.de`,
+        example: `/lmu/jobs`,
+        maintainers: [`StarDxxx`],
+        categories: [`university`, `study`],
+        radar: [{ source: [`www.lmu.de/en/about-lmu/working-at-lmu/job-portal/academic-staff/`], target: `/lmu/jobs` }],
+        description: `RSS feed for LMU academic staff job openings.`,
+        handler: s,
+    };
+export { l as route };

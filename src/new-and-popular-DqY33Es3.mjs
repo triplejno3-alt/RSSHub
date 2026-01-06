@@ -1,0 +1,21 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { n as t, t as n } from './utils-D__cuG2f.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/latest`,
+    categories: [`programming`],
+    example: `/latest`,
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`30secondsofcode.org`], target: `/latest` }],
+    name: `New & Popular Snippets`,
+    maintainers: [`Rjnishant530`],
+    handler: a,
+};
+async function a() {
+    return { title: `New & Popular Snippets`, description: `Discover short code snippets for all your development needs.`, link: t, item: await n(r(await e(t))(`section.preview-list > ul > li`).toArray()) };
+}
+export { i as route };

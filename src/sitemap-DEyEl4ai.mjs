@@ -1,0 +1,31 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './config-not-found-DGyG6Tbz.mjs';
+import { load as r } from 'cheerio';
+const i = { path: `/transform/sitemap/:url/:routeParams?`, name: `Unknown`, maintainers: [`flrngel`], handler: a };
+async function a(i) {
+    if (!e.feature.allow_user_supply_unsafe_domain) throw new n(`This RSS is disabled unless 'ALLOW_USER_SUPPLY_UNSAFE_DOMAIN' is set to 'true'.`);
+    let a = i.req.param(`url`),
+        o = await t({ method: `get`, url: a }),
+        s = new URLSearchParams(i.req.param(`routeParams`)),
+        c = r(o.data, { xmlMode: !0 }),
+        l = s.get(`title`) || (c(`urlset url`).length && c(`urlset url`).first().find(`loc`).text() ? c(`urlset url`).first().find(`loc`).text() : `Sitemap`),
+        u = c(`urlset url`).toArray(),
+        d =
+            u && u.length
+                ? u
+                      .map((e) => {
+                          try {
+                              return { title: c(e).find(`loc`).text() || ``, link: c(e).find(`loc`).text() || ``, description: c(e).find(`loc`).text() || ``, pubDate: c(e).find(`lastmod`).text() || void 0 };
+                          } catch {
+                              return null;
+                          }
+                      })
+                      .filter(Boolean)
+                : [];
+    return { title: l, link: a, description: `Proxy ${a}`, item: d };
+}
+export { i as route };

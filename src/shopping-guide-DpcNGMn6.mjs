@@ -1,0 +1,56 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/shopping-guide/:category?/:language?`,
+    categories: [`new-media`],
+    example: `/consumer/shopping-guide`,
+    parameters: { category: '分类，见下表，默认为 `trivia`', language: '语言，见上表，默认为 `tc`' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `消費全攻略`,
+    maintainers: [`TonyRL`],
+    handler: a,
+    description: `| 冷知識 | 懶人包 | 特集     | 銀髮一族           | 飲食煮意         | 科技達人   | 健康美容          | 規劃人生                    | 消閒娛樂                  | 家品家電        | 親子時光        | 綠色生活     |
+| ------ | ------ | -------- | ------------------ | ---------------- | ---------- | ----------------- | --------------------------- | ------------------------- | --------------- | --------------- | ------------ |
+| trivia | tips   | features | silver-hair-market | food-and-cooking | tech-savvy | health-and-beauty | life-and-financial-planning | leisure-and-entertainment | home-appliances | family-and-kids | green-living |`,
+};
+async function a(i) {
+    let { category: a = `trivia`, language: o = `tc` } = i.req.param(),
+        s = `https://www.consumer.org.hk`,
+        c = `${s}/${o}/shopping-guide/${a}`,
+        { data: l } = await n(c, { headers: { cookie: `consumer_pagination={%22228c%22:24}` } }),
+        u = r(l),
+        d = u(`.shadow-long-blk`)
+            .toArray()
+            .map((e) => {
+                e = u(e);
+                let n = e
+                    .find(`.item-info li`)
+                    .toArray()
+                    .map((e) => u(e).text().trim());
+                return { title: e.find(`h2`).text().trim(), description: e.find(`p`).text().trim(), link: `${s}${e.attr(`href`)}`, pubDate: t(n.shift(), `YYYY-MM-DD`), category: n };
+            }),
+        f = await Promise.all(
+            d.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let { data: e } = await n(t.link),
+                        i = r(e),
+                        a = i(`.article-img-blk`);
+                    return (
+                        a.find(`img`).each((e, t) => {
+                            ((t = i(t)), t.attr(`src`) && t.attr(`srcset`) && (t.removeAttr(`srcset`), t.attr(`src`, t.attr(`src`).replace(/\/\d+c\d+\//, `/0p0/`))));
+                        }),
+                        (t.description = a.html() + i(`article .ckec`).html()),
+                        t
+                    );
+                })
+            )
+        );
+    return { title: u(`head title`).text(), link: c, image: u(`meta[property="og:image"]`).attr(`content`), logo: u(`link[rel="apple-touch-icon"]`).attr(`href`), icon: u(`link[rel="apple-touch-icon"]`).attr(`href`), item: f };
+}
+export { i as route };

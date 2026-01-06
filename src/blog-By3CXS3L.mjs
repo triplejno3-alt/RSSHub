@@ -1,0 +1,83 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+import { raw as c } from 'hono/html';
+const l = ({ images: e, intro: t, description: n }) =>
+        s(a(r, { children: [e?.map((e) => (e?.src ? i(`figure`, { children: i(`img`, { src: e.src, alt: e.alt }) }) : null)), t ? i(`blockquote`, { children: t }) : null, n ? c(n) : null] })),
+    u = async (r) => {
+        let i = r.req.query(`limit`) ? Number.parseInt(r.req.query(`limit`), 10) : 10,
+            a = `https://www.kadokawa.com.tw`,
+            s = new URL(`blog/posts`, a).href,
+            { data: c } = await n(s),
+            u = o(c),
+            d = u(`html`).prop(`lang`),
+            f = u(`div.List-item`)
+                .slice(0, i)
+                .toArray()
+                .map((e) => {
+                    e = u(e);
+                    let n = e.find(`div.List-item-excerpt img`).prop(`src`)?.split(/\?/)[0] ?? void 0,
+                        r = e.find(`h2.List-item-title`).text(),
+                        i = l({ images: n ? [{ src: n, alt: r }] : void 0, intro: e.find(`div.List-item-preview`).text() });
+                    return {
+                        title: r,
+                        description: i,
+                        pubDate: t(e.find(`span.primary-border-color-after`).text()),
+                        link: new URL(e.find(`a`).prop(`href`), a).href,
+                        content: { html: i, text: e.find(`div.List-item-preview`).text() },
+                        image: n,
+                        banner: n,
+                        language: d,
+                        enclosure_url: n,
+                        enclosure_type: n ? `image/${n.split(/\./).pop()}` : void 0,
+                        enclosure_title: r,
+                    };
+                });
+        f = await Promise.all(
+            f.map((r) =>
+                e.tryGet(r.link, async () => {
+                    let { data: e } = await n(r.link),
+                        i = o(e),
+                        a = i(`h1.Post-title`).text().trim(),
+                        s = l({ description: i(`div.Post-content`).html() }),
+                        c = i(`meta[property="og:image"]`).prop(`content`)?.split(/\?/)[0] ?? void 0;
+                    return (
+                        (r.title = a),
+                        (r.description = s),
+                        (r.pubDate = t(i(`div.Post-date`).text().trim())),
+                        (r.content = { html: s, text: i(`div.Post-content`).text() }),
+                        (r.image = c),
+                        (r.banner = c),
+                        (r.language = d),
+                        (r.enclosure_url = c),
+                        (r.enclosure_type = c ? `image/${c.split(/\./).pop()}` : void 0),
+                        (r.enclosure_title = a),
+                        r
+                    );
+                })
+            )
+        );
+        let p = new URL(u(`meta[property="og:image"]`).prop(`content`), a).href;
+        return { title: u(`title`).text(), description: u(`meta[property="og:description"]`).prop(`content`), link: s, item: f, allowEmpty: !0, image: p, author: u(`meta[property="og:site_name"]`).prop(`content`), language: d };
+    },
+    d = {
+        path: `/blog`,
+        name: `角編新聞台`,
+        url: `kadokawa.com.tw`,
+        maintainers: [`nczitzk`],
+        handler: u,
+        example: `/kadokawa/blog`,
+        parameters: void 0,
+        description: ``,
+        categories: [`blog`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`kadokawa.com.tw/blog/posts`], target: `/blog` }],
+    };
+export { u as handler, d as route };

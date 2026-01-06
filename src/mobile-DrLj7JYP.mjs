@@ -1,0 +1,94 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import { t } from './logger-_vmdpChp.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+import { t as r } from './parse-date-DjdQS_Nt.mjs';
+import * as i from 'cheerio';
+const a = {
+    path: `/mobile`,
+    categories: [`new-media`],
+    example: `/sohu/mobile`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`m.sohu.com/limit`], target: `/mobile` }],
+    name: `首页新闻`,
+    maintainers: [`asqwe1`],
+    handler: o,
+    description: `订阅手机搜狐网的首页新闻`,
+};
+async function o() {
+    let r = await e(`https://m.sohu.com/limit`),
+        a = i
+            .load(r)(`script:contains("WapHomeRenderData")`)
+            .text()
+            ?.match(/window\.WapHomeRenderData\s*=\s*({.*})/s);
+    if (!a?.[1]) throw Error(`WapHomeRenderData 数据未找到`);
+    let o = s(JSON.parse(a[1]))
+        .filter((e) => e.id && e.url?.startsWith(`//`))
+        .map((e) => ({ title: e.title, link: new URL(e.url.split(`?`)[0], `https://m.sohu.com`).href }));
+    return {
+        title: `手机搜狐新闻`,
+        link: `https://m.sohu.com/limit`,
+        item: (
+            await Promise.all(
+                o.map((r) =>
+                    n.tryGet(r.link, async () => {
+                        try {
+                            let t = await e(r.link),
+                                n = i.load(t),
+                                a = ``,
+                                o = ``;
+                            if (r.link.includes(`/xtopic/`)) {
+                                let t = n(`.tpl-top-text-item-content`).prop(`href`)?.split(`?`)[0]?.replace(`www.sohu.com/`, `m.sohu.com/`),
+                                    r = await e(`https:${t}`),
+                                    s = i.load(r);
+                                ((a = l(s)), (o = c(s)));
+                            }
+                            return { ...r, description: a || l(n) || r.title, pubDate: o || c(n) };
+                        } catch (e) {
+                            return (t.error(`获取详情失败: ${r.link}`, e), r);
+                        }
+                    })
+                )
+            )
+        ).filter(Boolean),
+    };
+}
+function s(e) {
+    let t = [];
+    for (let n of Object.keys(e))
+        if (n.startsWith(`PlateBlock`)) {
+            let r = e[n];
+            (r?.param?.newsData?.list && t.push(...r.param.newsData.list),
+                r?.param?.focusData?.list && t.push(...r.param.focusData.list),
+                r?.param?.feedData0?.list && t.push(...r.param.feedData0.list),
+                r?.param?.feedData1?.list && t.push(...r.param.feedData1.list));
+        }
+    return t;
+}
+function c(e) {
+    let t = [`.time`, `#videoPublicTime`],
+        n;
+    for (let i of t) {
+        let t = e(i).first().text().trim();
+        if (t && ((n = r(t)), n)) return n;
+    }
+    let i = e(`meta[name="share_img"]`)
+        .toArray()
+        .map((t) => e(t).attr(`src`))
+        .find((e) => e.includes(`images01`));
+    if (((n = i ? r(i?.match(/images01\/(\d{8})\//i)?.[1]) : ``), n)) return n;
+}
+function l(e) {
+    let t = e(`#articleContent`);
+    if (t.length) return t.first().html()?.trim();
+    let n = e(`#videoPlayer div`);
+    if (n.length) return `<video controls preload="auto" poster="${n.attr(`data-thumbnail`)}"><source src="${n.attr(`data-url`)}" /></video>`;
+    let r = e(`script:contains("imageList")`).text();
+    return r
+        ? JSON.parse(r.match(/(\[.*\])/s)?.[1].replaceAll(/("description": ".*"),/g, `$1`) || `[]`)
+              .map((e) => `<img src="${e.url}" alt="${e.description || ``}" />`)
+              .join(``)
+        : ``;
+}
+export { a as route };

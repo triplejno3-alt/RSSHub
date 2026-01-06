@@ -1,0 +1,107 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+import { raw as l } from 'hono/html';
+import u from 'p-map';
+const d = async (t) => (await e(t)).content_elements,
+    f = (e) =>
+        e.map((e) => {
+            let { _id: t, headlines: r, description: i, publish_date: a, website_url: o, taxonomy: s, credits: c, promo_items: l } = e;
+            return {
+                id: t,
+                title: r.basic,
+                link: `https://www.dlnews.com${o}`,
+                description: i.basic,
+                author: c.by.map((e) => e.name).join(`, `),
+                itunes_item_image: l.basic.url,
+                pubDate: n(a),
+                category: s.sections.map((e) => e.name).join(`, `),
+            };
+        }),
+    p = { defi: `DeFi`, fintech: `Fintech/VC/Deals`, 'llama-u': `Llama U`, markets: `Markets`, 'people-culture': `People & Culture`, regulation: `Regulation`, snapshot: `Snapshot`, web3: `Web3` },
+    m = (e) =>
+        c(
+            a(i, {
+                children: e.map((e) => {
+                    switch (e.type) {
+                        case `custom_embed`:
+                            return a(`ul`, {
+                                children: e.data
+                                    .split(
+                                        `
+`
+                                    )
+                                    .map((e) => a(`li`, { children: l(e) })),
+                            });
+                        case `header`:
+                            return a(`h2`, { children: l(e.data) });
+                        case `list`:
+                            return e.list_type === `unordered` ? a(`ul`, { children: e.items.map((e) => a(`li`, { children: l(e.content) })) }) : a(`ol`, { children: e.items.map((e) => a(`li`, { children: l(e.content) })) });
+                        case `image`:
+                            return o(`figure`, { children: [a(`img`, { src: e.src, alt: e.alt }), a(`figcaption`, { children: l(e.caption) })] });
+                        case `text`:
+                            return a(`p`, { children: l(e.data) });
+                        default:
+                            return null;
+                    }
+                }),
+            })
+        ),
+    h = (e) =>
+        t.tryGet(e.link, async () => {
+            let { data: t } = await r(e.link),
+                n = s(t)(`script#fusion-metadata`).text(),
+                i = JSON.parse(n.match(/Fusion\.globalContent=({.*?});Fusion\.globalContentConfig/)[1]).content_elements,
+                a = [];
+            for (let e of i)
+                if (e.type === `header` && e.content.includes(`What we’re reading`)) break;
+                else if (e.type === `custom_embed` && e.embed.config.text) a.push({ type: e.type, data: e.embed.config.text });
+                else if (e.type === `text` && !e.content.includes(`<b>NOW READ: </b>`)) a.push({ type: e.type, data: e.content });
+                else
+                    switch (e.type) {
+                        case `header`:
+                            a.push({ type: e.type, data: e.content });
+                            break;
+                        case `list`:
+                            a.push({ type: e.type, list_type: e.list_type, items: e.items });
+                            break;
+                        case `image`:
+                            a.push({ type: e.type, src: e.url, alt: e.alt_text, caption: e.subtitle });
+                            break;
+                        default:
+                            throw Error(`Unknown type: ${e.type}`);
+                    }
+            return ((e.description = m(a)), e);
+        }),
+    g = {
+        path: `/:category?`,
+        radar: [{ source: [`dlnews.com/articles/:category`], target: `/:category` }],
+        url: `dlnews.com/articles`,
+        name: `Latest News`,
+        maintainers: [`Rjnishant530`],
+        handler: _,
+        example: `/dlnews/people-culture`,
+    };
+async function _(e) {
+    let t = e.req.param(`category`),
+        n = `https://www.dlnews.com`,
+        r = { author: ``, date: `now-1y/d`, offset: 0, query: ``, size: 15, sort: `display_date:desc`, vertical: t ?? `` },
+        i = await u(f(await d(`${n}/pf/api/v3/content/fetch/articles-api?query=${encodeURIComponent(JSON.stringify(r))}&_website=dlnews`)), (e) => h(e), { concurrency: 3 });
+    return {
+        title: Object.hasOwn(p, t) ? `${p[t]} : DL News` : `DL News`,
+        link: n,
+        item: i,
+        description: Object.hasOwn(p, t) ? `${p[t]} : News on dlnews.com` : `Latest News on dlnews.com`,
+        logo: `https://www.dlnews.com/pf/resources/favicon.ico?d=284`,
+        icon: `https://www.dlnews.com/pf/resources/favicon.ico?d=284`,
+        language: `en-us`,
+    };
+}
+export { g as route };

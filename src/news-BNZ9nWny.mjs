@@ -1,0 +1,46 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/news`,
+    categories: [`forecast`],
+    example: `/bmkg/news`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`bmkg.go.id/`, `bmkg.go.id/berita`] }],
+    name: `News`,
+    maintainers: [`Shinanory`],
+    handler: i,
+    url: `bmkg.go.id/`,
+};
+async function i() {
+    let r = `https://www.bmkg.go.id`,
+        i = n((await t(r)).data),
+        a = i(`div .ms-slide`)
+            .toArray()
+            .map((e) => {
+                e = i(e);
+                let t = e.find(`a`),
+                    n = e.find(`img`);
+                return { title: t.text(), link: `${r}/${t.attr(`href`)}`, itunes_item_image: n.attr(`data-src`) };
+            }),
+        o = await Promise.all(
+            a.map((r) =>
+                e.tryGet(
+                    r.link,
+                    async () => (
+                        (r.description = n((await t(r.link)).data)(`div .blog-grid`)
+                            .find(`p`)
+                            .text()),
+                        r
+                    )
+                )
+            )
+        );
+    return { title: i(`title`).text(), link: r, description: `印尼气象气候和地球物理局 新闻 | BMKG news`, item: o, language: `in` };
+}
+export { r as route };

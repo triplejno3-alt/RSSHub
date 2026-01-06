@@ -1,0 +1,37 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { load as t } from 'cheerio';
+const n = {
+    path: `/ccst/xwzx/:category`,
+    categories: [`university`],
+    example: `/jlu/ccst/xwzx/gsl`,
+    radar: [{ source: [`ccst.jlu.edu.cn/xwzx/gsl.htm`, `ccst.jlu.edu.cn/xwzx/xstd.htm`, `ccst.jlu.edu.cn/xwzx/xytz.htm`, `ccst.jlu.edu.cn/xwzx/xyxw.htm`, `ccst.jlu.edu.cn/xwzx/zsjy.htm`] }],
+    name: `吉林大学计算机科学与技术学院 - 新闻中心`,
+    maintainers: [`mayouxi`],
+    handler: r,
+    url: `ccst.jlu.edu.cn`,
+};
+async function r(n) {
+    let r = n.req.param(`category`),
+        i = `https://ccst.jlu.edu.cn`,
+        a = t((await e(`${i}/xwzx/${r}.htm`)).body),
+        o = a(`.section.container .main .list3 ul li`),
+        s = { gsl: `公示栏`, xstd: `学生天地`, xytz: `学院通知`, xyxw: `学院新闻`, zsjy: `招生就业` }[r] || `新闻中心`;
+    return {
+        title: `吉林大学计算机科学与技术学院 - 新闻中心${s}`,
+        link: i,
+        description: `吉林大学计算机科学与技术学院 - 新闻中心${s}`,
+        item: o.toArray().map((e) => {
+            let t = a(e),
+                n = t.find(`a`),
+                r = t.find(`.date`).text().trim(),
+                o = n.text().trim(),
+                s = n.attr(`href`).replaceAll(`..`, ``);
+            return { title: o, link: `${i}${encodeURI(s)}`, pubDate: new Date(r) };
+        }),
+    };
+}
+export { n as route };

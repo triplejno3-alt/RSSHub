@@ -1,0 +1,44 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './invalid-parameter-DGZgOgO2.mjs';
+import { jsx as r } from 'hono/jsx/jsx-runtime';
+import { load as i } from 'cheerio';
+import { renderToString as a } from 'hono/jsx/dom/server';
+const o = {
+    path: `/album/:id`,
+    categories: [`multimedia`],
+    example: `/iqiyi/album/神武天尊-2020-1b4lufwxd7h`,
+    parameters: { id: `剧集 id, 可在该主页 URL 中找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `剧集`,
+    maintainers: [`TonyRL`],
+    handler: s,
+    description: `::: tip
+  可抓取內容根据服务器所在地区而定
+:::`,
+};
+async function s(o) {
+    let { data: s } = await t(`https://www.iq.com/album/${o.req.param(`id`)}`),
+        c = i(s),
+        { album: l } = JSON.parse(c(`#__NEXT_DATA__`).text()).props.initialState,
+        {
+            data: { data: u },
+        } = await t(`https://pcw-api.iqiyi.com/album/album/baseinfo/${l.videoAlbumInfo.albumId}`);
+    if (Object.keys(l.cacheAlbumList).length === 0) throw new n(`${u.name} is not available in this server region.`);
+    let d = 1,
+        f = !1,
+        p = [];
+    do {
+        let {
+            data: { data: e },
+        } = await t(`https://pcw-api.iq.com/api/v2/episodeListSource/${l.videoAlbumInfo.albumId}`, { searchParams: { platformId: 3, modeCode: `intl`, langCode: `zh_cn`, endOrder: l.videoAlbumInfo.maxOrder, startOrder: d } });
+        ((p = [...p, ...e.epg]), (d = e.pos), (f = e.hasMore));
+    } while (f);
+    let m = p.map((t) => ({ title: t.name, description: a(r(`img`, { src: `https:${t.pic.replace(`http:`, `https:`)}` })), link: `https://www.iq.com/play/${t.playLocSuffix}`, pubDate: e(t.initIssueTime) }));
+    return { title: u.name, description: u.description, image: l.videoAlbumInfo.albumFocus1024, link: `https://www.iq.com/album/${l.videoAlbumInfo.albumLocSuffix}`, item: m, allowEmpty: !0 };
+}
+export { o as route };

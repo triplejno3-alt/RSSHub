@@ -1,0 +1,37 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { i as n, n as r, r as i, t as a } from './utils-CLvymA-f.mjs';
+const o = {
+    path: `/casts/:cast`,
+    categories: [`multimedia`],
+    example: `/javtrailers/casts/hibiki-otsuki`,
+    parameters: { cast: `Cast name, can be found in the URL of the cast page` },
+    radar: [{ source: [`javtrailers.com/casts/:category`] }],
+    name: `Casts`,
+    maintainers: [`TonyRL`],
+    url: `javtrailers.com/casts`,
+    handler: s,
+    features: { nsfw: !0 },
+};
+async function s(o) {
+    let { cast: s } = o.req.param(),
+        c = await e(`${a}/api/casts/${s}?page=0`, { headers: i }),
+        l = n(c.videos),
+        u = await Promise.all(l.map((e) => t.tryGet(e.link, () => r(e))));
+    return {
+        title: `Watch ${c.cast.name} Jav Online | Japanese Adult Video - JavTrailers.com`,
+        description:
+            c.cast.castWiki?.description.replaceAll(
+                `
+`,
+                ` `
+            ) ?? `Watch ${c.cast.name} Jav video’s free, we have the largest Jav collections with high definition`,
+        image: c.cast.avatar,
+        link: `${a}/casts/${s}`,
+        item: u,
+    };
+}
+export { o as route };

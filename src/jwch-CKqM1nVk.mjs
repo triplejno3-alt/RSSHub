@@ -1,0 +1,44 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = `http://jwch.usts.edu.cn/index`,
+    o = {
+        path: `/jwch/:type?`,
+        categories: [`university`],
+        example: `/usts/jwch`,
+        parameters: { type: `类型，默认为教务动态` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `教务处`,
+        maintainers: [],
+        handler: s,
+        description: `| 类型 | 教务动态 | 公告在线 | 选课通知 |
+| ---- | -------- | -------- | -------- |
+|      | jwdt     | ggzx     | xktz     |`,
+    };
+async function s(o) {
+    let s = `${a}/${o.req.param(`type`) ?? `jwdt`}.htm`,
+        c = i((await n(s)).data),
+        l = c(`div.mainWrap.cleafix > div > div.right.fr > div.local.fl > h3`).text(),
+        u = c(`div.list > ul > li`)
+            .toArray()
+            .map((e) => ({ title: c(e).find(`a`).text(), link: new URL(c(e).find(`a`).attr(`href`), a).href })),
+        d = await Promise.all(
+            u.map((a) =>
+                e.tryGet(a.link, async () => {
+                    let e = i((await n(a.link)).data),
+                        o = null,
+                        s = null;
+                    for (let t of e(`div.content-title.fl > i`).text().split(`\xA0\xA0`)) (t.includes(`作者：`) && (o = t.split(`：`)[1]), t.includes(`时间：`) && (s = t.split(`：`)[1]));
+                    return ((a.description = e(`div#vsb_content`).html()), (a.author = o), (a.pubDate = r(t(s), 8)), a);
+                })
+            )
+        );
+    return { title: `苏州科技大学 教务处 - ${l}`, link: s, item: d };
+}
+export { o as route };

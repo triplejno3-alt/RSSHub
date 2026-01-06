@@ -1,0 +1,58 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/news`,
+    categories: [`university`],
+    example: `/gdufs/news`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.gdufs.edu.cn/gwxw/gwxw1.htm`, `www.gdufs.edu.cn/`] }],
+    name: `新闻`,
+    maintainers: [`gz4zzxc`],
+    handler: a,
+    url: `www.gdufs.edu.cn/gwxw/gwxw1.htm`,
+};
+async function a() {
+    let i = `https://www.gdufs.edu.cn/gwxw/gwxw1.htm`,
+        a = r((await n(i)).body),
+        o = a(`ul.list_luntan li`);
+    return {
+        title: `广外-大学要闻`,
+        link: i,
+        description: `广东外语外贸大学-大学要闻`,
+        item: await Promise.all(
+            o.toArray().map((i) => {
+                let o = a(i),
+                    s = o.find(`a`).attr(`href`) || ``,
+                    c = o.find(`h5`).text().trim(),
+                    l = o.find(`h3`).text().trim(),
+                    u = o.find(`h6`).text().trim() + `/` + l,
+                    d = s.startsWith(`http`) ? s : new URL(s, `https://www.gdufs.edu.cn`).href,
+                    f = t(u).toUTCString();
+                return e.tryGet(d, async () => {
+                    try {
+                        let e = r((await n(d)).body),
+                            t = e(`.v_news_content`).html()?.trim() || ``,
+                            i = ``;
+                        return (
+                            e(`.nav01 h6 .ll span`).each((t, n) => {
+                                let r = e(n).text().trim();
+                                r.includes(`责任编辑：`) ? (i = r.replace(`责任编辑：`, ``).trim()) : r.includes(`文字：`) && (i = r.replace(`文字：`, ``).trim());
+                            }),
+                            { title: c, link: d, description: t, pubDate: f, author: i }
+                        );
+                    } catch {
+                        return { title: c, link: d, description: `内容获取失败。`, pubDate: f, author: `` };
+                    }
+                });
+            })
+        ),
+    };
+}
+export { i as route };

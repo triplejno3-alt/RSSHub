@@ -1,0 +1,37 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/announcements`,
+    categories: [`travel`],
+    example: `/fzmtr/announcements`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `通知公告`,
+    maintainers: [`HankChow`],
+    handler: i,
+};
+async function i() {
+    let r = `www.fzmtr.com`,
+        i = `http://${r}/html/fzdt/tzgg/index.html`,
+        a = (await t(i)).data,
+        o = n(a);
+    return {
+        title: `福州地铁通知公告`,
+        url: i,
+        description: `福州地铁通知公告`,
+        item: o(`span#resources li`)
+            .toArray()
+            .map((t) => {
+                t = o(t);
+                let n = `http://${r}` + t.find(`a`).attr(`href`);
+                return { title: t.find(`a`).text(), link: n, author: `福州地铁`, pubtime: e(t.find(`span`).text()) };
+            })
+            .map((e) => ({ title: e.title, pubDate: e.pubtime, link: e.link, author: e.author })),
+    };
+}
+export { r as route };

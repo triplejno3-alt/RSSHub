@@ -1,0 +1,45 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = `https://miyuki.jp`,
+    o = `${a}/s/y10/news/list`,
+    s = {
+        path: `/news`,
+        example: `/miyuki/news`,
+        name: `News`,
+        categories: [`new-media`],
+        maintainers: [`KarasuShin`],
+        features: { supportRadar: !0 },
+        handler: c,
+        radar: [{ source: [`miyuki.jp`, `miyuki.jp/s/y10/news/list`], target: `/news` }],
+    };
+async function c() {
+    let s = i(await e(o));
+    return {
+        title: `中島みゆき Official - News`,
+        link: o,
+        item: await Promise.all(
+            s(`.list__side_border li`)
+                .toArray()
+                .map(async (o) => {
+                    let c = s(o),
+                        l = `${a}${c.find(`a`).attr(`href`)}`;
+                    return await t.tryGet(l, async () => {
+                        let a = c.find(`p span`).last().text();
+                        return {
+                            title: `${a} - ${c.find(`a`).text()}`,
+                            link: l,
+                            pubDate: r(n(c.find(`p span`).first().text()), 9),
+                            category: [a],
+                            description: await t.tryGet(l, async () => i(await e(l))(`.contents_area__inner`).html()),
+                        };
+                    });
+                })
+        ),
+    };
+}
+export { s as route };

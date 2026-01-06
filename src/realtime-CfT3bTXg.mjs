@@ -1,0 +1,64 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/realtime/:category?`,
+    categories: [`traditional-media`],
+    example: `/ebc/realtime/politics`,
+    parameters: { category: `Category from the last segment of the URL of the corresponding site` },
+    features: { requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, requireConfig: !1 },
+    name: `即時新聞`,
+    maintainers: [`quiniapiezoelectricity`],
+    handler: a,
+    description: ``,
+    radar: [{ source: [`news.ebc.net.tw/realtime/:category`], target: `/:category` }],
+};
+async function a(i) {
+    let a = i.req.param(`category`) ?? ``,
+        o = r(
+            (
+                await n(`https://news.ebc.net.tw/list/load`, {
+                    method: `POST`,
+                    headers: { Accept: `*/*`, 'Content-Type': `application/x-www-form-urlencoded; charset=UTF-8`, 'X-Requested-With': `XMLHttpRequest` },
+                    body: new URLSearchParams({ list_type: `realtime`, cate_code: a, page: `1` }).toString(),
+                })
+            ).data
+        ),
+        s = o(`div.list > a`)
+            .toArray()
+            .map((e) => new URL(o(e).attr(`href`) ?? ``, `https://news.ebc.net.tw`).href),
+        c = await Promise.all(
+            s.map((i) =>
+                e.tryGet(i, async () => {
+                    let e = r((await n(i)).data),
+                        a = e(`[type="application/ld+json"]`)
+                            .toArray()
+                            .flatMap((t) => JSON.parse(e(t).text()))
+                            .find((e) => e[`@type`] === `NewsArticle`);
+                    (e(`.img_box`).each((t, n) => {
+                        (e(n)
+                            .children(`div.img_caption`)
+                            .replaceWith(e(`<figcaption>${e(n).children(`div.img_caption`).text()}</figcaption>`)),
+                            e(n).children(`div.img`).children().unwrap(),
+                            e(n).wrapInner(e(`<figure></figure>`)));
+                    }),
+                        e(`[style="font-size:16px;"]`).each((t, n) => {
+                            e(n).replaceWith(`<small>${e(n).text()}</small>`);
+                        }));
+                    let o = e(`div.article_cover`),
+                        s = e(`div.article_content`);
+                    return (
+                        s.find(`.inline_text, .inline_box, .rss_box`).remove(),
+                        { title: a.headline, link: i, pubDate: t(a.datePublished), author: a.author.name, description: o.html() + s.html(), category: a.keywords ? [a.articleSection, ...a.keywords.split(`,`)] : [a.articleSection] }
+                    );
+                })
+            )
+        );
+    return { title: `東森新聞|即時`, link: a ? `https://news.ebc.net.tw/realtime/${a}` : `https://news.ebc.net.tw/realtime`, language: `zh-TW`, item: c };
+}
+export { i as route };

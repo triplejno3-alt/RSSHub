@@ -1,0 +1,21 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { n as t, t as n } from './utils-DYHAcR2Y.mjs';
+const r = {
+    path: `/literature/:q`,
+    example: `/inspirehep/literature/Physics`,
+    parameters: { q: `Search keyword` },
+    name: `Literature Search`,
+    maintainers: [`TonyRL`],
+    radar: [{ source: [`inspirehep.net/literature`], target: (e, t) => `/inspirehep/literature/${new URL(t).searchParams.get(`q`)}` }],
+    handler: i,
+};
+async function i(r) {
+    let i = r.req.param(`q`),
+        a = r.req.query(`limit`) ? Number.parseInt(r.req.query(`limit`)) : 25,
+        o = t((await e(`${n}/api/literature`, { query: { sort: `mostrecent`, size: a, page: 1, q: i } })).hits.hits);
+    return { title: `Literature Search - INSPIRE`, link: `${n}/literature?sort=mostrecent&size=${a}&page=1&q=${i}`, item: o };
+}
+export { r as route };

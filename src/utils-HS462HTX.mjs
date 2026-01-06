@@ -1,0 +1,9 @@
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './timezone-CrV-DT8S.mjs';
+import { load as n } from 'cheerio';
+const r = `https://p-articles.com`,
+    i = (r, i) => {
+        let a = n(i);
+        return ((r.author = a(`div.detail_title_02 > h4 > a:nth-child(2)`).text().trim()), (r.pubDate = t(e(a(`div.detail_title_02 > h4 `).text().trim()), 8)), (r.description = a(`div.detail_contect_01`).html()), r);
+    };
+export { r as n, i as t };

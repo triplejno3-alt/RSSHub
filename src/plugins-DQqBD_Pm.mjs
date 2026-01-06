@@ -1,0 +1,14 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+const t = { path: `/plugins`, name: `Obsidian Plugins`, maintainers: [`DIYgod`], categories: [`program-update`], example: `/obsidian/plugins`, handler: n };
+async function n() {
+    let t = JSON.parse(await e(`https://raw.githubusercontent.com/obsidianmd/obsidian-releases/refs/heads/master/community-plugins.json`)),
+        n = JSON.parse(await e(`https://raw.githubusercontent.com/obsidianmd/obsidian-releases/HEAD/community-plugin-stats.json`));
+    return {
+        title: `Obsidian Plugins`,
+        link: `https://obsidian.md/plugins`,
+        item: t.map((e) => ({ title: e.name, description: `${e.description}<br><br>Downloads: ${n[e.id].downloads}`, link: `https://github.com/${e.repo}`, guid: e.id, pubDate: new Date(n[e.id].updated), author: e.author })),
+    };
+}
+export { t as route };

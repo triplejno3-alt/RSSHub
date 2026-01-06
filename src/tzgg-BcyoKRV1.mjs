@@ -1,0 +1,45 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/gs/tzgg`,
+    categories: [`university`],
+    example: `/xjtu/gs/tzgg`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`gs.xjtu.edu.cn/`] }],
+    name: `研究生院通知公告`,
+    maintainers: [`nczitzk`],
+    handler: a,
+    url: `gs.xjtu.edu.cn/`,
+};
+async function a() {
+    let i = `http://gs.xjtu.edu.cn/tzgg.htm`,
+        a = r((await n({ method: `get`, url: i })).data),
+        o = a(`div.list_right_con ul li`)
+            .slice(0, 10)
+            .toArray()
+            .map((e) => {
+                e = a(e);
+                let n = e.find(`a`);
+                return { title: n.attr(`title`), link: new URL(n.attr(`href`), `http://gs.xjtu.edu.cn/`).href, pubDate: t(e.find(`span.time`).text()) };
+            });
+    return {
+        title: `西安交通大学研究生院 - 通知公告`,
+        link: i,
+        item: await Promise.all(
+            o.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = r((await n(t.link)).data);
+                    return ((t.description = e(`#vsb_content`).html() + (e(`form ul`).length > 0 ? e(`form ul`).html() : ``)), t);
+                })
+            )
+        ),
+    };
+}
+export { i as route };

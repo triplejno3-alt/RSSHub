@@ -1,0 +1,33 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/chapter/:id`,
+    categories: [`reading`],
+    view: n.Notifications,
+    example: `/qidian/chapter/1010400217`,
+    parameters: { id: `小说 id, 可在对应小说页 URL 中找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`book.qidian.com/info/:id`] }],
+    name: `作品章节`,
+    maintainers: [`fuzy112`],
+    handler: a,
+};
+async function a(n) {
+    let i = n.req.param(`id`),
+        a = { 'User-Agent': `Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1` },
+        o = r((await t(`https://m.qidian.com/book/${i}.html`, { headers: a })).data),
+        s = o(`meta[property="og:title"]`).attr(`content`),
+        c = `https:${o(`.detail__header-cover__img`).attr(`src`)}`,
+        { data: l } = await t(`https://m.qidian.com/book/${i}/catalog/`, { headers: a }),
+        u = r(l),
+        { pageContext: d } = JSON.parse(u(`#vite-plugin-ssr_pageContext`).text()),
+        f = d.pageProps.pageData.vs.flatMap((e) => e.cs).map((t) => ({ title: t.cN, pubDate: e(t.uT), link: `https://vipreader.qidian.com/chapter/${i}/${t.id}` }));
+    return { title: `起点 ${s}`, link: `https://book.qidian.com/info/${i}`, description: o(`#bookSummary content`).text(), image: c, item: f };
+}
+export { i as route };

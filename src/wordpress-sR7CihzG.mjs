@@ -1,0 +1,178 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './config-not-found-DGyG6Tbz.mjs';
+import { t as i } from './rss-parser-CKuAfhVS.mjs';
+import { load as a } from 'cheerio';
+const o = `wp-json/wp/v2`,
+    s = { search: `s` },
+    c = { category: `categories`, tag: `tags`, search: void 0 },
+    l = new Set([`search`]),
+    u = (e, t, n = !1) => {
+        let r = (e, i) => {
+            let a = Object.keys(e).filter((t) => e[t]?.length > 0 && (n ? Object.hasOwn(c, t) : Object.hasOwn(s, t)));
+            if (a.length === 0) return i;
+            let o = a[0],
+                l = e[o],
+                u = { ...e };
+            delete u[o];
+            let d = h(o, n),
+                f = l.map((e) => (Object.hasOwn(e, t) ? e[t] : e));
+            return (d && i.append(d, f.join(`,`)), r(u, i));
+        };
+        return r(e, new URLSearchParams());
+    },
+    d = async (e, t) => {
+        let n = async (e, r) => {
+                if (r.length === 0) return [];
+                let [i, ...a] = r,
+                    o = await m(e, i, t);
+                return [...(o?.id && o?.slug ? [{ id: o.id, name: o.name, slug: o.slug }] : []), ...(await n(e, a))];
+            },
+            r = async (e, t) => {
+                let i = Object.keys(e);
+                if (i.length === 0) return t;
+                let a = i[0],
+                    o = e[a],
+                    s = { ...e };
+                return (delete s[a], r(s, { ...t, [a]: l.has(a) ? o : await n(a, o) }));
+            };
+        return await r(e, {});
+    },
+    f = (e, t, n = new URLSearchParams()) => {
+        let r = n.toString();
+        return `${t}/${e}${r ? `?${r}` : ``}`;
+    },
+    p = async (e, t) => {
+        let r = async (e) => {
+                if (e.length === 0) return;
+                let [t, ...i] = e;
+                try {
+                    let { data: e } = await n.get(t);
+                    return e;
+                } catch {
+                    return r(i);
+                }
+            },
+            i = await r([e, t]);
+        if (!i) return {};
+        let o = a(i),
+            s = o(`title`).first().text(),
+            c = new URL(o(`link[rel="icon"]`).last().attr(`href`) ?? `wp-content/uploads/site_logo.png`, t).href;
+        return {
+            title: s,
+            description: o(`meta[property="og:description"]`).attr(`content`) || o(`meta[name="description"]`).attr(`content`),
+            link: e,
+            allowEmpty: !0,
+            image: c,
+            author: o(`meta[property="og:site_name"]`).attr(`content`),
+            language: o(`html`).attr(`lang`),
+        };
+    },
+    m = async (e, t, r) => {
+        let { data: i } = await n(`${r}/${o}/${h(e, !0)}`, { searchParams: { search: t } });
+        return i.length > 0 ? i[0] : void 0;
+    },
+    h = (e, t = !1) => {
+        let n = t ? c : s;
+        return Object.hasOwn(n, e) ? (n[e] ?? e) : void 0;
+    },
+    g = (e) => {
+        let t = Object.keys(e).filter((t) => e[t].length > 0 && !Object.hasOwn(s, t));
+        if (t.length === 0) return;
+        let n = t[0];
+        return `${n}/${e[n].map((e) => e.slug).join(`/`)}`;
+    },
+    _ = (e) => {
+        let t = (e, n = {}, r) => {
+            if (!e) return n;
+            let [i, ...a] = e.split(/\/|,/),
+                o = Object.hasOwn(c, i),
+                s = o ? i : r,
+                l = s ? { ...n, [s]: [...(n[s] || []), ...(o ? [] : [i])] } : n;
+            return t(a.join(`/`), l, s);
+        };
+        return t(e, {});
+    };
+async function v(s) {
+    let { url: c = `https://wordpress.org/news`, filter: l } = s.req.param(),
+        m = s.req.query(`limit`) ? Number.parseInt(s.req.query(`limit`), 10) : 50;
+    if (!e.feature.allow_user_supply_unsafe_domain) throw new r(`This RSS is disabled unless 'ALLOW_USER_SUPPLY_UNSAFE_DOMAIN' is set to 'true'.`);
+    if (!/^(https?):\/\/[^\s#$./?].\S*$/i.test(c)) throw Error(`Invalid URL`);
+    let h = e.wordpress.cdnUrl,
+        v = c,
+        y = _(l),
+        b = await d(y, v),
+        x = u(y, `name`, !1),
+        S = u(b, `id`, !0);
+    (S.append(`_embed`, `true`), S.append(`per_page`, String(m)));
+    let C = f(`${o}/posts`, v, S),
+        w = f(g(b) ?? ``, v, x);
+    try {
+        let { data: e } = await n(C),
+            r = (Array.isArray(e) ? e : JSON.parse(e.match(/(\[.*])$/)[1])).slice(0, m).map((e) => {
+                let n = e._embedded[`wp:term`],
+                    r = e.guid?.rendered ?? e.guid,
+                    i = a(e.content?.rendered ?? e.content);
+                i(`img`).each((t, n) => {
+                    n = i(n);
+                    let r = n.prop(`src`);
+                    r.startsWith(`/`) ? n.prop(`src`, `${h}${e.link}${r}`) : r.startsWith(`http:`) && n.prop(`src`, `${h}${r}`);
+                });
+                let o = i.html();
+                return {
+                    title: e.title?.rendered ?? e.title,
+                    description: o,
+                    pubDate: t(e.date_gmt),
+                    link: e.link,
+                    category: [...new Set(n.flat().map((e) => e.name))],
+                    author: e._embedded.author.map((e) => e.name).join(`/`),
+                    guid: r,
+                    id: r,
+                    content: { html: o, text: i.text() },
+                    updated: t(e.modified_gmt),
+                };
+            });
+        return { ...(await p(w, v)), item: r };
+    } catch {
+        let e = await i.parseURL(`${v}/feed/`),
+            n = e.items.map((e) => {
+                let n = e.guid,
+                    r = a(e[`content:encoded`]);
+                r(`img`).each((t, n) => {
+                    n = r(n);
+                    let i = n.prop(`src`);
+                    i.startsWith(`/`) ? n.prop(`src`, `${h}${e.link}${i}`) : i.startsWith(`http:`) && n.prop(`src`, `${h}${i}`);
+                });
+                let i = r.html();
+                return { title: e.title, description: i, pubDate: t(e.pubDate ?? ``), link: e.link, category: e.categories, author: e.creator, guid: n, id: n, content: { html: i, text: r.text() } };
+            });
+        return { title: e.title, description: e.description, link: e.link, item: n, allowEmpty: !0, image: e.image?.url, language: e.language };
+    }
+}
+const y = {
+    path: `/:url?/:filter{.+}?`,
+    name: `WordPress`,
+    url: `wordpress.org`,
+    maintainers: [`nczitzk`],
+    handler: v,
+    example: `/wordpress/https%3A%2F%2Fwordpress.org%2Fnews/category/Podcast`,
+    parameters: { url: `URL, <https://wordpress.org/news> by default`, filter: `Filter, see below` },
+    description:
+        'If you subscribe to [WordPress News](https://wordpress.org/news/)，where the URL is `https://wordpress.org/news/`, Encode the URL using `encodeURIComponent()` and then use it as the parameter. Therefore, the route will be [`/wordpress/https%3A%2F%2Fwordpress.org%2Fnews`](https://rsshub.app/wordpress/https%3A%2F%2Fwordpress.org%2Fnews).\n\n::: tip\n  If you wish to subscribe to specific categories or tags, you can fill in the "filter" parameter in the route. `/category/Podcast` to subscribe to the Podcast category. In this case, the route would be [`/wordpress/https%3A%2F%2Fwordpress.org%2Fnews/category/Podcast`](https://rsshub.app/wordpress/https%3A%2F%2Fwordpress.org%2Fnews/category/Podcast).\n\n  You can also subscribe to multiple categories. `/category/Podcast,Community` to subscribe to both the Podcast and Community categories. In this case, the route would be [`/wordpress/https%3A%2F%2Fwordpress.org%2Fnews/category/Podcast,Community`](https://rsshub.app/wordpress/https%3A%2F%2Fwordpress.org%2Fnews/category/Podcast,Community).\n\n  Categories and tags can be combined as well. `/category/Releases/tag/tagging` to subscribe to the Releases category and the tagging tag. In this case, the route would be [`/wordpress/https%3A%2F%2Fwordpress.org%2Fnews/category/Releases/tag/tagging`](https://rsshub.app/wordpress/https%3A%2F%2Fwordpress.org%2Fnews/category/Releases/tag/tagging).\n  \n  You can also search for keywords. `/search/Blog` to search for the keyword "Blog". In this case, the route would be [`/wordpress/https%3A%2F%2Fwordpress.org%2Fnews/search/Blog`](https://rsshub.app/wordpress/https%3A%2F%2Fwordpress.org%2Fnews/search/Blog).\n:::',
+    categories: [`blog`],
+    features: {
+        requireConfig: [{ name: `ALLOW_USER_SUPPLY_UNSAFE_DOMAIN`, description: `This RSS is disabled unless 'ALLOW_USER_SUPPLY_UNSAFE_DOMAIN' is set to 'true'.`, optional: !1 }],
+        requirePuppeteer: !1,
+        antiCrawler: !1,
+        supportRadar: !1,
+        supportBT: !1,
+        supportPodcast: !1,
+        supportScihub: !1,
+    },
+    radar: [],
+};
+export { y as route };

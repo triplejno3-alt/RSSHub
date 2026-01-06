@@ -1,0 +1,41 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/rate-plans`,
+    categories: [`other`],
+    example: `/taiwanmobile/rate-plans`,
+    radar: [{ source: [`taiwanmobile.com/cs/public/servAnn/queryList.htm`] }],
+    name: `資費公告`,
+    maintainers: [`Tsuyumi25`],
+    handler: a,
+    url: `www.taiwanmobile.com/cs/public/servAnn/queryList.htm?type=1`,
+};
+async function a() {
+    let i = `https://www.taiwanmobile.com`,
+        a = `${i}/cs/public/servAnn/queryList.htm?type=1`,
+        o = r(await e(a)),
+        s = o(`.pagination_data`)
+            .toArray()
+            .map((e) => {
+                let t = o(e);
+                return { title: t.find(`a`).text().trim(), link: new URL(t.find(`a`).attr(`href`) ?? ``, i).href, pubDate: n(t.find(`td`).first().text(), `YYYY/MM/DD`) };
+            })
+            .slice(0, 20);
+    return {
+        title: `台灣大哥大 - 資費公告`,
+        link: a,
+        item: await Promise.all(
+            s.map((n) =>
+                t.tryGet(n.link, async () => {
+                    let t = r(await e(n.link));
+                    return { ...n, description: t(`.v2-page-change__current`).find(`.v2-uikit__typography-text.-h3, .v2-m-faq-card__description.gray.pad_btm1`).remove().end().html() || `暫無內容` };
+                })
+            )
+        ),
+    };
+}
+export { i as route };

@@ -1,0 +1,30 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { load as t } from 'cheerio';
+const n = { social: `社会招聘`, campus: `校园招聘`, intern: `实习生招聘` },
+    r = {
+        path: `/jobs/:type`,
+        categories: [`social-media`],
+        example: `/douban/jobs/campus`,
+        parameters: { type: `招聘类型，见下表` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `豆瓣招聘`,
+        maintainers: [`Fatpandac`],
+        handler: i,
+        description: `| 社会招聘 | 校园招聘 | 实习生招聘 |
+| :------: | :------: | :--------: |
+|  social  |  campus  |   intern   |`,
+    };
+async function i(r) {
+    let i = r.req.param(`type`),
+        a = `https://jobs.douban.com/jobs/${i}`,
+        o = t((await e.get(a)).data),
+        s = o(`div.mod.position`)
+            .toArray()
+            .map((e) => ({ title: o(e).find(`h3`).text(), link: `${a}#${o(e).find(`h3`).attr(`id`)}`, description: o(e).find(`div.bd`).html() }));
+    return { title: `豆瓣${n[i]}`, link: a, item: s };
+}
+export { r as route };

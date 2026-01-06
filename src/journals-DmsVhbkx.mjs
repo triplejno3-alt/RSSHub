@@ -1,0 +1,52 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import { t as e } from './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './rss-parser-CKuAfhVS.mjs';
+import './desc-BSROBqhL.mjs';
+import { t as a } from './utils-DO67z614.mjs';
+import { load as o } from 'cheerio';
+const s = `https://navi.cnki.net`,
+    c = {
+        path: `/journals/:name`,
+        categories: [`journal`],
+        example: `/cnki/journals/LKGP`,
+        parameters: { name: `期刊缩写，可以在网址中得到` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`navi.cnki.net/knavi/journals/:name/detail`] }],
+        name: `期刊`,
+        maintainers: [`Fatpandac`, `Derekmini`, `pseudoyu`],
+        handler: l,
+    };
+async function l(c) {
+    let l = c.req.param(`name`),
+        u = `https://rss.cnki.net/kns/rss.aspx?Journal=${l}&Virtual=knavi`,
+        d = await r.get(u);
+    try {
+        let e = await i.parseString(d.data);
+        if (e.items && e.items.length !== 0) {
+            let t = e.items.map((e) => ({ title: e.title, description: e.content, pubDate: n(e.pubDate), link: e.link, author: e.author }));
+            return { title: e.title, link: e.link, description: e.description, item: t };
+        }
+    } catch (t) {
+        e.error(t);
+    }
+    let f = `${s}/knavi/journals/${l}/detail`,
+        p = await r.get(f).then((e) => o(e.data)(`head > title`).text()),
+        m = `${s}/knavi/journals/${l}/yearList?pIdx=0`,
+        { code: h, date: g } = await r.get(m).then((e) => {
+            let t = o(e.data);
+            return { code: t(`.yearissuepage`).find(`dl`).first().find(`dd`).find(`a`).first().attr(`value`), date: n(t(`.yearissuepage`).find(`dl`).first().find(`dd`).find(`a`).first().attr(`id`).replace(`yq`, ``), `YYYYMM`) };
+        }),
+        _ = `${s}/knavi/journals/${l}/papers?yearIssue=${h}&pageIdx=0&pcode=CJFD,CCJD`,
+        v = o((await r.post(_)).data),
+        y = v(`dd`)
+            .toArray()
+            .map((e) => ({ title: v(e).find(`a`).first().text(), link: `https://cnki.net/kcms/detail/detail.aspx?filename=${v(e).find(`b`).attr(`id`)}&dbcode=CJFD`, pubDate: g })),
+        b = await Promise.all(y.map((e) => t.tryGet(e.link, () => a(e))));
+    return { title: String(p), link: f, item: b };
+}
+export { c as route };

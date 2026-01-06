@@ -1,0 +1,24 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import * as t from 'cheerio';
+const n = {
+    path: `/shuzhe`,
+    categories: [`game`],
+    example: `/psnine/shuzhe`,
+    name: `数折`,
+    maintainers: [`betta-cyber`],
+    handler: async () => {
+        let n = await e(`https://www.psnine.com/dd`),
+            r = t.load(n),
+            i = r(`.dd_ul li`)
+                .toArray()
+                .map((e) => {
+                    let t = r(e);
+                    return { title: t.find(`.dd_title`).text(), link: t.find(`.dd_title a`).attr(`href`), description: t.find(`.dd_status`).text(), author: t.find(`.meta a`).text() };
+                });
+        return { title: r(`head title`).text(), link: `https://www.psnine.com/`, item: i };
+    },
+    radar: [{ source: [`psnine.com/dd`, `psnine.com`] }],
+};
+export { n as route };

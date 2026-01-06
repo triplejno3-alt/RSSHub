@@ -1,0 +1,52 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/search/:keyword?`,
+    categories: [`programming`],
+    example: `/hacking8/search/rsshub`,
+    parameters: { keyword: `关键字，默认为空` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`hacking8.com/index/:category`, `hacking8.com/`], target: `/:category?` }],
+    name: `搜索`,
+    maintainers: [`nczitzk`],
+    handler: a,
+};
+async function a(i) {
+    let a = i.req.param(`keyword`) ?? ``,
+        o = `https://i.hacking8.com`,
+        s = `${o}/search/?q=${a}`,
+        c = r((await t({ method: `get`, url: s })).data),
+        l = c(`div.media`)
+            .toArray()
+            .map((t) => {
+                t = c(t);
+                let r = t.find(`div.link a`);
+                return {
+                    title: r.text(),
+                    link: new URL(r.attr(`href`), o).href,
+                    description: t.find(`div.media-body pre`).text(),
+                    pubDate: n(e(t.parent().parent().find(`td`).first().text(), `YYYY年M月D日 HH:mm`), 8),
+                    category: t
+                        .parent()
+                        .parent()
+                        .find(`span.label`)
+                        .toArray()
+                        .map((e) => c(e).text()),
+                };
+            });
+    return {
+        title: `Hacking8 安全信息流 - ${c(`title`)
+            .text()
+            .replaceAll(/总数:\d+/g, ``)
+            .trim()}`,
+        link: s,
+        item: l,
+    };
+}
+export { i as route };

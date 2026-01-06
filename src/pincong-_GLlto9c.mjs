@@ -1,0 +1,30 @@
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import './puppeteer-BbZGb8cd.mjs';
+import { n, t as r } from './utils-BbpL-vaf.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/category/:category?/:sort?`,
+    categories: [`bbs`],
+    example: `/pincong/category/1/new`,
+    parameters: { category: '分类，与官网分类 URL `category-` 后的数字对应，默认为全部', sort: `排序方式，参数可见下表，默认为推荐` },
+    features: { requireConfig: !1, requirePuppeteer: !0, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `发现`,
+    maintainers: [`zphw`],
+    handler: o,
+    description: `| 最新 | 推荐      | 热门 |
+| ---- | --------- | ---- |
+| new  | recommend | hot  |`,
+};
+async function o(a) {
+    let o = `${r}/`;
+    ((o += (a.req.param(`sort`) && { new: `sort_type-new`, recommend: `recommend-1`, hot: `sort_type-hot__day2` }[a.req.param(`sort`)]) || `recommend-1`),
+        (o += a.req.param(`category`) ? `__category-` + a.req.param(`category`) : ``));
+    let s = i(await n(o, e)),
+        c = s(`div.aw-item`);
+    return { title: `品葱 - 发现`, link: o, item: c.toArray().map((e) => ({ title: s(e).find(`h4 a`).text().trim(), link: r + s(e).find(`h4 a`).attr(`href`), pubDate: t(s(e).attr(`data-created-at`) * 1e3) })) };
+}
+export { a as route };

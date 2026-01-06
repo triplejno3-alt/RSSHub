@@ -1,0 +1,45 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/yjs`,
+    categories: [`university`],
+    example: `/cau/yjs`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`yz.cau.edu.cn/col/col41740/index.html`, `yz.cau.edu.cn/`] }],
+    name: `研招网通知公告`,
+    maintainers: [`shengmaosu`],
+    handler: i,
+    url: `yz.cau.edu.cn/col/col41740/index.html`,
+};
+async function i() {
+    let r = `https://yz.cau.edu.cn`,
+        i = `${r}/col/col41740/index.html`,
+        a = n((await t(`${r}/module/web/jpage/dataproxy.jsp`, { searchParams: { page: 1, appid: 1, webid: 146, path: `/`, columnid: 41740, unitid: 69493, webname: `中国农业大学研究生院`, permissiontype: 0 } })).data),
+        o = a(`recordset record`);
+    return {
+        title: `中农研究生学院`,
+        link: i,
+        description: `中农研究生学院`,
+        item:
+            o &&
+            o.toArray().map((t) => {
+                t = a(t);
+                let n = t.find(`a`);
+                return {
+                    title: n
+                        .contents()
+                        .filter((e, t) => t.type === `text`)
+                        .text(),
+                    link: `${r}${n.attr(`href`)}`,
+                    pubDate: e(t.find(`span`).text().replaceAll(/[[\]]/g, ``)),
+                };
+            }),
+    };
+}
+export { r as route };

@@ -1,0 +1,81 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { jsx as r, jsxs as i } from 'hono/jsx/jsx-runtime';
+import { load as a } from 'cheerio';
+import { renderToString as o } from 'hono/jsx/dom/server';
+import s from 'query-string';
+const c = ({ image: e, title: t, posted: n, by: a, source: s, rating: c, score: l }) =>
+        o(
+            i(`div`, {
+                class: `item-description`,
+                children: [
+                    e ? r(`img`, { src: e, alt: t }) : null,
+                    n ? i(`p`, { children: [`posted: `, r(`span`, { class: `posted`, children: n })] }) : null,
+                    a ? i(`p`, { children: [`by: `, r(`span`, { class: `by`, children: a })] }) : null,
+                    s ? i(`p`, { children: [`source: `, r(`span`, { class: `source`, children: s })] }) : null,
+                    c ? i(`p`, { children: [`rating: `, r(`span`, { class: `rating`, children: c })] }) : null,
+                    l ? i(`p`, { children: [`score: `, r(`span`, { class: `score`, children: l })] }) : null,
+                ],
+            })
+        ),
+    l = {
+        path: `/mmda/tags/:tags?`,
+        categories: [`picture`],
+        example: `/booru/mmda/tags/full_body%20blue_eyes`,
+        parameters: { tags: '标签，多个标签使用 `%20` 连接，如需根据作者查询则在 `user:` 后接上作者名，如：`user:xxxx`' },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+        radar: [{ source: [`mmda.booru.org/index.php`] }],
+        name: `MMDArchive 标签查询`,
+        maintainers: [`N78Wy`],
+        handler: u,
+        description:
+            'For example:\n\n  -   默认查询 (什么 tag 都不加)：`/booru/mmda/tags`\n  -   默认查询单个 tag：`/booru/mmda/tags/full_body`\n  -   默认查询多个 tag：`/booru/mmda/tags/full_body%20blue_eyes`\n  -   默认查询根据作者查询：`/booru/mmda/tags/user:xxxx`',
+    };
+async function u(r) {
+    let i = `https://mmda.booru.org`,
+        o = r.req.param(`tags`),
+        l = s.stringify({ tags: o, page: `post`, s: `list` }, { skipNull: !0 }),
+        { data: u } = await n(`${i}/index.php`, { searchParams: l }),
+        d = a(u),
+        f = d(`#post-list > div.content > div > div:nth-child(3) span`)
+            .toArray()
+            .map((e) => {
+                e = d(e);
+                let t = e.find(`a`).first(),
+                    n =
+                        e
+                            .find(`script[type="text/javascript"]`)
+                            .first()
+                            .text()
+                            .match(/user':'(.*?)'/)?.[1] ?? ``,
+                    r = t.find(`img`).first().attr(`title`) ?? ``,
+                    a = t.find(`img`).first().attr(`src`) ?? ``;
+                return { title: r, link: `${i}/${t.attr(`href`)}`, image: a, author: n, description: c({ title: r, image: a, by: n }) };
+            }),
+        p = await Promise.all(
+            f.map((r) =>
+                e.tryGet(r.link, async () => {
+                    let { data: e } = await n(r.link),
+                        i = a(e),
+                        o = i(`#tag_list > ul`);
+                    o.find(`li, br, strong`).remove();
+                    let s = o.text(),
+                        l = /(?<key>[^\s:]+)\s*:\s*(?<value>.+)/gm,
+                        u = {};
+                    for (let e of s.matchAll(l)) {
+                        let { key: t, value: n } = e.groups ?? {};
+                        u[t.trim().toLocaleLowerCase()] = n.trim();
+                    }
+                    let d = i(`#image`).attr(`src`);
+                    return (u.posted && (r.pubDate = t(u.posted)), (r.description = c({ title: r.title, image: d ?? r.image, posted: r.pubDate ?? ``, by: u.by, source: u.source, rating: u.rating, score: u.score })), r);
+                })
+            )
+        );
+    return { title: o, link: `${i}/index.php?${l}`, item: p };
+}
+export { l as route };

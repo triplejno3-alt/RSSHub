@@ -1,0 +1,68 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { load as n } from 'cheerio';
+const r = (e) => {
+        if (!e) return ``;
+        if (Array.isArray(e)) return e.map((e) => r(e)).join(``);
+        switch (e.type) {
+            case `a`:
+                return `<a ${Object.keys(e.attribs)
+                    .map((t) => `${t}="${e.attribs[t]}"`)
+                    .join(` `)}>${r(e.children)}</a>`;
+            case `div`:
+                return `<div ${
+                    e.attribs
+                        ? Object.keys(e.attribs)
+                              .map((t) => `${t}="${e.attribs[t]}"`)
+                              .join(` `)
+                        : ``
+                }>${r(e.children)}</div>`;
+            case `blockquote-quote`:
+                return `<blockquote>${r(e.children)}</blockquote>`;
+            case `iframe`:
+                return `<iframe ${Object.keys(e.attribs)
+                    .map((t) => `${t}="${e.attribs[t]}"`)
+                    .join(` `)}></iframe>`;
+            case `leading`:
+            case `img`:
+                return `<figure><img ${
+                    e.attribs
+                        ? Object.keys(e.attribs)
+                              .map((t) => `${t}="${e.attribs[t]}"`)
+                              .join(` `)
+                        : `url="${e.url}"`
+                }><figcaption>${e.attribs?.title ?? e.title}</figcaption></figure>`;
+            case `em`:
+            case `h3`:
+            case `li`:
+            case `ol`:
+            case `ul`:
+            case `p`:
+            case `strong`:
+            case `u`:
+                return `<${e.type}>${r(e.children)}</${e.type}>`;
+            case `text`:
+                return e.data;
+            case `script`:
+            case `inline-ad-slot`:
+            case `inline-widget`:
+            case `track-viewed-percentage`:
+                return ``;
+            default:
+                return `Unhandled type: ${e.type} ${JSON.stringify(e)}`;
+        }
+    },
+    i = async (i) => {
+        let { _data: a, url: o } = await e.raw(i.link);
+        if (new URL(o).hostname !== `www.scmp.com`) return i;
+        let s = n(a),
+            { article: c } = JSON.parse(s(`script#__NEXT_DATA__`).text()).props.pageProps.payload.data;
+        return (
+            (i.summary = r(c.summary.json)),
+            (i.description = r(c.subHeadline.json) + r(c.images.find((e) => e.type === `leading`)) + r(c.body.json)),
+            (i.updated = t(c.updatedDate, `x`)),
+            (i.category = [...new Set([...c.topics.map((e) => e.name), ...c.sections.flatMap((e) => e.value.map((e) => e.name)), ...c.keywords.map((e) => e?.split(`, `))])]),
+            i
+        );
+    };
+export { i as t };

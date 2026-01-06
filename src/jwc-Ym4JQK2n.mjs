@@ -1,0 +1,43 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = `https://jwc.xidian.edu.cn`,
+    a = {
+        path: `/jwc/:category?`,
+        categories: [`university`],
+        example: `/xidian/jwc/tzgg`,
+        parameters: { category: `通知类别，默认为通知公告` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `教务处`,
+        url: `jwc.xidian.edu.cn`,
+        maintainers: [`ShadowySpirits`],
+        handler: o,
+        description: `| 教学信息 | 教学研究 | 实践教学 | 质量监控 | 通知公告 |
+| :------: | :------: | :------: | :------: | :------: |
+|   jxxx   |   jxyj   |   sjjx   |   zljk   |   tzgg   |`,
+    };
+async function o(a) {
+    let { category: o = `tzgg` } = a.req.param(),
+        s = `${i}/${o}.htm`,
+        c = r((await n(s, { headers: { referer: i }, https: { rejectUnauthorized: !1 } })).data),
+        l = c(`.list ul li`)
+            .toArray()
+            .map((e) => ((e = c(e)), { title: e.find(`a`).attr(`title`), link: new URL(e.find(`a`).attr(`href`), i).href, pubDate: t(e.find(`.con span`).text()) }));
+    return (
+        (l = await Promise.all(
+            l.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = r((await n(t.link, { headers: { referer: s }, https: { rejectUnauthorized: !1 } })).data);
+                    return (e(`.tit, .zd, #div_vote_id`).remove(), (t.description = e(`.con`).html()), t);
+                })
+            )
+        )),
+        { title: c(`title`).text(), link: s, item: l }
+    );
+}
+export { a as route };

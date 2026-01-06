@@ -1,0 +1,77 @@
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { n as r } from './puppeteer-BbZGb8cd.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/:id`,
+    categories: [`other`],
+    example: `/uraaka-joshi/_rrwq`,
+    parameters: { id: `User ID` },
+    features: { requireConfig: !1, requirePuppeteer: !0, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+    radar: [{ source: [`uraaka-joshi.com/:id`] }],
+    name: `User`,
+    maintainers: [`SettingDust`, `Halcao`],
+    handler: o,
+    url: `uraaka-joshi.com/`,
+};
+async function o(a) {
+    let o = `https://www.uraaka-joshi.com/user/${a.req.param(`id`)}`,
+        s = i(
+            await t.tryGet(
+                o,
+                async () => {
+                    let e = await r(),
+                        t = await e.newPage();
+                    (await t.setRequestInterception(!0),
+                        t.on(`request`, (e) => {
+                            e.resourceType() === `document` || e.resourceType() === `script` || e.resourceType() === `fetch` ? e.continue() : e.abort();
+                        }),
+                        t.on(`requestfinished`, async (e) => {
+                            e.url() === o && e.response().status() === 403 && (await t.close());
+                        }));
+                    let n = ``;
+                    try {
+                        (await t.goto(o, { waitUntil: `domcontentloaded` }),
+                            await t.waitForSelector(`#pickup03 .grid-cell`),
+                            await t.waitForSelector(`#pickup04 .grid-cell`),
+                            await t.waitForSelector(`#main-block .grid-cell`),
+                            (n = await t.evaluate(() => document.documentElement.innerHTML)));
+                    } catch {
+                        throw Error(`Access denied (403)`);
+                    }
+                    return (await e.close(), n);
+                },
+                e.cache.routeExpire,
+                !1
+            )
+        ),
+        c = s(`#main-block .grid .grid-cell`)
+            .toArray()
+            .map((e) => {
+                ((e = s(e)), e.find(`*`).removeAttr(`onclick`), e.find(`*`).removeAttr(`onerror`), e.find(`*`).removeAttr(`style`));
+                let t = e.find(`.account-group-link-row`);
+                (t.html(t.text()),
+                    e.find(`.plyr--video`).each((e, t) => {
+                        t = s(t);
+                        let n = t.find(`video`);
+                        (t.replaceWith(n), n.attr(`poster`, `https:` + n.attr(`data-poster`)), n.find(`source`).attr(`src`, `https:` + n.find(`source`).attr(`src`)));
+                    }),
+                    e.find(`img`).each((e, t) => {
+                        ((t = s(t)), t.attr(`src`, `https:` + t.attr(`data-src`).split(`?resize`)[0]), t.removeAttr(`data-src`));
+                    }));
+                let r = e.find(`.account-group`).text(),
+                    i = e
+                        .find(`.hashtag-item .hashtag`)
+                        .toArray()
+                        .map((e) => s(e).text().trim()),
+                    a = e.find(`.account-group-link-row`).attr(`href`),
+                    o = n(e.find(`.profile-char`).attr(`datetime`)),
+                    c = e.find(`a.tap-image`).attr(`data-tweet-id`) || e.find(`video[class^="js-player-"]`).attr(`data-tweet-id`);
+                return (e.find(`.grow-room`).remove(), e.find(`div.profile-group.mt10.prl2`).eq(1).remove(), { title: e.find(`.profile-text`).text(), description: e.html(), link: a, pubDate: o, guid: c, category: i, author: r });
+            });
+    return { title: s(`title`).text(), description: s(`meta[name="description"]`).attr(`content`), link: o, item: c };
+}
+export { a as route };

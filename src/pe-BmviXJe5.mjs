@@ -1,0 +1,42 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = { path: `/pe/:id?`, radar: [{ source: [`pe2016.sspu.edu.cn/:id/list.htm`], target: `/pe/:id` }], name: `Unknown`, maintainers: [`nczitzk`], handler: a };
+async function a(i) {
+    let { id: a = `342` } = i.req.param(),
+        o = i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`), 10) : 30,
+        s = `https://pe2016.sspu.edu.cn`,
+        c = new URL(`${a}/list.htm`, s).href,
+        { data: l } = await n(c),
+        u = r(l),
+        d = u(`table.wp_article_list_table a[title]`)
+            .slice(0, o)
+            .toArray()
+            .map((e) => ((e = u(e)), { title: e.text(), link: new URL(e.prop(`href`), s).href, pubDate: t(e.prev().text()) }));
+    d = await Promise.all(
+        d.map((t) =>
+            e.tryGet(t.link, async () => {
+                if (t.link.endsWith(`htm`)) {
+                    let { data: e } = await n(t.link),
+                        i = r(e),
+                        a = i(`div.time`).text();
+                    ((t.title = i(`div.title`).text()),
+                        (t.description = i(`div.wp_articlecontent`).html()),
+                        (t.author = a.match(/来源：(.*?)\s/)?.[1] ?? void 0),
+                        (t.pubDate = a.match(/发布时间：(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2})\s/)?.[1] ?? void 0));
+                }
+                return t;
+            })
+        )
+    );
+    let f = `上海第二工业大学`,
+        p = u(`title`).text(),
+        m = new URL(u(`link[rel="shortcut icon"]`).prop(`href`), s).href;
+    return { item: d, title: `${f} - ${p}`, link: c, description: u(`div.tyb_headtitle1`).text(), language: u(`html`).prop(`lang`), icon: m, logo: m, subtitle: p, author: f };
+}
+export { i as route };

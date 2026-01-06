@@ -1,0 +1,24 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+const n = {
+    path: `/geekdaily`,
+    categories: [`new-media`],
+    example: `/rebase/geekdaily`,
+    radar: [{ source: [`rebase.network/geekdaily`], target: `/geekdaily` }],
+    name: `Web3 Geek Daily`,
+    maintainers: [`gaoyifan`],
+    handler: async () => ({
+        title: `Web3 Geek Daily`,
+        link: `https://rebase.network/geekdaily`,
+        item: (await e(`https://db.rebase.network/api/v1/geekdailies?sort=id:desc`)).data.map((e) => ({
+            title: e.attributes.title,
+            link: e.attributes.url,
+            description: e.attributes.introduce,
+            pubDate: t(e.attributes.time),
+            author: e.attributes.author,
+        })),
+    }),
+};
+export { n as route };

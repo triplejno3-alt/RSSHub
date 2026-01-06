@@ -1,0 +1,48 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { load as r } from 'cheerio';
+const i = `http://tj.ustb.edu.cn`,
+    a = {
+        xyxw: `/Class/xyxw/index.htm`,
+        xshhd: `/Class/xshhd/index.htm`,
+        csjsxy: `/Class/csjsxy/index.htm`,
+        xxgcxy: `/Class/xxgcxy/index.htm`,
+        jjx: `/Class/jjx/index.htm`,
+        glxy: `/Class/glxy/index.htm`,
+        clx: `/Class/clx/index.htm`,
+        jxgcx: `/Class/jxgcx/index.htm`,
+        hlx: `/Class/hlx/index.htm`,
+        flx: `/Class/flx/index.htm`,
+        wyx: `/Class/wyx/index.htm`,
+        ysx: `/Class/ysx/index.htm`,
+    };
+function o(t) {
+    return r(t)(`div[class="classnews"] ul li a`)
+        .toArray()
+        .map((t) => ({ link: i + t.attribs.href, title: t.children[0].data, pubDate: n(e(t.attribs.href.split(`/`)[3].split(`.`)[0].slice(0, 14), `YYYYMMDDHHmmss`), 8) }));
+}
+const s = {
+    path: `/tj/news/:type?`,
+    categories: [`university`],
+    example: `/ustb/tj/news/all`,
+    parameters: { type: '默认为 `all`' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `天津学院`,
+    maintainers: [`henbf`],
+    handler: c,
+    description: `| 全部 | 学院新闻 | 学术活动 | 城市建设学院 | 信息工程学院 | 经济学院 | 管理学院 | 材料系 | 机械工程系 | 护理系 | 法律系 | 外语系 | 艺术系 |
+| ---- | -------- | -------- | ------------ | ------------ | -------- | -------- | ------ | ---------- | ------ | ------ | ------ | ------ |
+| all  | xyxw     | xshhd    | csjsxy       | xxgcxy       | jjx      | glxy     | clx    | jxgcx      | hlx    | flx    | wyx    | ysx    |`,
+};
+async function c(e) {
+    let n = e.req.param(`type`) || `all`;
+    Object.keys(a).includes(n) || (n = `all`);
+    let r = { title: `北京科技大学天津学院新闻动态`, link: i, item: null };
+    return (n === `all` ? (r.item = (await Promise.all(Object.values(a).map(async (e) => o((await t(i + e)).data)))).flat()) : (r.item = o((await t(i + a[n])).data)), r);
+}
+export { s as route };

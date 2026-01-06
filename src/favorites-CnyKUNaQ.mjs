@@ -1,0 +1,38 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './got-CKQ7C9HX.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { t } from './config-not-found-DGyG6Tbz.mjs';
+import { t as n } from './ehapi-u6OXYeVA.mjs';
+const r = {
+    path: `/favorites/:favcat?/:order?/:page?/:routeParams?`,
+    categories: [`picture`],
+    example: `/ehentai/favorites/0/posted/0/bittorrent=true&embed_thumb=false`,
+    parameters: {
+        favcat: `Favorites folder number`,
+        order: '`posted`(Sort by gallery release time) , `favorited`(Sort by time added to favorites)',
+        page: `Page number, set 0 to get latest`,
+        routeParams: `Additional parameters, see the table above`,
+    },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !0, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+    name: `Favorites`,
+    maintainers: [`yindaheng98`, `syrinka`],
+    handler: i,
+};
+async function i(r) {
+    if (!n.has_cookie) throw new t(`Ehentai favorites RSS is disabled due to the lack of <a href="https://docs.rsshub.app/deploy/config#route-specific-configurations">relevant config</a>`);
+    let i = r.req.param(`favcat`) ? Number.parseInt(r.req.param(`favcat`)) : 0,
+        a = r.req.param(`page`),
+        o = new URLSearchParams(r.req.param(`routeParams`)),
+        s = o.get(`bittorrent`) || !1,
+        c = o.get(`embed_thumb`) || !1,
+        l = r.req.param(`order`) === `posted` ? `fs_p` : `fs_f`,
+        u = await n.getFavoritesItems(e, i, l, a, s, c);
+    return n.from_ex
+        ? { title: `ExHentai Favorites`, link: `https://exhentai.org/favorites.php?favcat=${i}&inline_set=${l}`, item: u }
+        : { title: `E-Hentai Favorites`, link: `https://e-hentai.org/favorites.php?favcat=${i}&inline_set=${l}`, item: u };
+}
+export { r as route };

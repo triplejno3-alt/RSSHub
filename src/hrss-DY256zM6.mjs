@@ -1,0 +1,50 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/xuzhou/hrss/:category?`,
+    categories: [`government`],
+    example: `/gov/xuzhou/hrss`,
+    parameters: { category: `分类，见下表，默认为通知公告` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `徐州市人力资源和社会保障局`,
+    maintainers: [`nczitzk`],
+    handler: o,
+    description: `| 通知公告 | 要闻动态 | 县区动态 | 事业招聘 | 企业招聘 | 政声传递 |
+| -------- | -------- | -------- | -------- | -------- | -------- |
+|          | 001001   | 001002   | 001004   | 001005   | 001006   |`,
+};
+async function o(a) {
+    let o = a.req.param(`category`) ?? ``,
+        s = `http://hrss.xz.gov.cn`,
+        c = `${s}${o ? `/001/${o}/subPage.html` : ``}`,
+        l = i((await n({ method: `get`, url: c })).data),
+        u = (o ? l(`.module-items a`) : l(`.bdl[data-target="1"]`).eq(1).find(`a`)).toArray().map((e) => {
+            e = l(e);
+            let t = e.attr(`href`);
+            return { title: e.attr(`title`), link: `${t.startsWith(`http`) ? `` : s}${e.attr(`href`)}` };
+        });
+    return (
+        (u = await Promise.all(
+            u.map((a) =>
+                e.tryGet(a.link, async () => {
+                    let e = i((await n({ method: `get`, url: a.link })).data);
+                    return (
+                        (a.description = e(`#Zoom, .mian-cont, .ewb-article-info, #UCAP-CONTENT`).html()),
+                        (a.pubDate = r(t(e(`meta[name="PubDate"]`).attr(`content`)), 8)),
+                        (a.category = e(`meta[name="Keywords"]`).attr(`content`)?.split(` `)),
+                        a
+                    );
+                })
+            )
+        )),
+        { title: `徐州市人力资源和社会保障局 - ${o ? l(`.wb-tree-items.current`).text() : `通知公告`}`, link: c, item: u }
+    );
+}
+export { a as route };

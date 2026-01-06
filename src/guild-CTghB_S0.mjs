@@ -1,0 +1,117 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './invalid-parameter-DGZgOgO2.mjs';
+const r = { 1: `text`, 2: `emoji`, 5: `link`, 6: `image`, 9: `newline` },
+    i = { 0: `left`, 1: `center`, 2: `right` };
+function a(e, t) {
+    if (t === void 0) return e;
+    let n = ``;
+    return (t.fontWeight === 700 && (n += `font-weight: bold;`), t.italic && (n += `font-style: italic;`), t.underline && (n += `text-decoration: underline;`), n === `` ? e : `<span style="${n}">${e}</span>`);
+}
+function o(e, t, n) {
+    let i = ``;
+    switch (r[e.type] || void 0) {
+        case `text`:
+            return a(t.shift() ?? ``, e.props);
+        case `newline`:
+            return (t.shift(), `<br />`);
+        case `link`:
+            return `<a href="${e.href ?? `#`}" target="_blank">${e.desc ?? ``}</a>`;
+        case `image`:
+            return ((i = e.fileId || e.taskId || ``), `<img src="${n[i].picUrl}" style="max-width: 100%; width: ${n[i].width}px;"><br />`);
+        default:
+            return ``;
+    }
+}
+function s(e, t, n) {
+    let r = ``;
+    (e.patternInfo === void 0 || e.patternInfo === null || e.patternInfo === ``) && (e.patternInfo = `[]`);
+    let a = JSON.parse(e.patternInfo);
+    for (let e of a) {
+        if (e.props === void 0) continue;
+        let a = e.props.textAlignment || 0;
+        r += `<p style="text-align: ` + i[a] + `;">`;
+        for (let i of e.data) r += o(i, t, n);
+        r += `</p>`;
+    }
+    return r;
+}
+function c(e, t, n) {
+    for (let n of e.contents.contents) n.text_content && t.push(n.text_content.text);
+    let r = ``;
+    for (let e of t) r += e;
+    for (let e of Object.values(n)) ((r += `<p style="text-align: center">`), (r += `<img src="${e.picUrl}" style="max-width: 100%; width: ${e.width}px;">`), (r += `</p>`));
+    return r;
+}
+function l(e) {
+    let t = [],
+        n = {};
+    for (let n of e.contents.contents) n.text_content && t.push(n.text_content.text);
+    for (let t of e.images) n[t.picId] = { picId: t.picId, picUrl: t.picUrl, width: t.width, height: t.height };
+    return e.feed_type === 1 ? c(e, t, n) : e.feed_type === 2 ? s(e, t, n) : ``;
+}
+const u = `https://pd.qq.com/g/`,
+    d = `https://pd.qq.com/qunng/guild/gotrpc/noauth/trpc.qchannel.commreader.ComReader/`;
+(d + ``, d + ``, d + ``);
+const f = { hot: 0, created: 1, replied: 2 },
+    p = {
+        path: [`/pd/guild/:id/:sub?/:sort?`],
+        categories: [`bbs`],
+        example: `/qq/pd/guild/qrp4pkq01d/650967831/created`,
+        parameters: { id: `频道号`, sub: '子频道 ID，网页端 URL `subc` 参数的值，默认为 `hot`（全部）', sort: '排序方式，`hot`（热门），`created`（最新发布），`replied`（最新回复），默认为 `created`' },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`pd.qq.com/`] }],
+        name: `腾讯频道`,
+        maintainers: [`mobyw`],
+        handler: m,
+        url: `pd.qq.com/`,
+    };
+async function m(r) {
+    let { id: i, sub: a = `hot`, sort: o = `created` } = r.req.param();
+    if (!(o in f)) throw new n('invalid sort parameter, should be `hot`, `created`, or `replied`');
+    let s = f[o],
+        c = ``,
+        d = {},
+        p = {};
+    a === `hot`
+        ? ((c = `https://pd.qq.com/qunng/guild/gotrpc/noauth/trpc.qchannel.commreader.ComReader/GetGuildFeeds`),
+          (d = { count: 20, from: 7, guild_number: i, get_type: 1, feedAttchInfo: ``, sortOption: s, need_channel_list: !1, need_top_info: !1 }),
+          (p = { cookie: `p_uin=o09000002`, 'x-oidb': `{"uint32_service_type":12}`, 'x-qq-client-appid': `537246381` }))
+        : ((c = `https://pd.qq.com/qunng/guild/gotrpc/noauth/trpc.qchannel.commreader.ComReader/GetChannelTimelineFeeds`),
+          (d = { count: 20, from: 7, guild_number: i, channelSign: { channel_id: a }, feedAttchInfo: ``, sortOption: s, need_top_info: !1 }),
+          (p = { cookie: `p_uin=o09000002`, 'x-oidb': `{"uint32_service_type":11}`, 'x-qq-client-appid': `537246381` }));
+    let m = (await e(c, { method: `POST`, body: d, headers: p })).data?.vecFeed || [],
+        h = m.map(async (n) => {
+            let r = a;
+            a === `hot` && (r = n.channelInfo?.sign?.channel_id || ``);
+            let o = u + i + `/post/` + n.id;
+            return await t.tryGet(o, async () => {
+                ((d = {
+                    feedId: n.id,
+                    userId: n.poster?.id,
+                    createTime: n.createTime,
+                    from: 2,
+                    detail_type: 1,
+                    channelSign: { guild_number: i, channel_id: r },
+                    extInfo: {
+                        mapInfo: [
+                            { key: `qc-tabid`, value: `ark` },
+                            { key: `qc-pageid`, value: `pc` },
+                        ],
+                    },
+                }),
+                    (p = { cookie: `p_uin=o09000002`, referer: o, 'x-oidb': `{"uint32_service_type":5}`, 'x-qq-client-appid': `537246381` }));
+                let t = (await e(`https://pd.qq.com/qunng/guild/gotrpc/noauth/trpc.qchannel.commreader.ComReader/GetFeedDetail`, { method: `POST`, body: d, headers: p })).data?.feed || {};
+                return { title: n.title?.contents[0]?.text_content?.text || n.channelInfo?.guild_name || ``, link: o, description: l(t), pubDate: new Date(Number(n.createTime) * 1e3), author: n.poster?.nick };
+            });
+        }),
+        g = await Promise.all(h),
+        _ = ``;
+    return (
+        m.length > 0 && m[0].channelInfo?.guild_name && ((_ = m[0].channelInfo?.guild_name), a !== `hot` && m[0].channelInfo?.name && (_ += ` (` + m[0].channelInfo?.name + `)`), (_ += ` - 腾讯频道`)),
+        { title: _, link: u + i, description: _, item: g }
+    );
+}
+export { p as route };

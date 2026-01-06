@@ -1,0 +1,104 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './puppeteer-BbZGb8cd.mjs';
+import { load as a } from 'cheerio';
+const o = `https://yjsy.cjlu.edu.cn/`,
+    s = new Map([
+        [`yjstz`, `中量大研究生院 —— 研究生通知`],
+        [`jstz`, `中量大研究生院 —— 教师通知`],
+    ]),
+    c = {
+        Accept: `text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7`,
+        'Accept-Language': `zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6`,
+        'Cache-Control': `max-age=0`,
+        Connection: `keep-alive`,
+        Referer: `https://yjsy.cjlu.edu.cn`,
+        'Sec-Fetch-Dest': `document`,
+        'Sec-Fetch-Mode': `navigate`,
+        'Sec-Fetch-Site': `same-origin`,
+        'Sec-Fetch-User': `?1`,
+        'Upgrade-Insecure-Requests': `1`,
+        'User-Agent': `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0`,
+        'sec-ch-ua': `"Microsoft Edge";v="141", "Not?A_Brand";v="8", "Chromium";v="141"`,
+        'sec-ch-ua-mobile': `?0`,
+        'sec-ch-ua-platform': `"Windows"`,
+    },
+    l = new Set([`document`, `script`]),
+    u = {
+        path: `/yjsy/:cate`,
+        categories: [`university`],
+        example: `/cjlu/yjsy/yjstz`,
+        parameters: {
+            cate: {
+                description: `订阅的类型，支持 yjstz（研究生通知）和 jstz（教师通知）`,
+                default: `yjstz`,
+                options: [
+                    { label: `教师通知`, value: `jstz` },
+                    { label: `研究生通知`, value: `yjstz` },
+                ],
+            },
+        },
+        features: { requireConfig: !1, requirePuppeteer: !0, antiCrawler: !0, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            { title: `研究生通知`, source: [`yjsy.cjlu.edu.cn/index/yjstz/:suffix`, `yjsy.cjlu.edu.cn/index/yjstz.htm`], target: `/yjsy/yjstz` },
+            { title: `教师通知`, source: [`yjsy.cjlu.edu.cn/index/jstz/:suffix`, `yjsy.cjlu.edu.cn/index/jstz.htm`], target: `/yjsy/jstz` },
+        ],
+        name: `研究生院`,
+        maintainers: [`chrisis58`],
+        handler: d,
+        description: `| 研究生通知 | 教师通知 |
+| -------- | -------- |
+| yjstz    | jstz     |`,
+    };
+async function d(u) {
+    let d = u.req.param(`cate`),
+        f = u.req.query(`limit`) ? Number.parseInt(u.req.query(`limit`), 10) : 10,
+        p = `${o}index/${d}.htm`,
+        {
+            page: m,
+            destory: h,
+            browser: g,
+        } = await i(p, {
+            onBeforeLoad: async (e) => {
+                (await e.setExtraHTTPHeaders(c),
+                    await e.setUserAgent(c[`User-Agent`]),
+                    await e.setRequestInterception(!0),
+                    e.on(`request`, (e) => {
+                        l.has(e.resourceType()) ? e.continue() : e.abort();
+                    }));
+            },
+            gotoConfig: { waitUntil: `networkidle2` },
+        }),
+        _ = (await g.cookies()).map((e) => `${e.name}=${e.value}`).join(`; `),
+        v = await m.content();
+    await h();
+    let y = a(v),
+        b = y(`div.grid685.right div.body ul`)
+            .find(`li`)
+            .toArray()
+            .slice(0, f)
+            .map((e) => {
+                let t = y(e),
+                    i = t.find(`a`).first(),
+                    a = t.find(`span`).first().text().trim(),
+                    c = i.attr(`href`) ?? ``,
+                    l = c.startsWith(`../`) ? c.replace(/^\.\.\//, ``) : c;
+                return { title: i.attr(`title`) ?? s.get(d) ?? `中量大研究生院通知`, pubDate: r(n(a, `YYYY/MM/DD`), 8), link: `${o}${l}`, description: `` };
+            }),
+        x = await Promise.all(
+            b.map((n) =>
+                t.tryGet(n.link, async () => {
+                    if (!n.link || n.link === o) return n;
+                    let t = a(await e(n.link, { responseType: `text`, headers: { ...c, Cookie: _, Referer: p } }));
+                    return ((n.description = `${t(`#vsb_content`).html() ?? ``}<br>${t(`form[name="_newscontent_fromname"] div ul`).html() ?? ``}`), n);
+                })
+            )
+        );
+    return { title: s.get(d), link: `https://yjsy.cjlu.edu.cn/index/${d}.htm`, item: x };
+}
+export { u as route };

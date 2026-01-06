@@ -1,0 +1,27 @@
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = `https://vocus.cc`,
+    i = `https://api.vocus.cc`,
+    a = (t) => t.map((t) => ({ title: t.title, description: t.abstract, pubDate: e(t.createdAt), link: `${r}/article/${t._id}`, author: t.user.fullname, _id: t._id })),
+    o = (e, r) =>
+        Promise.all(
+            e.map((e) =>
+                r(e.link, async () => {
+                    let {
+                            data: { article: r },
+                        } = await t(`${i}/api/article/${e._id}`, { headers: { referer: e.link } }),
+                        a = n(r.content, null, !1);
+                    return (
+                        a(`div.draft--imgNormal`).each((e, t) => (t.name = `figure`)),
+                        a(`.image-block-prerender`).each((e, t) => {
+                            ((t.name = `img`), (t.attribs.src = t.attribs[`data-src`].split(`?`)[0]));
+                        }),
+                        (e.description = a.html()),
+                        (e.category = r.tags?.map((e) => e.title)),
+                        e
+                    );
+                })
+            )
+        );
+export { a as i, i as n, r, o as t };

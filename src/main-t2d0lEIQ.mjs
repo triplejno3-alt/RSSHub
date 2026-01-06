@@ -1,0 +1,26 @@
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import t from 'rss-parser';
+const n = {
+    path: [`/search/:query?`, `/user/:username?`, `/user/:username/search/:query?`, `/sukebei/search/:query?`, `/sukebei/user/:username?`, `/sukebei/user/:username/search/:query?`],
+    categories: [`multimedia`],
+    example: `/nyaa/search/psycho-pass`,
+    parameters: { query: `Search keyword` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !0, supportPodcast: !1, supportScihub: !1 },
+    name: `Search Result`,
+    maintainers: [`Lava-Swimmer`, `noname1776`, `camera-2018`],
+    handler: r,
+};
+async function r(n) {
+    let r = new t({ customFields: { item: [`magnet`, [`nyaa:infoHash`, `infoHash`]] }, headers: { 'User-Agent': e.ua } }),
+        { query: i, username: a } = n.req.param(),
+        o = n.req.path.split(`/`)[2] === `sukebei` ? `https://sukebei.nyaa.si` : `https://nyaa.si`,
+        s = `${o}/?page=rss`,
+        c = `${o}/`;
+    (a !== void 0 && ((s = `${s}&u=${encodeURI(a)}`), (c = `${c}user/${encodeURI(a)}`)), i !== void 0 && ((s = `${s}&q=${encodeURI(i)}`), (c = `${c}?q=${encodeURI(i)}`)));
+    let l = await r.parseURL(s);
+    return (
+        l.items.map((e) => ((e.description = e.content), (e.enclosure_url = `magnet:?xt=urn:btih:${e.infoHash}`), (e.enclosure_type = `application/x-bittorrent`), e)),
+        { title: l.title, link: c, description: l.description, item: l.items }
+    );
+}
+export { n as route };

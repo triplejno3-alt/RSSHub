@@ -1,0 +1,57 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import n from 'node:path';
+import { jsx as r } from 'hono/jsx/jsx-runtime';
+import { load as i } from 'cheerio';
+import { renderToString as a } from 'hono/jsx/dom/server';
+const o = {
+    path: `/channel/:channelId/:embed?`,
+    categories: [`multimedia`],
+    example: `/youku/channel/UNTg3MTM3OTcy`,
+    parameters: { channelId: `频道 id`, embed: `默认为开启内嵌视频, 任意值为关闭` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`i.youku.com/i/:id`], target: `/channel/:id` }],
+    name: `频道`,
+    maintainers: [`xyqfer`, `Fatpandac`],
+    handler: s,
+};
+async function s(o) {
+    let s = o.req.param(`channelId`),
+        c = !o.req.param(`embed`),
+        l = (await t({ method: `get`, url: `https://i.youku.com/i/${s}/videos`, headers: { Host: `i.youku.com`, Referer: `https://i.youku.com/i/${s}` } })).data,
+        u = i(l),
+        d = u(`div.videoitem_pack`);
+    return {
+        title: u(`.username`).text(),
+        link: `https://i.youku.com/i/${s}`,
+        description: u(`.desc`).text(),
+        item: d
+            .toArray()
+            .map((t) => {
+                t = u(t);
+                let i = t.find(`a.videoitem_videolink`).attr(`title`),
+                    o = t.find(`a.videoitem_videolink > img`).attr(`src`),
+                    s = t.find(`a.videoitem_videolink`),
+                    l = s.length > 0 ? `https:${s.attr(`href`)}` : null,
+                    d = e(t.find(`p.videoitem_subtitle`).text().split(`-`).length === 2 ? `${new Date().getFullYear()}-${t.find(`p.videoitem_subtitle`).text()}` : t.find(`p.videoitem_subtitle`).text());
+                return l
+                    ? {
+                          title: i,
+                          description: c
+                              ? a(r(`iframe`, { height: 498, width: 510, src: `https://player.youku.com/embed/${n.parse(l).name.replaceAll(/^id_/g, ``)}`, frameBorder: `0`, allowFullScreen: !0 }))
+                              : o
+                                ? a(r(`img`, { src: o }))
+                                : void 0,
+                          link: l,
+                          pubDate: d,
+                      }
+                    : null;
+            })
+            .filter(Boolean),
+    };
+}
+export { o as route };

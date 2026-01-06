@@ -1,0 +1,36 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './utils-D9VptmJt.mjs';
+const i = {
+    path: `/characters/:lang?`,
+    categories: [`shopping`],
+    example: `/furstar/characters/cn`,
+    parameters: { lang: `语言, 留空为jp, 支持cn, en` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`furstar.jp/:lang`, `furstar.jp/`], target: `/characters/:lang` }],
+    name: `最新售卖角色列表`,
+    maintainers: [`NeverBehave`],
+    handler: a,
+};
+async function a(i) {
+    let a = r.langBase(i.req.param(`lang`)),
+        o = await n.get(a, { https: { rejectUnauthorized: !1 } }),
+        s = r.fetchAllCharacters(o.data, a),
+        c = await Promise.all(s.map((t) => r.detailPage(t.detailPage, e)));
+    return (
+        i.set(`json`, { info: s }),
+        {
+            title: `Furstar 最新角色`,
+            link: `https://furstar.jp`,
+            description: `Furstar 最近更新的角色列表`,
+            language: i.req.param(`lang`),
+            item: s.map((e, n) => ({ title: e.title, author: e.author.name, description: r.renderDesc(c[n].desc, c[n].pics, e.author), pubDate: t(new Date().toISOString()), link: e.detailPage })),
+        }
+    );
+}
+export { i as route };

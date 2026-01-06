@@ -1,0 +1,45 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { load as t } from 'cheerio';
+const n = {
+    path: `/addons/:id`,
+    categories: [`program-update`],
+    example: `/firefox/addons/rsshub-radar`,
+    parameters: { id: `Add-ons id, can be found in add-ons url` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`addons.mozilla.org/:lang/firefox/addon/:id/versions`, `addons.mozilla.org/:lang/firefox/addon/:id`] }],
+    name: `Add-ons Update`,
+    maintainers: [`DIYgod`],
+    handler: r,
+};
+async function r(n) {
+    let r = n.req.param(`id`),
+        i = await e({ method: `get`, url: `https://addons.mozilla.org/zh-CN/firefox/addon/${r}/versions/` }),
+        a = JSON.parse(t(i.data)(`#redux-store-state`).text()),
+        o = a.addons.byID[a.addons.bySlug[r]],
+        s = a.versions.bySlug[r].versionIds;
+    return {
+        title: `${o.name} - Firefox Add-on`,
+        description: o.summary || o.description,
+        link: `https://addons.mozilla.org/zh-CN/firefox/addon/${r}/versions/`,
+        item:
+            s &&
+            s.map((e) => {
+                let t = a.versions.byId[e],
+                    n = `v` + t.version;
+                return {
+                    title: n,
+                    description: t.releaseNotes || ``,
+                    link: `https://addons.mozilla.org/zh-CN/firefox/addon/${r}/versions/`,
+                    pubDate: new Date(t.file.created),
+                    guid: n,
+                    author: o.authors.map((e) => e.name).join(`, `),
+                    category: o.categories,
+                };
+            }),
+    };
+}
+export { n as route };

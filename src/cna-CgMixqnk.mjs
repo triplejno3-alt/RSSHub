@@ -1,0 +1,36 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './utils-BGQjCLE6.mjs';
+const a = {
+    path: `/:id?`,
+    categories: [`traditional-media`],
+    example: `/cna/aall`,
+    parameters: { id: `分类 id 或新闻专题 id。分类 id 见下表，新闻专题 id 為 https://www.cna.com.tw/list/newstopic.aspx 中，連結的數字部份。此參數默认为 aall` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `分类`,
+    maintainers: [`nczitzk`],
+    handler: o,
+    description: `| 即時 | 政治 | 國際 | 兩岸 | 產經 | 證券 | 科技 | 生活 | 社會 | 地方 | 文化 | 運動 | 娛樂 |
+| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| aall | aipl | aopl | acn  | aie  | asc  | ait  | ahel | asoc | aloc | acul | aspt | amov |`,
+};
+async function o(a) {
+    let o = a.req.param(`id`) || `aall`,
+        s = /^\d+$/.test(o),
+        c = a.req.query(`limit`) ? Number.parseInt(a.req.query(`limit`), 10) : 20,
+        { data: l } = await n({ method: `post`, url: `https://www.cna.com.tw/cna2018api/api/${s ? `WTopic` : `WNewsList`}`, json: { action: `0`, category: s ? `newstopic` : o, tno: s ? o : void 0, pagesize: c, pageidx: 1 } }),
+        {
+            ResultData: { MetaData: u },
+            ResultData: d,
+        } = l,
+        f = (s ? d.Topic.NewsItems : d.Items).slice(0, c).map((e) => ({ title: e.HeadLine, link: e.PageUrl, pubDate: r(t(e.CreateTime), 8) })),
+        p = await Promise.all(f.map((t) => e.tryGet(t.link, async () => await i(t))));
+    return { title: u.Title, description: u.Description, link: u.CanonicalUrl, image: u.Image, item: p };
+}
+export { a as route };

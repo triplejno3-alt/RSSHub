@@ -1,0 +1,42 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = { path: `/cn/news`, name: `Unknown`, maintainers: [], handler: a };
+async function a(i) {
+    let a = i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`), 10) : 35,
+        o = `https://www.aqara.cn`,
+        s = new URL(`news`, o).href,
+        { data: c } = await n(s),
+        l = r(c),
+        u = c
+            .match(/(parm\.newsTitle[\S\s]*?arr\.push\(parm\))/g)
+            .slice(0, a)
+            .map((e) => ({ title: e.match(/parm\.newsTitle = '(.*?)'/)[1], link: new URL(e.match(/parm\.contentHerf = '(\d+)'/)[1], o).href, pubDate: t(e.match(/parm\.issueTime = '(.*?)'/)[1], `YYYY  年  MM  月  DD  日`) }));
+    u = await Promise.all(
+        u.map((i) =>
+            e.tryGet(i.link, async () => {
+                let { data: e } = await n(i.link),
+                    a = r(e);
+                return ((i.title = a(`h4.fnt_56`).last().text()), (i.description = a(`div.news_body`).html()), (i.pubDate = t(a(`div.news_date`).first().text(), `YYYY  年  MM  月  DD  日`)), i);
+            })
+        )
+    );
+    let d = l(`link[rel="shortcut icon"]`).prop(`href`).split(`?`)[0];
+    return {
+        item: u,
+        title: l(`title`).text(),
+        link: s,
+        description: l(`meta[name="description"]`).prop(`content`),
+        language: `zh-cn`,
+        image: l(`meta[property="og:image"]`).prop(`content`),
+        icon: d,
+        logo: d,
+        author: l(`meta[name="author"]`).prop(`content`),
+    };
+}
+export { i as route };

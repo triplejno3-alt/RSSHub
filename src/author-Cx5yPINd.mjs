@@ -1,0 +1,92 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import './desc-BSROBqhL.mjs';
+import { t as r } from './utils-DO67z614.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    name: `作者`,
+    maintainers: [`Derekmini`, `harveyqiu`],
+    categories: [`journal`],
+    path: `/author/:name/:company`,
+    parameters: { name: `作者姓名`, company: `作者单位` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    example: `/cnki/author/丁晓东/中国人民大学`,
+    description: `::: tip
+    可能仅限中国大陆服务器访问，以实际情况为准。
+:::`,
+    handler: o,
+};
+async function o(a) {
+    let o = a.req.param(`name`),
+        s = a.req.param(`company`),
+        c = `https://kns.cnki.net`,
+        l = `${c}/kns8s/AdvSearch?classid=WD0FTY92`,
+        u = new URLSearchParams();
+    (u.append(`boolSearch`, `true`),
+        u.append(
+            `QueryJson`,
+            JSON.stringify({
+                Platform: ``,
+                Resource: `CROSSDB`,
+                Classid: `WD0FTY92`,
+                Products: ``,
+                QNode: {
+                    QGroup: [
+                        {
+                            Key: `Subject`,
+                            Title: ``,
+                            Logic: 0,
+                            Items: [],
+                            ChildItems: [
+                                {
+                                    Key: `input[data-tipid=gradetxt-1]`,
+                                    Title: `作者`,
+                                    Logic: 0,
+                                    Items: [{ Key: `input[data-tipid=gradetxt-1]`, Title: `作者`, Logic: 0, Field: `AU`, Operator: `DEFAULT`, Value: o, Value2: `` }],
+                                    ChildItems: [],
+                                },
+                                {
+                                    Key: `input[data-tipid=gradetxt-2]`,
+                                    Title: `作者单位`,
+                                    Logic: 0,
+                                    Items: [{ Key: `input[data-tipid=gradetxt-2]`, Title: `作者单位`, Logic: 0, Field: `AF`, Operator: `FUZZY`, Value: s, Value2: `` }],
+                                    ChildItems: [],
+                                },
+                            ],
+                        },
+                        { Key: `ControlGroup`, Title: ``, Logic: 0, Items: [], ChildItems: [] },
+                    ],
+                },
+                ExScope: `0`,
+                SearchType: 3,
+                Rlang: `CHINESE`,
+                KuaKuCode: `YSTT4HG0,LSTPFY1C,JUP3MUPD,MPMFIG1A,EMRPGLPA,WQ0UVIAA,BLZOG7CK,PWFIRAGL,NN3FJMUV,NLBO1Z6R`,
+            })
+        ),
+        u.append(`pageNum`, `1`),
+        u.append(`pageSize`, `20`),
+        u.append(`sortField`, `PT`),
+        u.append(`sortType`, `desc`),
+        u.append(`dstyle`, `listmode`),
+        u.append(`productStr`, `YSTT4HG0,LSTPFY1C,RMJLXHZ3,JQIRZIYA,JUP3MUPD,1UR4K4HZ,BPBAFJ5S,R79MZMCB,MPMFIG1A,EMRPGLPA,J708GVCE,ML4DRIDX,WQ0UVIAA,NB3BWEHK,XVLO76FD,HR1YT1Z9,BLZOG7CK,PWFIRAGL,NN3FJMUV,NLBO1Z6R,`),
+        u.append(`aside`, `（作者：${o}(精确)）AND（作者单位：${s}(模糊)）`),
+        u.append(`searchFrom`, `资源范围：总库;  时间范围：更新时间：不限;`),
+        u.append(`CurPage`, `1`));
+    let d = i(await e(`${c}/kns8s/brief/grid`, { method: `POST`, headers: { 'content-type': `application/x-www-form-urlencoded;charset=utf-8`, referer: `${c}/kns8s/AdvSearch?classid=WD0FTY92` }, body: u.toString() })),
+        f = d(`tr`)
+            .toArray()
+            .slice(1)
+            .map((e) => ({
+                title: d(e).find(`a.fz14`).text(),
+                link: `https://cnki.net/kcms/detail/detail.aspx?filename=${d(e).find(`a.icon-collect`).attr(`data-filename`)}&dbcode=CJFD`,
+                pubDate: n(d(e).find(`td.date`).text(), `YYYY-MM-DD`),
+            })),
+        p = (await Promise.all(f.map((e) => t.tryGet(e.link, () => r(e))))).filter((e) => typeof e == `object` && !!e).map((e) => ({ title: e.title || ``, link: e.link, pubDate: e.pubDate }));
+    return { title: `知网 ${o} ${s}`, link: l, item: p };
+}
+export { a as route };

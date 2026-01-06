@@ -1,0 +1,42 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/list/group/:id`,
+    categories: [`programming`],
+    example: `/gihyo/list/group/Ubuntu-Weekly-Recipe`,
+    parameters: { id: `Series` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`gihyo.jp/list/group/:id`] }],
+    name: `Series`,
+    maintainers: [`masakichi`],
+    handler: a,
+};
+async function a(i) {
+    let a = i.req.param(`id`),
+        o = `https://gihyo.jp`,
+        s = `${o}/list/group/${a}`,
+        c = r((await t(s)).data),
+        l = c(`ul[class=m-listitem]`).find(`li`).not(`.m-listitem--ad`);
+    return {
+        title: c(`head title`).text(),
+        link: s,
+        description: c(`head meta[name=description]`).attr(`content`),
+        language: `ja`,
+        item: l.toArray().map((t) => ({
+            title: `${c(`p.m-listitem__title span.subtitle`, t).text()} ${c(`p.m-listitem__title`, t)
+                .contents()
+                .filter((e, t) => t.nodeType === 3)
+                .text()}`,
+            author: c(`p.m-listitem__author`, t).text(),
+            pubDate: n(e(c(`span.date`, t).text(), `YYYY-MM-DD`), 9),
+            link: `${o}${c(`a`, t).attr(`href`)}`.replace(/\?summary$/, ``),
+        })),
+    };
+}
+export { i as route };

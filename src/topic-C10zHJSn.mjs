@@ -1,0 +1,31 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { n, t as r } from './utils-Brt7HOtQ.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/topic/:topic`,
+    categories: [`new-media`],
+    example: `/agirls/topic/AppleWatch`,
+    parameters: { topic: `精选主题，可通过下方精选主题列表获得` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`agirls.aotter.net/topic/:topic`] }],
+    name: `精选主题`,
+    maintainers: [`TonyRL`],
+    handler: o,
+};
+async function o(a) {
+    let o = `${r}/topic/${a.req.param(`topic`)}`,
+        s = i((await t(o)).data),
+        c = JSON.parse(s(`script[type="application/ld+json"]`).text()),
+        l = s(`.ag-post-item__link`)
+            .toArray()
+            .map((e) => ((e = s(e)), { title: e.text().trim(), link: `${r}${e.attr(`href`)}` })),
+        u = await Promise.all(l.map((t) => e.tryGet(t.link, () => n(t))));
+    return { title: s(`head title`).text().trim(), link: o, description: c[`@graph`][0].description, item: u, language: s(`html`).attr(`lang`) };
+}
+export { a as route };

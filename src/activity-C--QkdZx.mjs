@@ -1,0 +1,42 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import r from 'sanitize-html';
+import i from 'rss-parser';
+const a = new i(),
+    o = {
+        path: `/activity/:user`,
+        name: `User Activities`,
+        maintainers: [`hyoban`],
+        example: `/github/activity/DIYgod`,
+        categories: [`programming`],
+        view: n.Notifications,
+        parameters: { user: `GitHub username` },
+        description: `Get the activities of a user on GitHub, based on the GitHub official RSS feed`,
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`github.com/:user`], target: `/activity/:user` }],
+        handler: async (n) => {
+            let { user: i } = n.req.param(),
+                o = await (await e(`https://github.com/${i}.atom`)).text(),
+                s = o.match(/<media:thumbnail height="30" width="30" url="(.+?)"/)?.[1],
+                c = await a.parseString(o);
+            return {
+                title: `${i}'s GitHub activities`,
+                link: c.link,
+                image: s,
+                item: c.items.map((e) => ({
+                    title: e.title ?? ``,
+                    link: e.link,
+                    description: r(e.content?.replaceAll(/href="\/(.+?)"/g, `href="https://github.com/$1"`) ?? ``, { allowedTags: [...r.defaults.allowedTags, `img`] }),
+                    pubDate: e.pubDate ? t(e.pubDate) : void 0,
+                    author: e.author,
+                    guid: e.id,
+                    image: s,
+                })),
+                allowEmpty: !0,
+            };
+        },
+    };
+export { o as route };

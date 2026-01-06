@@ -1,0 +1,25 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+const i = {
+        name: `FoodTalks全球食品资讯网`,
+        url: `www.foodtalks.cn`,
+        categories: [`new-media`],
+        lang: `zh-CN`,
+        description: `FoodTalks全球食品资讯网是一个提供食品饮料行业新闻、资讯、分析和商业资源的领先在线平台。它涵盖行业趋势、市场动态、产品创新、投融资信息以及企业新闻，连接行业内的专业人士、企业和消费者。`,
+    },
+    a = `https://api-we.foodtalks.cn`,
+    o = `https://www.foodtalks.cn`,
+    s = (e) =>
+        e.map((e) => ({
+            title: e.title,
+            pubDate: r(n(e.publishTime), 8),
+            link: `${o}/news/${e.id}`,
+            category: [e.parentTagCode === `category` ? e.tagCode : e.parentTagCode, ...e.seoKeywords.split(`,`)].filter(Boolean),
+            author: e.author || e.sourceName,
+            id: e.id,
+            image: e.coverImg,
+        })),
+    c = (n) => Promise.all(n.map((n) => t.tryGet(n.link, async () => ((n.description = (await e(`${a}/news/news/${n.id}?language=ZH`, { headers: { referer: `${o}/` } })).data.content), n))));
+export { i as a, c as i, o as n, s as r, a as t };

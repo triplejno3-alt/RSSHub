@@ -1,0 +1,52 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = { path: `/`, radar: [{ source: [`supchina.com/feed`, `supchina.com/`], target: `` }], name: `Unknown`, maintainers: [`nczitzk`], handler: a, url: `supchina.com/feed` };
+async function a(i) {
+    let a = `https://supchina.com`,
+        o = r((await n({ method: `get`, url: `${a}/feed/` })).data),
+        s = o(`item`)
+            .slice(0, i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`)) : 50)
+            .toArray()
+            .map(
+                (e) => (
+                    (e = o(e)),
+                    {
+                        guid: e.find(`guid`).text(),
+                        title: e.find(`title`).text(),
+                        link: e.find(`guid`).text(),
+                        author: e
+                            .find(String.raw`dc\:creator`)
+                            .html()
+                            .match(/CDATA\[(.*?)]/)[1],
+                        category: e
+                            .find(`category`)
+                            .toArray()
+                            .map(
+                                (e) =>
+                                    o(e)
+                                        .html()
+                                        .match(/CDATA\[(.*?)]/)[1]
+                            ),
+                        pubDate: t(e.find(`pubDate`).text()),
+                    }
+                )
+            );
+    return (
+        (s = await Promise.all(
+            s.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = r((await n({ method: `get`, url: t.link })).data);
+                    return (e(`.aspect-spacer, .post-recs, .author-bio`).remove(), (t.description = e(`.post__main`).html()), t);
+                })
+            )
+        )),
+        { title: o(`title`).first().text(), link: a, item: s }
+    );
+}
+export { i as route };

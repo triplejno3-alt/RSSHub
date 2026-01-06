@@ -1,0 +1,45 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/:os`,
+    categories: [`program-update`],
+    example: `/firecore/ios`,
+    parameters: { os: '`ios`,`tvos`,`macos`' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `Release Notes`,
+    maintainers: [`NathanDai`],
+    handler: i,
+};
+async function i(r) {
+    let { data: i } = await t(`https://firecore.com/releases`),
+        a = n(i),
+        o = a(`div.tab-pane.fade#${r.req.param(`os`)}`)
+            .find(`.release-date`)
+            .toArray()
+            .map((t) => {
+                t = a(t);
+                let n = t
+                        .parent()
+                        .contents()
+                        .filter((e, t) => t.nodeType === 3)
+                        .text(),
+                    r = e(t.text().match(/(\d{4}-\d{2}-\d{2})/)[1]);
+                return {
+                    title: n,
+                    description: t
+                        .parent()
+                        .nextUntil(`hr`)
+                        .toArray()
+                        .map((e) => a(e).html())
+                        .join(``),
+                    pubDate: r,
+                };
+            });
+    return { title: `Infuse Release Notes (${r.req.param(`os`)})`, link: `https://firecore.com/releases`, item: o };
+}
+export { r as route };

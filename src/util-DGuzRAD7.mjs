@@ -1,0 +1,74 @@
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = `https://www.cyzone.cn`,
+    i = `https://api1.cyzone.cn`,
+    a = new URL(`v2/content/app_content/show`, i).href,
+    o = (e, i) =>
+        i(e, async () => {
+            let { data: i } = await t(e),
+                a = n(i),
+                o = a(`img.avatar`)?.prop(`src`)?.split(`?`)[0] ?? void 0,
+                s = new URL(a(`link[rel="icon"]`)?.prop(`href`), r).href,
+                c = new URL(a(`div.logo img`)?.prop(`src`), r).href;
+            return {
+                title: a(`title`).text(),
+                link: e,
+                description: a(`meta[name="description"]`).prop(`content`),
+                language: `zh-cn`,
+                image: o || c,
+                icon: s,
+                logo: s,
+                subtitle: a(`meta[name="keywords"]`).prop(`content`),
+                author: a(`meta[name="app-mobile-web-app-title"]`).prop(`content`),
+            };
+        }),
+    s = async (i, o, s, ...c) => {
+        let l = { size: o };
+        for (let e of c) l = { ...l, ...e };
+        let { data: u } = await t(i, { searchParams: l }),
+            d = (u.data?.article ?? u.data?.data ?? u.data)
+                .slice(0, o)
+                .map(
+                    (t) => (
+                        (t = t.item ?? t),
+                        {
+                            title: t.title,
+                            link: /^\/\//.test(t.url) ? `https:${t.url}` : t.url,
+                            description: t.description,
+                            category: [t.category_name, ...(t.tags?.split(`,`) ?? [])],
+                            guid: t.content_id,
+                            pubDate: e(t.published_at * 1e3),
+                            upvotes: t.votes ?? 0,
+                        }
+                    )
+                );
+        return (
+            (d = await Promise.all(
+                d.map((i) =>
+                    s(`cyzone-${i.guid}`, async () => {
+                        let { data: o } = await t.post(a, { json: { content_id: i.guid } }),
+                            s = o.data,
+                            c = [s.category, ...i.category, ...(s.tags?.split(`,`) ?? [])],
+                            l = n(s.content);
+                        return (
+                            l(`img`).each(function () {
+                                l(this).prop(`src`) ? l(this).prop(`src`, l(this).prop(`src`).split(`?`)[0]) : l(this).remove();
+                            }),
+                            (i.title = s.title),
+                            (i.link = `${r}/article/${i.guid}.html`),
+                            (i.description = l.html()),
+                            (i.author = s.author_name ?? s.author),
+                            (i.category = [...new Set(c)].filter(Boolean)),
+                            (i.guid = `cyzone-${i.guid}`),
+                            (i.pubDate = e(s.published_at * 1e3)),
+                            (i.upvotes = s.votes ?? 0),
+                            i
+                        );
+                    })
+                )
+            )),
+            d
+        );
+    };
+export { r as i, o as n, s as r, i as t };

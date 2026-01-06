@@ -1,0 +1,23 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './utils-B5uKdrdg.mjs';
+import { load as r } from 'cheerio';
+const i = { path: `/:do?/:keyword?`, radar: [{ source: [`leiphone.com/`], target: `` }], name: `Unknown`, maintainers: [], handler: a, url: `leiphone.com/` };
+async function a(i) {
+    let a = i.req.param(`do`) ?? ``,
+        o = i.req.param(`keyword`) ?? ``,
+        s = `https://www.leiphone.com/${a}/${o}`,
+        c = r((await t.get(s)).data),
+        l = c(`.word > h3 > a`)
+            .slice(0, 10)
+            .toArray()
+            .map((e) => c(e).attr(`href`)),
+        u = await n.ProcessFeed(l, e);
+    return { title: `雷峰网${a === `category` ? ` ${o}` : ``}`, description: `雷峰网 - 读懂智能&未来`, link: s, item: u };
+}
+export { i as route };

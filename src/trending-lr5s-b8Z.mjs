@@ -1,0 +1,25 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { n as r, t as i } from './utils-BZcfIILG.mjs';
+const a = { path: `/trending`, categories: [`design`], example: `/makerworld/trending`, name: `Trending Models`, maintainers: [`TonyRL`], handler: o, radar: [{ source: [`makerworld.com/:lang`] }] };
+async function o() {
+    let a = (await e(`${i}/_next/data/${await r()}/en.json`, { headers: { 'User-Agent': t.trueUA } })).pageProps.popularDesignsData.map((e) => ({
+        title: e.title,
+        link: `${i}/en/models/${e.id}-${e.slug}`,
+        author: e.designCreator.name,
+        category: e.tags,
+        pubDate: n(e.startTime),
+        description: e.designExtension.design_pictures.map((t) => `<figure><img src="${t.url}" alt="${e.name}"><figcaption>${t.name}</figcaption></figure>`).join(``),
+    }));
+    return {
+        title: `Trending Models - MakerWorld`,
+        description: `Leading 3D printing model community for designers and makers. Download thousands of 3D models and stl models for free, and your No.1 option for multicolor 3D models`,
+        link: `${i}/en`,
+        image: `${i}/favicon_new.png`,
+        item: a,
+    };
+}
+export { a as route };

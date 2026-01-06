@@ -1,0 +1,66 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+import { raw as c } from 'hono/html';
+const l = ({ intro: e, description: t }) => a(r, { children: [e ? i(`blockquote`, { children: e }) : null, t ? c(t) : null] }),
+    u = (e) => s(i(l, { ...e })),
+    d = async (r) => {
+        let { language: i = `CN`, category: a = `paper` } = r.req.param(),
+            s = r.req.query(`limit`) ? Number.parseInt(r.req.query(`limit`), 10) : 6,
+            c = new URL(`${i}/${a}/0008/000901.aspx`, `https://www.dehenglaw.com`).href,
+            { data: l } = await n(c),
+            d = o(l),
+            f = d(`div.news_box ul li`)
+                .slice(0, s)
+                .toArray()
+                .map((e) => ((e = d(e)), { title: e.find(`h2`).text(), description: u({ intro: e.find(`div.deheng_newscontent p`).text() }), pubDate: t(e.find(`span`).text(), `YYYY/M/D`), link: e.find(`a`).first().prop(`href`) }));
+        f = await Promise.all(
+            f.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let { data: e } = await n(t.link),
+                        r = o(e),
+                        i = t.description + u({ description: r(`div.news_content`).html() }),
+                        a = r(`div.news_content img`).prop(`src`);
+                    return ((t.description = i), (t.author = r(`div.name h4 a`).text()), (t.content = { html: i, text: r(`div.news_content`).text() }), (t.image = a), (t.banner = a), t);
+                })
+            )
+        );
+        let p = d(`div.logo_content a img`).prop(`src`);
+        return {
+            title: d(`title`)
+                .text()
+                .replace(/\|.*?$/, `| ${d(`li.onthis`).text()}`),
+            description: d(`meta[name="Description"]`).prop(`content`),
+            link: c,
+            item: f,
+            allowEmpty: !0,
+            image: p,
+            author: d(`meta[name="Description"]`).prop(`content`),
+        };
+    },
+    f = {
+        path: `/:language?/:category?`,
+        name: `德恒探索`,
+        url: `dehenglaw.com`,
+        maintainers: [`nczitzk`],
+        handler: d,
+        example: `/dehenglaw/CN/paper`,
+        parameters: { language: `语言，默认为中文，即 CN，可在对应分类页 URL 中找到，可选 CN 和 EN`, category: `分类，默认为专业文章，即 paper，可在对应分类页 URL 中找到` },
+        description:
+            '::: tip\n  若订阅 [专业文章](https://dehenglaw.com/)，网址为 `https://www.dehenglaw.com/CN/paper/0008/000902.aspx`。截取 `https://dehenglaw.com/` 到末尾 `/0008/000902.aspx` 的部分 `CN/paper` 作为参数填入，此时路由为 [`/dehenglaw/CN/paper`](https://rsshub.app/dehenglaw/CN/paper)。\n\n| 专业文章 | 出版物  | 德恒论坛 |\n| -------- | ------- | -------- |\n| paper    | publish | luntan   |\n:::',
+        categories: [`new-media`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            { title: `专业文章`, source: [`dehenglaw.com/:language/paper/0008/000902.aspx`], target: `/:language/paper` },
+            { title: `出版物`, source: [`dehenglaw.com/:language/publish/0008/000903.aspx`], target: `/:language/publish` },
+            { title: `德恒论坛`, source: [`dehenglaw.com/:language/luntan/0008/000901.aspx`], target: `/:language/luntan` },
+        ],
+    };
+export { d as handler, f as route };

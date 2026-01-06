@@ -1,0 +1,41 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/`,
+    categories: [`new-media`],
+    example: `/pencilnews`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `文章列表`,
+    maintainers: [`defp`],
+    handler: a,
+    description: `获取铅笔道最新文章`,
+};
+async function a() {
+    let i = `https://www.pencilnews.cn`,
+        {
+            data: { articles: a },
+        } = (await n(`https://api.pencilnews.cn/articles`, { searchParams: { page: 0, page_size: 20 } })).data;
+    return {
+        title: `铅笔道`,
+        link: i,
+        item: await Promise.all(
+            a.map((a) => {
+                let o = a.article_info,
+                    s = o.article_id,
+                    c = `${i}/p/${s}.html`;
+                return e.tryGet(c, async () => {
+                    let e = r((await n(c)).data)(`.article_content`).html();
+                    return { title: o.title, description: e, link: c, author: a.author?.profile?.name || ``, pubDate: t(o.create_at, `YYYY-MM-DD HH:mm:ss`), category: [], guid: s };
+                });
+            })
+        ),
+    };
+}
+export { i as route };

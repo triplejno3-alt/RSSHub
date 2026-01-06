@@ -1,0 +1,25 @@
+import { Fragment as e, jsx as t, jsxs as n } from 'hono/jsx/jsx-runtime';
+import { renderToString as r } from 'hono/jsx/dom/server';
+const i = (i) =>
+    r(
+        n(`div`, {
+            children: [
+                i.short_description ? n(e, { children: [i.short_description, t(`br`, {})] }) : null,
+                i.original_price ? n(e, { children: [`Original Price: `, i.original_price, t(`br`, {})] }) : null,
+                i.price ? n(e, { children: [`Current Price: `, i.price, t(`br`, {})] }) : null,
+                t(`img`, { src: i.image }),
+            ],
+        })
+    );
+function a(e, t, n, r) {
+    let i = new Set([`name`, `image`, `short_description`, `slug`, `price_${r}`, `discount_price_${r}`]),
+        a = e.attribute,
+        o = {};
+    for (let e of a) {
+        let t = e.name,
+            n = e.value[0].value;
+        i.has(t) && (t === `price_${r}` ? (o.original_price = n) : t === `discount_price_${r}` ? (o.price = n) : (o[t] = n));
+    }
+    return (n[t] = o);
+}
+export { i as n, a as t };

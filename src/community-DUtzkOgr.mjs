@@ -1,0 +1,35 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './md5-DQN6cWFb.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './types-Bl_lnefZ.mjs';
+import { Fragment as a, jsx as o, jsxs as s } from 'hono/jsx/jsx-runtime';
+import { renderToString as c } from 'hono/jsx/dom/server';
+const l = (e) => c(s(a, { children: [e.cover ? s(a, { children: [o(`img`, { src: e.cover }), o(`br`, {})] }) : null, e.content] })),
+    u = { path: `/community`, categories: [`finance`], view: i.Articles, example: `/jiuyangongshe/community`, maintainers: [`TonyRL`], name: `社群`, handler: d, radar: [{ source: [`www.jiuyangongshe.com`] }] };
+async function d(i) {
+    let a = `https://www.jiuyangongshe.com`,
+        o = String(Date.now());
+    return {
+        title: `社群 - 韭研公社-研究共享，茁壮成长（原韭菜公社）`,
+        link: a,
+        language: `zh-CN`,
+        item: (
+            await e(`https://app.jiuyangongshe.com/jystock-app/api/v2/article/community`, {
+                method: `POST`,
+                headers: { platform: `3`, timestamp: o, token: t(`Uu0KfOB8iUP69d3c:${o}`) },
+                body: { category_id: ``, limit: i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`), 10) : 30, order: 0, start: 1, type: 0, back_garden: 0 },
+            })
+        ).data.result.map((e) => ({
+            title: e.title,
+            description: l({ cover: e.cover, content: e.content }),
+            link: `${a}/a/${e.article_id}`,
+            pubDate: r(n(e.create_time, `YYYY-MM-DD HH:mm:ss`), 8),
+            author: e.user.nickname,
+            category: e.stock_list.map((e) => e.name),
+        })),
+    };
+}
+export { u as route };

@@ -1,0 +1,4 @@
+var e = class extends Error {
+    name = `RejectError`;
+};
+export { e as t };

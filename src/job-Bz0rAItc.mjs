@@ -1,0 +1,52 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { renderToString as s } from 'hono/jsx/dom/server';
+const c = `https://job.xjtu.edu.cn`,
+    l = { zxgg: `中心公告`, xds: `选调生`, zddw: `重点单位`, gjzz: `国际组织`, cxcy: `创新创业`, jysx: `就业实习` },
+    u = {
+        path: `/job/:subpath?`,
+        categories: [`university`],
+        example: `/xjtu/job/zxgg`,
+        parameters: { subpath: '栏目类型，默认请求`zxgg`，详见下方表格' },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `就业创业中心`,
+        maintainers: [`DylanXie123`],
+        handler: d,
+        description: `栏目类型
+
+| 中心公告 | 选调生 | 重点单位 | 国际组织 | 创新创业 | 就业实习 |
+| -------- | ------ | -------- | -------- | -------- | -------- |
+| zxgg     | xds    | zddw     | gjzz     | cxcy     | jysx     |`,
+    };
+async function d(i) {
+    let o = i.req.param(`subpath`) ?? `zxgg`,
+        u = (await n.post(`${c}/xsfw/sys/jyxtgktapp/modules/jywzManage/getTzgg.do`, { form: { requestParamStr: `{"pageSize":7,"pageNumber":1}` }, https: { rejectUnauthorized: !1 } })).data.data.find(
+            (e) => e.menutitle === l[o]
+        ).menuid,
+        { data: d } = await n.post(`${c}/xsfw/sys/jyxtgktapp/modules/jywzManage/getMhcxWzData.do`, { form: { requestParamStr: `{"pageSize":4,"pageNumber":1,"LMDM":${u}}` }, https: { rejectUnauthorized: !1 } }),
+        p = d.data.map((e) => ({ title: e.menutitle, description: e.NR, pubDate: r(t(e.SBSJ), 8), guid: e.menuid, link: `${c}/xsfw/sys/emaphome/website/template/detail.html?menuid=${e.menuid}&msg=TZGG&msgChild=NRXQ` })),
+        m = await Promise.all(
+            p.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = await n.post(`${c}/xsfw/sys/jyxtgktapp/modules/jywzManage/getWzone.do`, { form: { requestParamStr: `{"WID":${t.guid}}` }, https: { rejectUnauthorized: !1 } }),
+                        r = ``;
+                    return (
+                        e.data.data[0].FJ && (r = s(a(f, { items: (await n(`${c}/xsfw/sys/emapcomponent/file/getUploadedAttachment.do?fileToken=${e.data.data[0].FJ}`, { https: { rejectUnauthorized: !1 } })).data.items }))),
+                        (t.author = e.data.data[0].CZZXM),
+                        (t.description = e.data.data[0].NR + r),
+                        t
+                    );
+                })
+            )
+        );
+    return { title: `西安交通大学学生就业创业信息网 - ${l[o]}`, link: c, item: m };
+}
+const f = ({ items: e }) => a(i, { children: e.map((e) => o(i, { children: [a(`a`, { href: e.fileUrl, rel: `noreferrer`, children: e.name }), a(`br`, {})] })) });
+export { u as route };

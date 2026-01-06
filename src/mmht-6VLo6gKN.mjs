@@ -1,0 +1,32 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './common-utils-uYpL50sT.mjs';
+import './got-CKQ7C9HX.mjs';
+import './timezone-CrV-DT8S.mjs';
+import './wechat-mp-HNgcLN2K.mjs';
+import { t as e } from './general-C-fBY1um.mjs';
+const t = { path: `/mmht/*`, name: `Unknown`, maintainers: [], handler: n };
+async function n(t) {
+    await e(
+        {
+            defaultPath: `xwzx/zcjd/`,
+            list_element: `#main21l_main_dk > table > tbody > tr > td:nth-child(2) a`,
+            list_include: `site`,
+            title_element: `td[background="/global/rlyelen_line04.gif"] > table:nth-child(1) > tbody > tr:nth-child(2)`,
+            title_match: `(.*)`,
+            description_element: `td[background="/global/rlyelen_line04.gif"] > table:nth-child(1) > tbody > tr:nth-child(4)`,
+            author_element: void 0,
+            author_match: void 0,
+            authorisme: `茂名市高新技术产业开发局政务网`,
+            pubDate_element: `td[background="/global/rlyelen_line04.gif"] > table:nth-child(1) > tbody > tr:nth-child(3) > td > table > tbody > tr > td`,
+            pubDate_match: `发表时间：(.*)\xA0\xA0\xA0\xA0\xA0\xA0\xA0信息来源`,
+            pubDate_format: void 0,
+        },
+        t
+    );
+}
+export { t as route };

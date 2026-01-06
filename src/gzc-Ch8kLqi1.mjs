@@ -1,0 +1,60 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './types-Bl_lnefZ.mjs';
+import { load as a } from 'cheerio';
+const o = {
+    path: `/gzc/:category?`,
+    name: `国有资产管理处`,
+    url: `gzc.hrbust.edu.cn`,
+    maintainers: [`cscnk52`],
+    handler: s,
+    example: `/hrbust/gzc`,
+    parameters: { category: `栏目标识，默认为 1305（热点新闻）` },
+    description: `| 政策规章 | 资料下载 | 处务公开 | 招标信息 | 岗位职责 | 管理办法 | 物资处理 | 工作动态 | 热点新闻 |
+|----------|----------|----------|----------|----------|----------|----------|----------|----------|
+| 1287     | 1288     | 1289     | 1291     | 1300     | 1301     | 1302     | 1304     | 1305     |`,
+    categories: [`university`],
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, supportRadar: !0 },
+    radar: [
+        { source: [`gzc.hrbust.edu.cn/:category/list.htm`], target: `/gzc/:category` },
+        { source: [`gzc.hrbust.edu.cn`], target: `/gzc` },
+    ],
+    view: i.Notifications,
+};
+async function s(i) {
+    let o = `https://gzc.hrbust.edu.cn/`,
+        { category: s = 1305 } = i.req.param(),
+        c = `${o}${s}/list.htm`,
+        l = a(await e(c)),
+        u = l(`li.col-title`).text(),
+        d = l(`ul.wp_article_list li.list_item`)
+            .toArray()
+            .map((e) => {
+                let t = l(e),
+                    i = new URL(t.find(`a`).attr(`href`), o).href,
+                    a = t.find(`span.Article_PublishDate`).text().trim(),
+                    s = a ? r(n(a), 8) : null;
+                return { title: t.find(`a`).text().trim(), pubDate: s, link: i };
+            }),
+        f = await Promise.all(
+            d.map((n) =>
+                t.tryGet(n.link, async () => {
+                    if (!n.link.startsWith(o)) return ((n.description = `本文需跳转，请点击原文链接后阅读`), n);
+                    let t = a(await e(n.link))(`div.wp_articlecontent`);
+                    return (
+                        t.find(`[style]`).removeAttr(`style`),
+                        t.find(`font`).contents().unwrap(),
+                        t.html(t.html()?.replaceAll(`&nbsp;`, ``)),
+                        t.find(`[align]`).removeAttr(`align`),
+                        { title: n.title, link: n.link, pubDate: n.pubDate, description: t.html() }
+                    );
+                })
+            )
+        );
+    return { title: `${u} - 哈尔滨理工大学国有资产管理处`, link: c, language: `zh-CN`, item: f };
+}
+export { o as route };

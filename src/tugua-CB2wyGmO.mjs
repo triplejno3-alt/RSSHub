@@ -1,0 +1,23 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { t as e } from './utils-BukaQkSZ.mjs';
+const t = {
+    path: `/tugua`,
+    categories: [`picture`],
+    example: `/dapenti/tugua`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `图卦`,
+    maintainers: [`tgly307`],
+    handler: n,
+};
+async function n() {
+    return await e.parseFeed({ subjectid: 70 });
+}
+export { t as route };

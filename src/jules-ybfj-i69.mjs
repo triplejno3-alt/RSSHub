@@ -1,0 +1,37 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/jules/changelog`,
+    categories: [`program-update`],
+    example: `/google/jules/changelog`,
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `Jules Changelog`,
+    url: `jules.google/docs/changelog/`,
+    maintainers: [`johan456789`],
+    handler: i,
+};
+async function i() {
+    let r = `https://jules.google/docs/changelog/`,
+        i = n(await e(r));
+    return {
+        title: `Jules Changelog`,
+        link: r,
+        item: i(`main article`)
+            .toArray()
+            .map((e) => {
+                let n = i(e),
+                    a = n.find(`h2`).first(),
+                    o = a.attr(`id`) || n.attr(`id`),
+                    s = a.text().trim(),
+                    c = o ? `${r}#${o}` : r,
+                    l = a.nextAll(`b`).first().text().trim(),
+                    u = n.find(`img`).first().attr(`src`),
+                    d = u ? new URL(u, r).href : void 0;
+                return (n.find(`h2`).first().remove(), n.find(`b`).first().remove(), { title: s, description: n.html() || void 0, link: c, pubDate: l ? t(l) : void 0, image: d });
+            }),
+    };
+}
+export { r as route };

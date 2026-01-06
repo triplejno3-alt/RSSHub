@@ -1,0 +1,60 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/weekly`,
+    categories: [`traditional-media`],
+    example: `/caixin/weekly`,
+    radar: [{ source: [`weekly.caixin.com/`, `weekly.caixin.com/*`] }],
+    name: `财新周刊`,
+    maintainers: [`TonyRL`],
+    handler: a,
+    url: `weekly.caixin.com/`,
+};
+async function a(i) {
+    let a = `https://weekly.caixin.com`,
+        { data: o } = await n(a),
+        s = r(o),
+        c = [
+            ...s(`.mi`)
+                .toArray()
+                .map((e) => ({ link: s(e).find(`a`).attr(`href`)?.replace(`http:`, `https:`) })),
+            ...s(`.xsjCon a`)
+                .toArray()
+                .map((e) => ({ link: s(e).attr(`href`) })),
+        ].slice(0, i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`), 10) : 10),
+        l = await Promise.all(
+            c.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let { data: e } = await n(i.link),
+                        a = r(e);
+                    ((i.title = a(`head title`)
+                        .text()
+                        .replace(/_财新周刊频道_财新网$/, ``)
+                        .trim()),
+                        (i.pubDate = t(
+                            a(`.source`)
+                                .text()
+                                .match(/出版日期：(\d{4}-\d{2}-\d{2})/)[1]
+                        )),
+                        a(`.subscribe`).remove());
+                    let o = a(`.report`);
+                    return (o.find(`.title, .source, .date`).remove(), (i.description = a(`.cover`).html() + o.html() + a(`.magIntro2`).html()), i);
+                })
+            )
+        );
+    return {
+        title: s(`head title`)
+            .text()
+            .replace(/_财新周刊频道_财新网$/, ``)
+            .trim(),
+        link: a,
+        item: l,
+    };
+}
+export { i as route };

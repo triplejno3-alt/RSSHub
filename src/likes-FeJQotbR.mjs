@@ -1,0 +1,28 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { a as t, i as n, o as r, r as i, t as a } from './utils-DgcddF0f.mjs';
+import { t as o } from './post-CXLI1Kwy.mjs';
+const s = {
+    path: [`/likes/:user`],
+    categories: [`social-media`],
+    example: `/cara/likes/fengz`,
+    parameters: { user: `username` },
+    name: `Likes`,
+    maintainers: [`KarasuShin`],
+    handler: c,
+    radar: [{ source: [`cara.app/:user`, `cara.app/:user/*`], target: `/likes/:user` }],
+};
+async function c(s) {
+    let c = s.req.param(`user`),
+        l = s.req.query(`limit`) ? Number.parseInt(s.req.query(`limit`), 10) : 15,
+        u = await i(c),
+        d = (await a(`${n}/posts/getAllLikesByUser?slug=${u.slug}&take=${l}`)).data.map((n) => {
+            let i = o({ content: n.content, images: n.images.filter((e) => !e.isCoverImg).map((e) => ({ ...e, src: `${t}/${e.src}` })) });
+            return { title: n.title || n.content, pubDate: e(n.createdAt), link: `${r}/post/${n.id}`, description: i };
+        });
+    return { title: `Likes - ${u.name}`, link: `${r}/${c}/likes`, image: `${t}/${u.photo}`, item: d };
+}
+export { s as route };

@@ -1,0 +1,11 @@
+import { Fragment as e, jsx as t } from 'hono/jsx/jsx-runtime';
+import { renderToString as n } from 'hono/jsx/dom/server';
+const r = ({ useIframe: r, id: i, poster: a, source: o }) =>
+    n(
+        t(e, {
+            children: r
+                ? t(`iframe`, { src: `https://www.tiktok.com/embed/${i}`, height: `757`, frameborder: `0`, referrerpolicy: `no-referrer` })
+                : t(`video`, { controls: !0, loop: !0, poster: a, preload: `metadata`, children: t(`source`, { src: o }) }),
+        })
+    );
+export { r as t };

@@ -1,0 +1,37 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/dky/:category?`,
+    categories: [`university`],
+    example: `/sicau/dky/tzgg`,
+    parameters: { category: `分类，见下表，默认为通知公告` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`dky.sicau.edu.cn/`] }],
+    name: `动物科技学院`,
+    maintainers: [`nczitzk`],
+    handler: o,
+    url: `dky.sicau.edu.cn/`,
+    description: `| 通知公告 | 学院动态 | 教学管理 | 动科大讲堂 | 就业信息 |
+| -------- | -------- | -------- | ---------- | -------- |
+| tzgg     | xydt     | jxgl     | dkdjt      | zpxx     |`,
+};
+async function o(a) {
+    let o = a.req.param(`category`) ?? `tzgg`,
+        s = `https://dky.sicau.edu.cn`,
+        c = `${s}/${o}.htm`,
+        l = i((await n({ method: `get`, url: c })).data),
+        u = l(`a.tit`)
+            .slice(0, 10)
+            .toArray()
+            .map((e) => ((e = l(e)), { title: e.text(), link: `${s}/${e.attr(`href`)}`, pubDate: r(t(e.prev().text(), `YYYY-MM-DD`), 8) })),
+        d = await Promise.all(u.map((t) => e.tryGet(t.link, async () => ((t.description = i((await n({ method: `get`, url: t.link })).data)(`.v_news_content`).html()), t))));
+    return { title: l(`title`).text(), link: c, item: d };
+}
+export { a as route };

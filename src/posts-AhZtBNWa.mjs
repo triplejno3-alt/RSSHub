@@ -1,0 +1,21 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { n as e, t } from './utils-CA4deCoK.mjs';
+const n = {
+    path: `/posts/:routeParams?`,
+    categories: [`picture`],
+    example: `/misskon/posts/search=video&tags_exclude=353,3100&per_page=5`,
+    parameters: { routeParams: `Additional parameters for filtering posts, refer to [WordPress API Reference](https://developer.wordpress.org/rest-api/reference/posts/#arguments) for details.` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+    radar: [{ source: [`misskon.com/`], target: `/posts` }],
+    name: `Posts`,
+    maintainers: [`Urabartin`],
+    handler: async (n) => {
+        let { routeParams: r = `` } = n.req.param();
+        return { title: `MissKON - ${r || `Posts`}`, link: `${t}/posts` + (r ? `?${r}` : ``), item: await e(r) };
+    },
+};
+export { n as route };

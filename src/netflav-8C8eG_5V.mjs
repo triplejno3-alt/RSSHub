@@ -1,0 +1,38 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { Fragment as n, jsx as r, jsxs as i } from 'hono/jsx/jsx-runtime';
+import { load as a } from 'cheerio';
+import { renderToString as o } from 'hono/jsx/dom/server';
+const s = { path: `/`, radar: [{ source: [`netflav.com/`], target: `` }], name: `Unknown`, maintainers: [`TonyRL`], handler: c, url: `netflav.com/`, features: { nsfw: !0 } };
+async function c() {
+    let n = `https://netflav.com`,
+        { data: r } = await t(n),
+        i = a(r),
+        {
+            head: o,
+            props: { initialState: s },
+        } = JSON.parse(i(`#__NEXT_DATA__`).text()),
+        c = [...s.censored.docs, ...s.uncensored.docs, ...s.chinese.docs, ...s.trending.docs].map((t) => ({
+            title: t.title,
+            description: l([...new Set([t.preview_hp, t.preview, t.previewImagesUrl, ...(t.previewImages || [])])].filter(Boolean), t.description),
+            link: `https://netflav.com/video?id=${t.videoId}`,
+            pubDate: e(t.sourceDate),
+            author: [...new Set(t.actors.map((e) => e.replace(/^(\w{2}:)/, ``)))].join(`, `),
+            category: [...new Set(t.tags?.map((e) => e.replace(/^(\w{2}:)/, ``)))],
+        }));
+    return {
+        title: o.find((e) => e[0] === `title`)[1].children,
+        description: o.find((e) => e[0] === `meta` && e[1].name === `description`)[1].content,
+        logo: `${n}${o.find((e) => e[0] === `meta` && e[1].property === `og:image`)[1].content}`,
+        image: `${n}${o.find((e) => e[0] === `meta` && e[1].property === `og:image`)[1].content}`,
+        link: n,
+        item: c,
+        allowEmpty: !0,
+    };
+}
+const l = (e, t) => o(i(n, { children: [e?.map((e, t) => r(`img`, { src: e }, `${e}-${t}`)), t ? r(`p`, { children: t }) : null] }));
+export { s as route };

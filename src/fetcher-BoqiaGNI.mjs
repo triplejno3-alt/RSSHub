@@ -1,0 +1,6 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+function n(n, r) {
+    return t.tryGet(n, async () => r(await e(n)));
+}
+export { n as t };

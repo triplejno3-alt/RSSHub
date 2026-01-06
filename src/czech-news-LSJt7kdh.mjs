@@ -1,0 +1,140 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { load as i } from 'cheerio';
+const a = async (r) => {
+        let { category: a = `daily-news` } = r.req.param(),
+            o = Number.parseInt(r.req.query(`limit`) ?? `30`, 10),
+            s = `https://www.expats.cz`,
+            c = new URL(`czech-news/${a}`, s).href,
+            l = i(await e(c)),
+            u = l(`html`).attr(`lang`) ?? `en`,
+            d = [];
+        return (
+            (d = l(`div.main h3 a`)
+                .slice(0, o)
+                .toArray()
+                .map((e) => {
+                    let t = l(e);
+                    return { title: t.text(), link: new URL(t.attr(`href`), s).href, language: u };
+                })),
+            (d = await Promise.all(
+                d.map((r) =>
+                    r.link
+                        ? t.tryGet(r.link, async () => {
+                              let t = i(await e(r.link));
+                              t(`div.promo-widget, div.eas`).remove();
+                              let a = t(`div.title h1`).text(),
+                                  o = t(`div#expats-article-content`).html() ?? void 0,
+                                  c = t(`meta[property="article:published_time"]`).attr(`content`),
+                                  l = [t(`meta[property="article:section"]`).attr(`content`) ?? ``],
+                                  d = t(`span.written-by a`)
+                                      .toArray()
+                                      .map((e) => {
+                                          let n = t(e);
+                                          return {
+                                              name: n.text(),
+                                              url: n.attr(`href`) ? new URL(n.attr(`href`), s).href : void 0,
+                                              avatar: t(`div.authors div.photos a img`).attr(`src`) ? new URL(t(`div.authors div.photos a img`).attr(`src`), s).href : void 0,
+                                          };
+                                      }),
+                                  f = t(`meta[property="og:image"]`).attr(`content`),
+                                  p = c,
+                                  m = { title: a, description: o, pubDate: c ? n(c) : r.pubDate, category: l, author: d, content: { html: o, text: o }, image: f, banner: f, updated: p ? n(p) : r.updated, language: u };
+                              return { ...r, ...m };
+                          })
+                        : r
+                )
+            )),
+            {
+                title: l(`title`).text(),
+                description: l(`meta[property="og:description"]`).attr(`content`),
+                link: c,
+                item: d,
+                allowEmpty: !0,
+                image: l(`meta[property="og:image"]`).attr(`content`),
+                author: l(`meta[property="og:site_name"]`).attr(`content`),
+                language: u,
+                id: c,
+            }
+        );
+    },
+    o = {
+        path: `/czech-news/:category?`,
+        name: `Czech News`,
+        url: `www.expats.cz`,
+        maintainers: [`nczitzk`],
+        handler: a,
+        example: `/expats/czech-news/daily-news`,
+        parameters: {
+            category: {
+                description: 'Category, `daily-news` by default',
+                options: [
+                    { label: `Daily News`, value: `daily-news` },
+                    { label: `Prague Guide`, value: `prague-guide` },
+                    { label: `Culture & Events`, value: `culture-events` },
+                    { label: `Food & Drink`, value: `food-drink` },
+                    { label: `Expat Life`, value: `expat-life` },
+                    { label: `Housing`, value: `housing` },
+                    { label: `Education`, value: `education` },
+                    { label: `Health`, value: `health` },
+                    { label: `Work`, value: `work` },
+                    { label: `Travel`, value: `travel` },
+                    { label: `Economy`, value: `economy` },
+                    { label: `Language`, value: `language` },
+                ],
+            },
+        },
+        description: `::: tip
+To subscribe to [Daily News](https://www.expats.cz/czech-news/daily-news), where the source URL is \`https://www.expats.cz/czech-news/daily-news\`, extract the certain parts from this URL to be used as parameters, resulting in the route as [\`/expats/czech-news/daily-news\`](https://rsshub.app/expats/czech-news/daily-news).
+:::
+
+<details>
+  <summary>More categories</summary>
+
+| Category                                                      | ID                                                                    |
+| ------------------------------------------------------------- | --------------------------------------------------------------------- |
+| [Daily News](https://www.expats.cz/czech-news/daily-news)     | [daily-news](https://rsshub.app/expats/czech-news/daily-news)         |
+| [Prague Guide](https://www.expats.cz/czech-news/prague-guide) | [prague-guide](https://rsshub.app/expats/czech-news/prague-guide)     |
+| [Culture](https://www.expats.cz/czech-news/culture-events)    | [culture-events](https://rsshub.app/expats/czech-news/culture-events) |
+| [Food & Drink](https://www.expats.cz/czech-news/food-drink)   | [food-drink](https://rsshub.app/expats/czech-news/food)               |
+| [Expat Life](https://www.expats.cz/czech-news/expat-life)     | [expat-life](https://rsshub.app/expats/czech-news/expat-life)         |
+| [Housing](https://www.expats.cz/czech-news/housing)           | [housing](https://rsshub.app/expats/czech-news/housing)               |
+| [Education](https://www.expats.cz/czech-news/education)       | [education](https://rsshub.app/expats/czech-news/education)           |
+| [Health](https://www.expats.cz/czech-news/health)             | [health](https://rsshub.app/expats/czech-news/health)                 |
+| [Work](https://www.expats.cz/czech-news/work)                 | [work](https://rsshub.app/expats/czech-news/work)                     |
+| [Travel](https://www.expats.cz/czech-news/travel)             | [travel](https://rsshub.app/expats/czech-news/travel)                 |
+| [Economy](https://www.expats.cz/czech-news/economy)           | [economy](https://rsshub.app/expats/czech-news/economy)               |
+| [Language](https://www.expats.cz/czech-news/language)         | [language](https://rsshub.app/expats/czech-news/language)             |
+
+</details>
+`,
+        categories: [`new-media`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            {
+                source: [`www.expats.cz/czech-news/:category`],
+                target: (e) => {
+                    let t = e.category;
+                    return `/expats/czech-news${t ? `/${t}` : ``}`;
+                },
+            },
+            { title: `Daily News`, source: [`www.expats.cz/czech-news/daily-news`], target: `/expats/czech-news/daily-news` },
+            { title: `Prague Guide`, source: [`www.expats.cz/czech-news/prague-guide`], target: `/expats/czech-news/prague-guide` },
+            { title: `Culture & Events`, source: [`www.expats.cz/czech-news/culture-events`], target: `/expats/czech-news/culture-events` },
+            { title: `Food & Drink`, source: [`www.expats.cz/czech-news/food-drink`], target: `/expats/czech-news/food-drink` },
+            { title: `Expat Life`, source: [`www.expats.cz/czech-news/expat-life`], target: `/expats/czech-news/expat-life` },
+            { title: `Housing`, source: [`www.expats.cz/czech-news/housing`], target: `/expats/czech-news/housing` },
+            { title: `Education`, source: [`www.expats.cz/czech-news/education`], target: `/expats/czech-news/education` },
+            { title: `Health`, source: [`www.expats.cz/czech-news/health`], target: `/expats/czech-news/health` },
+            { title: `Work`, source: [`www.expats.cz/czech-news/work`], target: `/expats/czech-news/work` },
+            { title: `Travel`, source: [`www.expats.cz/czech-news/travel`], target: `/expats/czech-news/travel` },
+            { title: `Economy`, source: [`www.expats.cz/czech-news/economy`], target: `/expats/czech-news/economy` },
+            { title: `Language`, source: [`www.expats.cz/czech-news/language`], target: `/expats/czech-news/language` },
+        ],
+        view: r.Articles,
+    };
+export { a as handler, o as route };

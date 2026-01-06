@@ -1,0 +1,54 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/gix/news/:category`,
+    categories: [`university`],
+    example: `/uw/gix/news/blog`,
+    parameters: { category: `Blog Type` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`gixnetwork.org/news/:category`] }],
+    name: `Global Innovation Exchange News`,
+    maintainers: [`dykderrick`],
+    handler: i,
+    description: `| Blog | In The News |
+| ---- | ----------- |
+| blog | inthenews   |`,
+};
+async function i(r) {
+    let i = r.req.param(`category`),
+        a = `https://gixnetwork.org/news`,
+        o = `UW GIX News - `,
+        s = `body > div.site > div.site-content > div.content-area > main.site-main > `;
+    switch (i) {
+        case `blog`:
+            ((a += `/blog/`), (o += `Blogs`), (s += `div.blog-wrapper > section.blog-list > article`));
+            break;
+        case `inthenews`:
+            ((a += `/inthenews/`), (o += `In The News`), (s += `div.news-wrapper > section.news-list > article`));
+            break;
+    }
+    let c = (await t(a)).data,
+        l = n(c),
+        u = l(s)
+            .toArray()
+            .map((e) => {
+                e = l(e);
+                let t = e.find(`header`).find(`h2`).find(`a`);
+                return { time: e.find(`header`).find(`span.h4`).text(), link: t.attr(`href`) };
+            }),
+        d = await Promise.all(
+            u.map((r) =>
+                e.tryGet(r.link, async () => {
+                    let e = n((await t(r.link)).data);
+                    return ((r.title = e(`header.entry-header`).find(`h1`).text()), (r.description = e(`div.entry-content`).html()), (r.pubDate = Date.parse(r.time)), r);
+                })
+            )
+        );
+    return { title: o, link: a, item: d };
+}
+export { r as route };

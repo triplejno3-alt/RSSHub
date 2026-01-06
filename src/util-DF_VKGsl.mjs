@@ -1,0 +1,69 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './config-not-found-DGyG6Tbz.mjs';
+import { Fragment as a, jsx as o, jsxs as s } from 'hono/jsx/jsx-runtime';
+import { load as c } from 'cheerio';
+import { renderToString as l } from 'hono/jsx/dom/server';
+const u = `https://nhentai.net`,
+    d = async (e, t, n) => {
+        let i = `https://nhentai.net/login/`,
+            a = `nhentai:cookie`,
+            o = await n.get(a);
+        if (o) {
+            let { cookie: e, time: t } = JSON.parse(o);
+            if (Date.now() - t < 86400 * 3 * 1e3) return e;
+        }
+        let { data: s, headers: c } = await r(i),
+            l = s.match(/name="csrfmiddlewaretoken" value="(.*?)"/)[1],
+            u = c[`set-cookie`].map((e) => e.split(`;`)[0]).join(`; `),
+            d = await r.post(i, { headers: { referer: i, cookie: u }, form: { csrfmiddlewaretoken: l, username_or_email: e, password: t, next: `` }, followRedirect: !1 });
+        if (d.statusCode !== 302) return (n.set(a, JSON.stringify({ cookie: ``, time: Date.now() })), ``);
+        let f = d.headers[`set-cookie`].map((e) => e.split(`;`)[0]).join(`; `);
+        return (n.set(a, JSON.stringify({ cookie: f, time: Date.now() })), f);
+    },
+    f = (t, ...n) => e(t, { ...n, headers: { host: `nhentai.net` } }),
+    p = async (e) => {
+        let t = c(await f(e));
+        return t(`.gallery a.cover`)
+            .toArray()
+            .map((e) => _(t(e)));
+    },
+    m = (e, t, n) => Promise.all(t.slice(0, n).map((t) => e.tryGet(t.link, () => y(t)))),
+    h = async (e, n, r) => {
+        if (!t.nhentai || !t.nhentai.username || !t.nhentai.password)
+            throw new i(`nhentai RSS with torrents is disabled due to the lack of <a href="https://docs.rsshub.app/deploy/config#route-specific-configurations">relevant config</a>`);
+        let a = await d(t.nhentai.username, t.nhentai.password, e);
+        if (!a) throw new i(`Invalid username (or email) or password for nhentai torrent download`);
+        return g(e, n, a, r);
+    },
+    g = (e, t, n, r) => Promise.all(t.slice(0, r).map((t) => e.tryGet(t.link + `download`, () => v(t, n)))),
+    _ = (e) => {
+        let t = new URL(e.attr(`href`), u).href,
+            n = e.children(`img`),
+            r = (n.attr(`data-src`) || n.attr(`src`))
+                .replace(`thumb`, `1`)
+                .replace(/t(\d+)\.nhentai\.net/, `i$1.nhentai.net`)
+                .replace(`.webp.webp`, `.webp`);
+        return { title: e.children(`.caption`).text(), link: t, description: `<img src="${r}">` };
+    },
+    v = async (e, t) => {
+        let { link: n } = e,
+            r = await f(n + `download`, { followRedirect: !1, responseType: `buffer`, headers: { Cookie: t } });
+        return { ...e, enclosure_url: r, enclosure_type: `application/x-bittorrent` };
+    },
+    y = async (e) => {
+        let { link: t } = e,
+            r = c(await f(t)),
+            i = r(`.gallerythumb img`)
+                .toArray()
+                .map((e) => new URL(r(e).attr(`data-src`), u).href)
+                .map((e) => e.replace(/(.+)(\d+)t\.(.+)/, (e, t, n, r) => `${t}${n}.${r}`))
+                .map((e) => e.replace(/t(\d+)\.nhentai\.net/, `i$1.nhentai.net`))
+                .map((e) => e.replace(/\.(jpg|png|gif)\.webp$/, `.$1`))
+                .map((e) => e.replace(/\.webp\.webp$/, `.webp`));
+        return { ...e, title: r(`div#info > h2`).text() || r(`div#info > h1`).text(), pubDate: n(r(`time`).attr(`datetime`)), description: b(i.length, i) };
+    },
+    b = (e, t) => l(s(a, { children: [s(`h1`, { children: [e, ` pages`] }), o(`br`, {}), t.map((e, t) => s(`span`, { children: [o(`img`, { src: e }), o(`br`, {})] }, `${e}-${t}`))] }));
+export { p as n, h as r, m as t };

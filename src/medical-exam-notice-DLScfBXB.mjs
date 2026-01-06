@@ -1,0 +1,39 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/jinan/healthcommission/medical_exam_notice`,
+    categories: [`government`],
+    example: `/gov/jinan/healthcommission/medical_exam_notice`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`jnmhc.jinan.gov.cn/*`] }],
+    name: `获取国家医师资格考试通知`,
+    maintainers: [`tzjyxb`],
+    handler: a,
+    url: `jnmhc.jinan.gov.cn/*`,
+};
+async function a() {
+    let i = r((await t(`https://jnmhc.jinan.gov.cn/module/web/jpage/dataproxy.jsp`, { searchParams: { page: 1, webid: 28, path: `/`, columnid: 14418, unitid: 18878, webname: `济南市卫生健康委员会`, permissiontype: 0 } })).data, {
+        xmlMode: !0,
+    });
+    return {
+        title: `济南卫建委-执业考试通知`,
+        link: `https://jnmhc.jinan.gov.cn/col/col14418/index.html`,
+        item: i(`record`)
+            .toArray()
+            .map((t) => {
+                t = i(t).text();
+                let a = r(t),
+                    o = a(`td[width="620"] a`).attr(`title`),
+                    s = a(`td[width="620"] a`).attr(`href`);
+                return { title: o, description: o, pubDate: n(e(a(`td[width="100"]`).text()), 8), link: s, author: `济南市卫生健康委员会` };
+            }),
+    };
+}
+export { i as route };

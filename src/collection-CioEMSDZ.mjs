@@ -1,0 +1,32 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { t as r } from './utils-DrEAKorY.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/collection/:id`,
+    categories: [`social-media`],
+    view: n.Articles,
+    example: `/jianshu/collection/xYuZYD`,
+    parameters: { id: `专题 id, 可在专题页 URL 中找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.jianshu.com/c/:id`] }],
+    name: `专题`,
+    maintainers: [`DIYgod`, `HenryQW`, `JimenezLi`],
+    handler: o,
+};
+async function o(n) {
+    let a = n.req.param(`id`),
+        o = (await t({ method: `get`, url: `https://www.jianshu.com/c/${a}`, headers: { Referer: `https://www.jianshu.com/c/${a}` } })).data,
+        s = i(o),
+        c = s(`.note-list li`).toArray(),
+        l = await r.ProcessFeed(c, e);
+    return { title: s(`title`).text(), link: `https://www.jianshu.com/c/${a}`, description: s(`meta[name="description"]`).attr(`content`) || s(`title`).text(), item: l };
+}
+export { a as route };

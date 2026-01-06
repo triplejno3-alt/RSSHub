@@ -1,0 +1,28 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { n, t as r } from './utils-HS462HTX.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/contributors/:author`,
+    categories: [`reading`],
+    example: `/p-articles/contributors/黃衍仁`,
+    parameters: { author: `虛詞作者, 可在作者页面 URL 找到` },
+    name: `虛詞作者`,
+    maintainers: [`Insomnia1437`],
+    handler: o,
+    radar: [{ source: [`p-articles.com/contributors/:author`] }],
+};
+async function o(a) {
+    let o = a.req.param(`author`),
+        s = new URL(`/contributors/${o}`, n).href,
+        c = i(await e(s)),
+        l = c(`div.contect_box_05in > a`)
+            .toArray()
+            .map((e) => ({ title: c(e).find(`h3`).text().trim(), link: new URL(c(e).attr(`href`), n).href }));
+    return { title: `虚词 p-articles`, link: s, item: await Promise.all(l.map((n) => t.tryGet(n.link, async () => r(n, await e(n.link))))), language: `zh-cn` };
+}
+export { a as route };

@@ -1,0 +1,18 @@
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { load as t } from 'cheerio';
+async function n(n) {
+    let r = t((await e({ method: `get`, url: n.link })).data);
+    (r(`div.SubscriptionInner`).remove(), r(`.gmailNews`).remove());
+    let i = r(`.fullPic`).html();
+    return (
+        (n.description = (i === null ? `` : i) + r(`.paragraph`).eq(0).html()),
+        (n.category = [
+            ...r(`meta[property='article:tag']`)
+                .toArray()
+                .map((e) => e.attribs.content),
+            r(`.active > a`).text(),
+        ]),
+        n
+    );
+}
+export { n as t };

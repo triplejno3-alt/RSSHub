@@ -1,0 +1,35 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { r as t } from './utils-Bu8-ZFdB.mjs';
+const n = {
+    path: `/popular/all/:embed?`,
+    categories: [`social-media`],
+    example: `/bilibili/popular/all`,
+    parameters: { embed: `默认为开启内嵌视频, 任意值为关闭` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `综合热门`,
+    maintainers: [`ziminliu`],
+    handler: r,
+};
+async function r(n) {
+    let r = !n.req.param(`embed`),
+        i = (await e({ method: `get`, url: `https://api.bilibili.com/x/web-interface/popular`, headers: { Referer: `https://www.bilibili.com/` } })).data.data.list;
+    return {
+        title: `bilibili 综合热门`,
+        link: `https://www.bilibili.com`,
+        description: `bilibili 综合热门`,
+        item:
+            i &&
+            i.map((e) => ({
+                title: e.title,
+                description: t.renderUGCDescription(r, e.pic, e.desc, e.aid, void 0, e.bvid),
+                pubDate: new Date(e.pubdate * 1e3).toUTCString(),
+                link: e.pubdate > t.bvidTime && e.bvid ? `https://www.bilibili.com/video/${e.bvid}` : `https://www.bilibili.com/video/av${e.aid}`,
+                author: e.owner.name,
+            })),
+    };
+}
+export { n as route };

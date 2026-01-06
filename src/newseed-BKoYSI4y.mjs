@@ -1,0 +1,37 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = { path: `/latest`, categories: [`new-media`], example: `/newseed/latest`, url: `news.newseed.cn`, name: `最新新闻`, maintainers: [`p3psi-boo`], handler: i };
+async function i() {
+    let r = `https://news.newseed.cn/`,
+        i = n((await t({ method: `get`, url: r })).data),
+        a = i(`#news-list li`)
+            .toArray()
+            .map((e) => {
+                let t = i(e),
+                    n = t.find(`h3 a`),
+                    r = n.attr(`href`) || ``,
+                    a = n.text(),
+                    o = t.find(`.img img`).attr(`src`),
+                    s = t.find(`.info`),
+                    c = s.find(`.author a`).text();
+                return {
+                    title: a,
+                    link: r,
+                    author: c,
+                    pubDate: s.find(`.date`).text(),
+                    category: t
+                        .find(`.tag a`)
+                        .toArray()
+                        .map((e) => i(e).text())
+                        .filter((e) => e !== c),
+                    description: o ? `<img src="${o}"><br>${a}` : a,
+                };
+            });
+    return { title: `新芽 - 最新新闻`, link: r, item: await Promise.all(a.map((r) => e.tryGet(r.link, async () => ((r.description = n((await t({ method: `get`, url: r.link })).data)(`.news-content`).html() || r.description), r)))) };
+}
+export { r as route };

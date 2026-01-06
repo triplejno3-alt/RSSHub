@@ -1,0 +1,4 @@
+import { jsx as e } from 'hono/jsx/jsx-runtime';
+import { renderToString as t } from 'hono/jsx/dom/server';
+const n = (n) => t(e(`a`, { href: n, target: `_blank`, children: `文章链接` }));
+export { n as t };

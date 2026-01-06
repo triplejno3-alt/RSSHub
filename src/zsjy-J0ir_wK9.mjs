@@ -1,0 +1,42 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/zsjy/:category?`,
+    categories: [`university`],
+    example: `/sicau/zsjy/bkszs`,
+    parameters: { category: `分类，见下表，默认为本科生招生` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`dky.sicau.edu.cn/`] }],
+    name: `招生就业`,
+    maintainers: [`nczitzk`],
+    handler: a,
+    url: `dky.sicau.edu.cn/`,
+    description: `| 本科生招生 | 研究生招生 | 毕业生选录指南 |
+| ---------- | ---------- | -------------- |
+| bkszs      | yjszs      | bysxlzn        |`,
+};
+async function a(i) {
+    let a = i.req.param(`category`) ?? `bkszs`,
+        o = `https://dky.sicau.edu.cn`,
+        s = `${o}/zsjy/${a}.htm`,
+        c = r((await n({ method: `get`, url: s })).data),
+        l = c(`a.tit`)
+            .toArray()
+            .map((e) => ((e = c(e)), { title: e.text(), pubDate: t(e.prev().text()), link: `${o}${e.attr(`href`).replace(/\.\./, `/`)}` })),
+        u = await Promise.all(
+            l.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = r((await n({ method: `get`, url: t.link })).data);
+                    return (e(`.v_news_content p`).slice(0, 2).remove(), (t.description = e(`.v_news_content`).html()), t);
+                })
+            )
+        );
+    return { title: c(`title`).text(), link: s, item: u };
+}
+export { i as route };

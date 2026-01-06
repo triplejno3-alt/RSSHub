@@ -1,0 +1,78 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+const i = { 'new-cryptocurrency-listing': 48, 'latest-binance-news': 49, 'latest-activities': 93, 'new-fiat-listings': 50, 'api-updates': 51, 'crypto-airdrop': 128, 'wallet-maintenance-updates': 157, delisting: 161 },
+    a = { 'en-US': `en`, zh: `zh-CN` },
+    o = (e) => (e ? (a[e] ?? e) : `zh-CN`),
+    s = (e) => {
+        let t = o(e);
+        return t === `en` || t === `zh-CN`;
+    },
+    c = {
+        path: `/announcement/:type?/:lang?`,
+        categories: [`finance`],
+        view: r.Articles,
+        example: `/binance/announcement/new-cryptocurrency-listing`,
+        radar: [{ source: [`www.binance.com/:lang/messages/v2/group/announcement`], target: `/binance/announcement/all/:lang` }],
+        parameters: {
+            type: {
+                description: `Announcement type. Omit for all categories.`,
+                default: `all`,
+                options: [
+                    { value: `all`, label: `All` },
+                    { value: `new-cryptocurrency-listing`, label: `New Cryptocurrency Listing` },
+                    { value: `latest-binance-news`, label: `Latest Binance News` },
+                    { value: `latest-activities`, label: `Latest Activities` },
+                    { value: `new-fiat-listings`, label: `New Fiat Listings` },
+                    { value: `api-updates`, label: `API Updates` },
+                    { value: `crypto-airdrop`, label: `Crypto Airdrop` },
+                    { value: `wallet-maintenance-updates`, label: `Wallet Maintenance Updates` },
+                    { value: `delisting`, label: `Delisting` },
+                ],
+            },
+            lang: {
+                description: `Language code for the messages page.`,
+                default: `zh-CN`,
+                options: [
+                    { value: `zh-CN`, label: `Simplified Chinese` },
+                    { value: `en`, label: `English` },
+                ],
+            },
+        },
+        name: `Announcement`,
+        description: `Announcement list from Binance message center with language and type selection.`,
+        maintainers: [`enpitsulin`, `DIYgod`],
+        handler: async (r) => {
+            let a = `https://www.binance.com`,
+                c = r.req.param(`type`),
+                l = r.req.param(`lang`),
+                u = Number.parseInt(r.req.query(`limit`) ?? `20`, 10),
+                d = Number.isNaN(u) || u <= 0 ? 20 : u,
+                f = c,
+                p = o(l);
+            (!l && c && s(c) && ((p = o(c)), (f = void 0)), f === `all` && (f = void 0));
+            let m;
+            if (f) {
+                let e = i[f];
+                if (!e) throw Error(`${f} is not supported`);
+                m = e;
+            }
+            let h = `${a}/${p}/messages/v2/group/announcement`,
+                g = new URL(`${a}/bapi/apex/v1/public/apex/cms/article/list/query`);
+            (g.searchParams.set(`type`, `1`), g.searchParams.set(`pageNo`, `1`), g.searchParams.set(`pageSize`, String(d)), m && g.searchParams.set(`catalogId`, String(m)));
+            let _ = { Referer: h, 'Accept-Language': p, 'User-Agent': t.trueUA, lang: p },
+                v = (await e(g.toString(), { headers: _ })).data?.catalogs ?? [],
+                y = v
+                    .flatMap((e) =>
+                        e.articles.map((t) => ({ title: t.title, link: `${a}/${p}/support/announcement/${t.code}`, pubDate: n(t.releaseDate), category: e.catalogName ? [e.catalogName] : void 0, releaseDate: t.releaseDate }))
+                    )
+                    .toSorted((e, t) => t.releaseDate - e.releaseDate)
+                    .slice(0, d)
+                    .map(({ releaseDate: e, ...t }) => t),
+                b = m ? v.find((e) => e.catalogId === m)?.catalogName : void 0;
+            return { title: b ? `Binance Announcement - ${b}` : `Binance Announcement`, link: h, description: `Announcement list from Binance message center.`, item: y };
+        },
+    };
+export { c as route };

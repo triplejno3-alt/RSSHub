@@ -1,0 +1,75 @@
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { n } from './puppeteer-BbZGb8cd.mjs';
+import { t as r } from './cookies-C-qW_A-K.mjs';
+import i from 'sanitize-html';
+const a = `https://xueqiu.com`,
+    o = {
+        path: `/user/:id/:type?`,
+        categories: [`finance`],
+        example: `/xueqiu/user/8152922548`,
+        parameters: { id: `用户 id, 可在用户主页 URL 中找到`, type: `动态的类型, 不填则默认全部` },
+        features: { requireConfig: !1, requirePuppeteer: !0, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`xueqiu.com/u/:id`], target: `/user/:id` }],
+        name: `用户动态`,
+        maintainers: [`imlonghao`],
+        handler: s,
+        description: `| 原发布 | 长文 | 问答 | 热门 | 交易 |
+| ------ | ---- | ---- | ---- | ---- |
+| 0      | 2    | 4    | 9    | 11   |`,
+    };
+async function s(o) {
+    let s = o.req.param(`id`),
+        c = o.req.param(`type`) || 10,
+        l = { 10: `全部`, 0: `原发布`, 2: `长文`, 4: `问答`, 9: `热门`, 11: `交易` },
+        u = `${a}/u/${s}`,
+        d = await r(u),
+        f = await n();
+    try {
+        let n = await f.newPage();
+        (await n.setExtraHTTPHeaders({ Cookie: d, Referer: u }), await n.goto(u, { waitUntil: `domcontentloaded` }), await n.waitForFunction(() => document.readyState === `complete`));
+        let r = `${a}/v4/statuses/user_timeline.json?user_id=${s}&type=${c}`,
+            o = await n.evaluate(async (e) => (await fetch(e)).json(), r);
+        if (!o?.statuses) throw Error(`获取用户动态数据失败`);
+        let p = o.statuses.filter((e) => e.mark !== 1);
+        if (!p.length) throw Error(`未找到有效的动态数据`);
+        let m = await Promise.all(
+                p.map((r) =>
+                    e.tryGet(r.target, async () => {
+                        let e = a + r.target;
+                        try {
+                            (await n.goto(e, { waitUntil: `domcontentloaded` }), await n.waitForFunction(() => document.readyState === `complete`));
+                            let o = await n.evaluate(() => {
+                                let e = document.querySelector(`.article__bd`)?.innerHTML || ``,
+                                    t = document.documentElement.innerHTML.match(/SNOWMAN_STATUS = (.*?});/);
+                                return { articleContent: e, statusData: t ? t[1] : null };
+                            });
+                            o.statusData && (r.text = JSON.parse(o.statusData).text);
+                            let s = r.retweeted_status ? `<blockquote>${r.retweeted_status.user.screen_name}:&nbsp;${r.retweeted_status.description}</blockquote>` : ``,
+                                c = o.articleContent || r.description + s;
+                            return { title: r.title || i(c, { allowedTags: [], allowedAttributes: {} }), description: r.text ? r.text + s : c, pubDate: t(r.created_at), link: a + r.target };
+                        } catch (e) {
+                            if (e instanceof Error && !e.message?.includes(`ERR_ABORTED`)) throw e;
+                            let n = r.retweeted_status ? `<blockquote>${r.retweeted_status.user.screen_name}:&nbsp;${r.retweeted_status.description}</blockquote>` : ``,
+                                o = r.description + n;
+                            return { title: r.title || i(o, { allowedTags: [], allowedAttributes: {} }), description: r.description, pubDate: t(r.created_at), link: a + r.target };
+                        }
+                    })
+                )
+            ),
+            h = ((e) => {
+                if (!e?.profile_image_url || !e?.photo_domain) return;
+                let t = e.profile_image_url.split(`,`).filter(Boolean);
+                if (t.length === 0) return;
+                let n = [`!180x180.png`, `!50x50.png`, `!30x30.png`].map((e) => t.find((t) => t.includes(e))).find(Boolean) || t[0];
+                return `${e.photo_domain.startsWith(`//`) ? `https:${e.photo_domain}` : e.photo_domain}${n}`;
+            })(p[0].user);
+        return { title: `${p[0].user.screen_name} 的雪球${l[c]}动态`, link: u, description: `${p[0].user.screen_name} 的雪球${l[c]}动态`, image: h, item: m };
+    } finally {
+        await f.close();
+    }
+}
+export { o as route };

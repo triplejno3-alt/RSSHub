@@ -1,0 +1,51 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { Fragment as t, jsx as n, jsxs as r } from 'hono/jsx/jsx-runtime';
+import { renderToString as i } from 'hono/jsx/dom/server';
+const a = `https://tongqu.sjtu.edu.cn`,
+    o = {
+        path: `/tongqu/:type?`,
+        categories: [`university`],
+        example: `/sjtu/tongqu/lecture`,
+        parameters: { type: `类型，默认为全部` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `同去网最新活动`,
+        maintainers: [`SeanChao`],
+        handler: s,
+        description: `| 全部 | 最新   | 招新        | 讲座    | 户外      | 招聘 | 游学       | 比赛         | 公益           | 主题党日 | 学生事务       | 广告 | 其他   |
+| ---- | ------ | ----------- | ------- | --------- | ---- | ---------- | ------------ | -------------- | -------- | -------------- | ---- | ------ |
+| all  | newest | recruitment | lecture | outdoords | jobs | studyTours | competitions | publicWarefare | partyDay | studentAffairs | ads  | others |`,
+    };
+async function s(t) {
+    let n = `${a}/api/act/type?type=${{ all: 0, newest: -1, recruitment: 9, lecture: 2, outdoors: 10, jobs: 4, studyTours: 5, competitions: 7, publicWarefare: 11, partyDay: 13, studentAffairs: 14, ads: 12, others: 8 }[t.req.param(`type`) || `all`]}&status=0&offset=0&offset=0&number=10&order=act.create_time&desc=true`;
+    return { title: `同去网活动`, link: n, item: (await e(n)).data.result.acts.map((e) => ({ title: e.name, link: new URL(`/act/${e.actid}`, a).href, category: e.typename, description: c(e) })) };
+}
+const c = (e) =>
+    i(
+        r(t, {
+            children: [
+                e.name,
+                n(`br`, {}),
+                `开始时间: `,
+                e.sign_start_time,
+                n(`br`, {}),
+                `结束时间: `,
+                e.sign_end_time,
+                n(`br`, {}),
+                `地点: `,
+                e.location,
+                n(`br`, {}),
+                `报名人数: `,
+                e.member_count,
+                `/`,
+                e.max_member,
+                n(`br`, {}),
+                `来自`,
+                e.source,
+            ],
+        })
+    );
+export { o as route };

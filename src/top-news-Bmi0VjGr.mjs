@@ -1,0 +1,39 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './utils-CUQxwGAj.mjs';
+const i = {
+    path: `/top_news/:id?`,
+    categories: [`new-media`],
+    example: `/dongqiudi/top_news/1`,
+    parameters: { id: `类别 id，不填默认头条新闻` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`m.dongqiudi.com/home/:id`], target: `/top_news/:id` }],
+    name: `新闻`,
+    maintainers: [`HendricksZheng`],
+    handler: a,
+    description: `| 头条 | 深度 | 闲情 | D 站 | 中超 | 国际 | 英超 | 西甲 | 意甲 | 德甲 |
+| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| 1    | 55   | 37   | 219  | 56   | 120  | 3    | 5    | 4    | 6    |`,
+};
+async function a(i) {
+    let a = i.req.param(`id`) ?? 1,
+        { data: o } = await n(`https://api.dongqiudi.com/app/tabs/web/${a}.json`),
+        s = o.articles,
+        c = o.label,
+        l = s.map((e) => ({ title: e.title, link: `https://www.dongqiudi.com/articles/${e.id}.html`, category: [e.category, ...(e.secondary_category ?? [])], pubDate: t(e.show_time) })),
+        u = await Promise.all(
+            l.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let { data: e } = await n(t.link);
+                    return (r.ProcessFeedType2(t, e), t);
+                })
+            )
+        );
+    return { title: `懂球帝 - ${c}`, link: `https://www.dongqiudi.com/articlesList/${a}`, item: u.filter((e) => e !== void 0) };
+}
+export { i as route };

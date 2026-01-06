@@ -1,0 +1,55 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/discuss/:type/:order`,
+    categories: [`bbs`],
+    example: `/nowcoder/discuss/2/4`,
+    parameters: { type: `讨论区分区id 在 URL 中可以找到`, order: `排序方式` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `讨论区`,
+    maintainers: [`LogicJake`],
+    handler: o,
+    description: `| 最新回复 | 最新发表 | 最新 | 精华 |
+| -------- | -------- | ---- | ---- |
+| 0        | 3        | 1    | 4    |`,
+};
+async function o(a) {
+    let o = `https://www.nowcoder.com/discuss?type=${a.req.param(`type`)}&order=${a.req.param(`order`)}`,
+        s = i((await n.get(o)).data),
+        c = s(`a.discuss-tab.selected`).text(),
+        l = s(`li.selected a`).text(),
+        u = s(`li.clearfix`)
+            .toArray()
+            .map((e) => ({
+                title: s(e)
+                    .find(`div.discuss-main.clearfix a:first`)
+                    .text()
+                    .trim()
+                    .replaceAll(
+                        `
+`,
+                        ` `
+                    ),
+                link: s(e).find(`div.discuss-main.clearfix a[rel]`).attr(`href`),
+            })),
+        d = await Promise.all(
+            u.map((a) => {
+                let o = a.title || `tzgg`,
+                    s = new URL(a.link, `https://www.nowcoder.com`).href.replace(/^(.*)\?(.*)$/, `$1`);
+                return e.tryGet(s, async () => {
+                    let e = i((await n.get(s)).data),
+                        a = e(`span.post-time`).text();
+                    return { title: o, link: s, description: e(`.nc-post-content`).html(), pubDate: r(t(a), 8) };
+                });
+            })
+        );
+    return { title: `${c}${l}——牛客网讨论区`, link: o, item: d };
+}
+export { a as route };

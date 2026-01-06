@@ -1,0 +1,77 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = `https://www.txks.org.cn/index/work.html`,
+    a = (e = ``) => {
+        let t = r(e);
+        return (
+            t(`[style]`).each((e, n) => {
+                let r = (t(n).attr(`style`) || ``).replaceAll(/font-family:[^;]*;?/gi, ``).trim();
+                t(n).attr(`style`, r || null);
+            }),
+            t(`style`).each((e, n) => {
+                let r = (t(n).html() || ``).replaceAll(/font-family:[^;]*;?/gi, ``);
+                t(n).html(r);
+            }),
+            t.html()
+        );
+    },
+    o = {
+        path: `/news`,
+        name: `通信考试动态`,
+        description: `**注意：** 官方网站限制了国外网络请求，可能需要通过部署在中国大陆内的 RSSHub 实例访问。`,
+        maintainers: [`PrinOrange`],
+        handler: async () => {
+            let { data: o } = await n(i),
+                s = r(o),
+                c = s(`ul[class*="newsList"] > li`)
+                    .toArray()
+                    .map((e) => {
+                        let n = s(e).find(`label.time`).text().trim().slice(1, -1),
+                            r = s(e).find(`a`).attr(`title`),
+                            i = s(e).find(`a`).attr(`href`);
+                        return { date: t(n), title: r, link: i };
+                    });
+            return {
+                title: `全国通信专业技术人员职业水平考试`,
+                description: `全国通信专业技术人员职业水平考试网站最新动态和消息推送`,
+                link: i,
+                image: `https://www.txks.org.cn/asset/image/logo/logo.png`,
+                item: await Promise.all(
+                    c.map((t) =>
+                        e.tryGet(t.link, async () => {
+                            let { data: e } = await n(t.link),
+                                i = a(r(e)(`#contentTxt`).html() || ``);
+                            return {
+                                title: t.title,
+                                pubDate: t.date,
+                                link: t.link,
+                                description: i,
+                                category: [`study`],
+                                guid: t.link,
+                                id: t.link,
+                                image: `https://www.txks.org.cn/asset/image/logo/logo.png`,
+                                content: i,
+                                updated: t.date,
+                                language: `zh-CN`,
+                            };
+                        })
+                    )
+                ),
+                allowEmpty: !0,
+                language: `zh-CN`,
+                feedLink: `https://rsshub.app/txks/news`,
+                id: `https://rsshub.app/txks/news`,
+            };
+        },
+        categories: [`study`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1, supportRadar: !0 },
+        radar: [{ title: `全国通信专业技术人员职业水平考试动态`, source: [`www.txks.org.cn/index/work`, `www.txks.org.cn`], target: `/news` }],
+        example: `/txks/news`,
+    };
+export { o as route };

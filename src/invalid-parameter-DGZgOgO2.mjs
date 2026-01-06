@@ -1,0 +1,4 @@
+var e = class extends Error {
+    name = `InvalidParameterError`;
+};
+export { e as t };

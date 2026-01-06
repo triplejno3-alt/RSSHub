@@ -1,0 +1,29 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { n, r } from './utils-CsErTCPf.mjs';
+const i = {
+    path: `/topic/:topic`,
+    categories: [`game`],
+    example: `/4gamers/topic/gentlemen-topic`,
+    parameters: { topic: `主题，可在首页上方页面内找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.4gamers.com.tw/news/option-cfg/:topic`] }],
+    name: `主題`,
+    maintainers: [`bestpika`],
+    handler: a,
+    url: `www.4gamers.com.tw/news`,
+};
+async function a(i) {
+    let a = i.req.param(`topic`),
+        o = i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`)) : 25,
+        { data: s } = await t(`https://www.4gamers.com.tw/site/api/news/option-cfg/${a}`, { searchParams: { pageSize: o } }),
+        c = r(s.data.results),
+        l = await Promise.all(c.map((t) => e.tryGet(t.link, () => n(t))));
+    return { title: `4Gamers - ${a}`, link: `https://www.4gamers.com.tw/news/option-cfg/${a}`, item: l };
+}
+export { i as route };

@@ -1,0 +1,82 @@
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { n as i } from './puppeteer-BbZGb8cd.mjs';
+import { load as a } from 'cheerio';
+const o = `http://www.customs.gov.cn`,
+    s = async (e, t) => {
+        let n = await t.newPage();
+        return (
+            await n.setExtraHTTPHeaders({ referer: o }),
+            await n.setRequestInterception(!0),
+            n.on(`request`, (e) => {
+                e.resourceType() === `document` || e.resourceType() === `script` ? e.continue() : e.abort();
+            }),
+            await n.goto(e, { waitUntil: `domcontentloaded` }),
+            await n.waitForSelector(`.pubCon`),
+            await n.evaluate(() => document.documentElement.innerHTML)
+        );
+    },
+    c = {
+        path: `/customs/list/:gchannel?`,
+        categories: [`government`],
+        example: `/gov/customs/list/paimai`,
+        parameters: { gchannel: '支持 `paimai`, `fagui` 及 `latest` 3 个频道，默认为 `paimai`' },
+        features: { requireConfig: !1, requirePuppeteer: !0, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`www.customs.gov.cn/`], target: `/customs/list` }],
+        name: `拍卖信息 / 海关法规 / 最新文件`,
+        maintainers: [`Jeason0228`, `TonyRL`, `he1q`],
+        handler: l,
+        url: `www.customs.gov.cn/`,
+        description: `::: warning
+由于区域限制，建议在国内 IP 的机器上自建
+:::`,
+    };
+async function l(c) {
+    let { gchannel: l = `paimai` } = c.req.param(),
+        u = ``,
+        d = ``;
+    switch (l) {
+        case `paimai`:
+            ((u = `拍卖信息`), (d = `${o}/customs/302249/zfxxgk/2799825/2799883/index.html`));
+            break;
+        case `fagui`:
+            ((u = `海关法规`), (d = `${o}/customs/302249/302266/index.html`));
+            break;
+        case `latest`:
+            ((u = `最新文件`), (d = `${o}/customs/302249/2480148/index.html`));
+            break;
+        default:
+            ((u = `拍卖信息`), (d = `${o}/customs/302249/zfxxgk/2799825/2799883/index.html`));
+            break;
+    }
+    let f = await i(),
+        p = await t.tryGet(
+            d,
+            async () => {
+                let e = a(await s(d, f));
+                return e(`[class^="conList_ul"] li`)
+                    .toArray()
+                    .map((t) => ((t = e(t)), { title: t.find(`a`).attr(`title`), link: new URL(t.find(`a`).attr(`href`), o).href, date: n(t.find(`span`).text()) }));
+            },
+            e.cache.routeExpire,
+            !1
+        ),
+        m = await Promise.all(
+            p.map((e) =>
+                t.tryGet(e.link, async () => {
+                    if (e.link.endsWith(`.pdf`) || e.link.endsWith(`.doc`)) return e;
+                    let t = a(await s(e.link, f)),
+                        i;
+                    (t(`.easysite-news-operation`).remove(), /\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(t(`.easysite-news-describe`).text()) && (i = r(n(t(`.easysite-news-describe`).text(), `YYYY-MM-DD HH:mm`), 8)));
+                    let o = t(`.easysite-news-peruse`).html();
+                    return { title: e.title, link: e.link, description: o, pubDate: i || e.date };
+                })
+            )
+        );
+    return (await f.close(), { title: `中国海关-${u}`, link: d, language: `zh-CN`, item: m });
+}
+export { c as route };

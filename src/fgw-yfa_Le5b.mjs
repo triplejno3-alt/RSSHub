@@ -1,0 +1,77 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+import { raw as l } from 'hono/html';
+const u = ({ images: e, description: t }) => c(o(i, { children: [e?.length ? e.map((e) => (e?.src ? a(`figure`, { children: a(`img`, { src: e.src, alt: e.alt }) }, e.src) : null)) : null, t ? a(i, { children: l(t) }) : null] })),
+    d = async (i) => {
+        let { category: a = `fgw_zxxxgk` } = i.req.param(),
+            o = i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`), 10) : 20,
+            c = `https://fgw.sh.gov.cn`,
+            l = new URL(`${a}/index.html`, c).href,
+            { data: d } = await n(l),
+            f = s(d),
+            p = f(`html`).prop(`lang`),
+            m = f(`ul.nowrapli li`)
+                .slice(0, o)
+                .toArray()
+                .map((e) => ((e = f(e)), { title: e.find(`a`).prop(`title`), pubDate: t(e.find(`span.time`).text()), link: new URL(e.find(`a`).prop(`href`), c).href, language: p }));
+        m = await Promise.all(
+            m.map((i) =>
+                e.tryGet(i.link, async () => {
+                    if (!i.link.endsWith(`.html`)) return ((i.enclosure_url = i.link), (i.enclosure_type = i.link ? `application/${i.link.split(/\./).pop()}` : void 0), (i.enclosure_title = i.title), i);
+                    let { data: e } = await n(i.link),
+                        a = s(e),
+                        o = a(`meta[name="ArticleTitle"]`).prop(`content`),
+                        l = a(`div.pdf-content img`).first().prop(`src`),
+                        d = u({ images: l ? [{ src: l, alt: o }] : void 0, description: a(`div#ivs_content`).html() });
+                    ((i.title = o),
+                        (i.description = d),
+                        (i.pubDate = r(t(a(`meta[name="PubDate"]`).prop(`content`)), 8)),
+                        (i.category = [...new Set([a(`meta[name="ColumnName"]`).prop(`content`), a(`meta[name="ColumnKeywords"]`).prop(`content`)])].filter(Boolean)),
+                        (i.author = a(`meta[name="ContentSource"]`).prop(`content`)),
+                        (i.content = { html: d, text: a(`div#ivs_content`).text() }),
+                        (i.image = l),
+                        (i.banner = l),
+                        (i.language = p));
+                    let f = a(`div.pdf-content a, div.xgfj a`).first().prop(`href`);
+                    return ((i.enclosure_url = f ? new URL(f, c).href : void 0), (i.enclosure_type = f ? `application/${f.split(/\./).pop()}` : void 0), (i.enclosure_title = o), i);
+                })
+            )
+        );
+        let h = f(`meta[name="SiteName"]`).prop(`content`),
+            g = f(`span.logo-icon img`).prop(`src`);
+        return { title: `${h} - ${f(`meta[name="ColumnName"]`).prop(`content`)}`, description: f(`meta[name="ColumnDescription"]`).prop(`content`), link: l, item: m, allowEmpty: !0, image: g, author: h, language: p };
+    },
+    f = {
+        path: [`/sh/fgw/:category{.+}?`, `/shanghai/fgw/:category{.+}?`],
+        name: `上海市发展和改革委员会`,
+        url: `fgw.sh.gov.cn`,
+        maintainers: [`nczitzk`],
+        handler: d,
+        example: `/gov/sh/fgw/fgw_zxxxgk`,
+        parameters: { category: '分类，默认为 `fgw_zxxxgk`，即最新信息公开，可在对应分类页 URL 中找到' },
+        description:
+            '::: tip\n  若订阅 [最新信息公开](https://fgw.sh.gov.cn/fgw_zxxxgk/index.html)，网址为 `https://fgw.sh.gov.cn/fgw_zxxxgk/index.html`。截取 `https://fgw.sh.gov.cn/` 到末尾 `/index.html` 的部分 `fgw_zxxxgk` 作为参数填入，此时路由为 [`/gov/sh/fgw/fgw_zxxxgk`](https://rsshub.app/gov/sh/fgw/fgw_zxxxgk)。\n:::\n\n| 最新信息公开 | 要闻动态   |\n| ------------ | ---------- |\n| fgw_zxxxgk   | fgw_fzggdt |\n  ',
+        categories: [`government`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            {
+                source: [`fgw.sh.gov.cn/:category`],
+                target: (e) => {
+                    let t = e.category.replace(/\/index\.html/, ``);
+                    return `/gov/sh/fgw${t ? `/${t}` : ``}`;
+                },
+            },
+            { title: `最新信息公开`, source: [`fgw.sh.gov.cn/fgw_zxxxgk/index.html`], target: `/sh/fgw/fgw_zxxxgk` },
+            { title: `要闻动态`, source: [`fgw.sh.gov.cn/fgw_fzggdt/index.html`], target: `/sh/fgw/fgw_fzggdt` },
+        ],
+    };
+export { d as handler, f as route };

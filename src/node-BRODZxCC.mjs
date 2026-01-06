@@ -1,0 +1,56 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import * as i from 'cheerio';
+const a = {
+    path: `/node/:id?/:order?`,
+    parameters: { id: `节点 id，见下表，默认为 news`, order: '排序，`date` 即最新，默认为 `obdate` 即综合排序' },
+    categories: [`game`],
+    example: `/psnine/node/news`,
+    name: `节点`,
+    maintainers: [`betta-cyber`, `nczitzk`],
+    handler: async (a) => {
+        let { id: o = `news`, order: s = `obdate` } = a.req.param(),
+            c = `https://www.psnine.com/node/${o}?ob=${s}`,
+            l = await e(c),
+            u = i.load(l);
+        u(`.psnnode, .node`).remove();
+        let d = u(`.title a`)
+                .toArray()
+                .map((e) => {
+                    let t = u(e),
+                        i = t.parent().next();
+                    return {
+                        title: t.text(),
+                        link: t.attr(`href`),
+                        pubDate: r(
+                            n(
+                                i
+                                    .contents()
+                                    .filter((e, t) => t.nodeType === 3)
+                                    .text()
+                                    .trim()
+                                    .split(/\s{2,}/)[0],
+                                [`YYYY-MM-DD HH:mm`, `MM-DD HH:mm`]
+                            ),
+                            8
+                        ),
+                    };
+                }),
+            f = await Promise.all(
+                d.map((n) =>
+                    t.tryGet(n.link, async () => {
+                        let t = await e(n.link),
+                            r = i.load(t);
+                        return ((n.author = r(`a[itemprop="author"]`).eq(0).text()), (n.description = r(`div[itemprop="articleBody"]`).html()), n);
+                    })
+                )
+            );
+        return { title: `${u(`title`).text()} - PSN中文站`, link: c, item: f };
+    },
+    radar: [{ source: [`psnine.com/node/:id`] }],
+};
+export { a as route };

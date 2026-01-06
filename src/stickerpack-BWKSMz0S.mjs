@@ -1,0 +1,34 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { t as i } from './config-not-found-DGyG6Tbz.mjs';
+const a = {
+    path: `/stickerpack/:name`,
+    categories: [`social-media`],
+    view: r.Pictures,
+    example: `/telegram/stickerpack/DIYgod`,
+    parameters: { name: `Sticker Pack name, available in the sharing URL` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `Sticker Pack`,
+    maintainers: [`DIYgod`],
+    handler: o,
+};
+async function o(r) {
+    if (!t.telegram || !t.telegram.token) throw new i(`Telegram Sticker Pack RSS is disabled due to the lack of <a href="https://docs.rsshub.app/deploy/config#route-specific-configurations">relevant config</a>`);
+    let a = r.req.param(`name`),
+        o = t.telegram.token,
+        s = await e(`https://api.telegram.org/bot${o}/getStickerSet?name=${a}`),
+        c = s.result.stickers.map((e) => ({ title: e.emoji, description: e.file_id, guid: e.file_id })),
+        l = await Promise.all(
+            c.map((t) =>
+                n.tryGet(
+                    `telegram:stickerpack:${t.guid}`,
+                    async () => ((t.description = `<img src="https://api.telegram.org/file/bot${o}/${(await e(`https://api.telegram.org/bot${o}/getFile?file_id=${t.guid}`)).result.file_path}" />`), t)
+                )
+            )
+        );
+    return { title: `${s.result.title} - Telegram Sticker Pack`, link: `https://t.me/addstickers/${a}`, item: l };
+}
+export { a as route };

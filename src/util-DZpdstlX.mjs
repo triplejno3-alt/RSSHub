@@ -1,0 +1,70 @@
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { Fragment as n, jsx as r, jsxs as i } from 'hono/jsx/jsx-runtime';
+import { load as a } from 'cheerio';
+import { renderToString as o } from 'hono/jsx/dom/server';
+const s = `xinpianchang.com`,
+    c = `https://www.${s}`,
+    l = `https://mod-api.${s}`,
+    u = (e, t, a) => o(i(n, { children: [e ? r(`p`, { children: e }) : null, a ? r(`video`, { controls: !0, poster: t, children: r(`source`, { src: a.url ?? a.backupUrl, type: a.mime }) }) : null] })),
+    d = (e, n) =>
+        n(e, async () => {
+            let { data: n } = await t(e),
+                r = a(n),
+                i = new URL(`favicon.ico`, c).href,
+                o = r(`meta[property="og:site_name"]`).prop(`content`);
+            return {
+                data: {
+                    title: r(`span.bg-clip-text`).text() || `${o}·${r(`meta[property="og:title"]`).prop(`content`).split(`-`)[0]}`,
+                    link: e,
+                    description: r(`meta[property="og:description"]`).prop(`content`),
+                    language: r(`html`).prop(`lang`),
+                    image: r(`meta[property="og:image"]`).prop(`content`),
+                    icon: i,
+                    logo: i,
+                    subtitle: r(`meta[property="og:description"]`).prop(`content`),
+                    author: o,
+                    itunes_author: o,
+                    itunes_category: `TV &amp Film`,
+                    allowEmpty: !0,
+                },
+                response: n,
+            };
+        }),
+    f = async (n, r) => (
+        (n = n.map((t) => ({
+            title: t.title,
+            link: t.web_url,
+            description: t.content,
+            author: t.author.userinfo.username,
+            category: t.categories.flatMap((e) => [e.category_name, e.sub?.category_name]).filter(Boolean),
+            guid: `xinpianchang-${t.id}`,
+            pubDate: e(t.publish_time * 1e3),
+            itunes_item_image: t.cover,
+            itunes_duration: t.duration,
+            enclosure_url: t.video_library_id,
+            upvotes: t.count.count_liked ?? t.count.count_like,
+            comments: t.count.count_comment ?? 0,
+        }))),
+        await Promise.all(
+            n.map((e) =>
+                r(e.guid, async () => {
+                    let n = new URL(`mod/api/v2/media/${e.enclosure_url}?appKey=61a2f329348b3bf77`, l).href,
+                        { data: r } = await t(n),
+                        i = r.data,
+                        a = i.resource?.progressive ? i.resource.progressive[0] : void 0;
+                    return (
+                        (e.title = i.title ?? e.title),
+                        (e.description = u(e.description, i.cover ?? e.itunes_item_image, a)),
+                        (e.author = i.owner.username ?? e.author),
+                        (e.category = [...new Set([...e.category, ...(i.categories ?? []), ...(i.keywords ?? [])])]),
+                        (e.itunes_item_image = i.cover ?? e.itunes_item_image),
+                        (e.itunes_duration = i.duration ?? e.itunes_duration),
+                        a && ((e.enclosure_url = a.url ?? a.backupUrl), (e.enclosure_length = a.filesize), (e.enclosure_type = a.mime)),
+                        e
+                    );
+                })
+            )
+        )
+    );
+export { f as n, c as r, d as t };

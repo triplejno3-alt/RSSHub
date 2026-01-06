@@ -1,0 +1,41 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+const c = (e) => s(i(r, { children: e?.map((e) => a(r, { children: [i(`a`, { href: e, children: e }), i(`br`, {})] })) })),
+    l = {
+        path: `/:appId`,
+        categories: [`program-update`],
+        example: `/winstall/Mozilla.Firefox`,
+        parameters: { appId: `Application ID` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`winstall.app/apps/:appId`] }],
+        name: `Apps Update`,
+        maintainers: [`TonyRL`],
+        handler: u,
+    };
+async function u(r) {
+    let i = `https://winstall.app`,
+        a = r.req.param(`appId`),
+        { data: s } = await n(
+            `${i}/_next/data/${await t.tryGet(
+                `winget:buildId`,
+                async () => {
+                    let { data: e } = await n(i),
+                        t = o(e);
+                    return JSON.parse(t(`#__NEXT_DATA__`).text()).buildId;
+                },
+                e.cache.routeExpire,
+                !1
+            )}/apps/${a}.json`
+        ),
+        { app: l } = s.pageProps,
+        u = l.versions.map((e) => ({ title: `${l.name} ${e.version}`, description: c(e.installers), author: l.publisher, category: l.tags, guid: `winstall:${a}:${e.version}` }));
+    return { title: `${l.name} - winstall`, description: l.desc, link: `${i}/apps/${a}`, image: `https://api.winstall.app/icons/next/${a}.webp`, language: `en`, item: u };
+}
+export { l as route };

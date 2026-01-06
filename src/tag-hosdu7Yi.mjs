@@ -1,0 +1,40 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './utils-BqCB1q_9.mjs';
+const r = {
+    path: `/tag/:owner/:image/:limits?`,
+    categories: [`program-update`],
+    example: `/dockerhub/tag/library/mariadb`,
+    parameters: { owner: `Image owner`, image: `Image name`, limits: `Tag count, 10 by default` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `Image New Tag`,
+    maintainers: [`pseudoyu`],
+    handler: i,
+    description: '::: warning\n  Use `library` as the `owner` for official images, such as [https://rsshub.app/dockerhub/tag/library/mysql](https://rsshub.app/dockerhub/tag/library/mysql)\n:::',
+};
+async function i(r) {
+    let { owner: i, image: a, limits: o } = r.req.param(),
+        s = `${i}/${a}`,
+        c = `https://hub.docker.com/r/${s}`,
+        l = Number.isNaN(Number.parseInt(o)) ? 10 : Number.parseInt(o),
+        u = await t.get(`https://hub.docker.com/v2/repositories/${s}/tags/?page_size=${l}`),
+        d = await t.get(`https://hub.docker.com/v2/repositories/${s}/`),
+        f = u.data.results;
+    return {
+        title: `${s} tags`,
+        description: d.data.description,
+        link: c,
+        language: `en`,
+        item: f.map((t) => {
+            let r = t.images?.length ? t.images.map((e) => `${e.os}/${e.architecture}`).join(`, `) : `unknown architectures`,
+                o = t.digest?.replace(`:`, `-`) || ``,
+                c = `https://hub.docker.com/layers/${i === `library` ? `${a}/` : ``}${s}/${t.name}/images/${o}`;
+            return { title: `${s}:${t.name} was updated`, description: `${s}:${t.name} was updated, supporting the ${r}`, link: c, author: i, pubDate: e(t.tag_last_pushed), guid: `${s}:${t.name}@${n(t.images || [])}` };
+        }),
+    };
+}
+export { r as route };

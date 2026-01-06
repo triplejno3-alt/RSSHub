@@ -1,0 +1,25 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import { n as e, r as t, t as n } from './utils-COEECZhI.mjs';
+const r = {
+    path: `/exhibition`,
+    categories: [`journal`],
+    example: `/caareviews/exhibition`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`caareviews.org/reviews/exhibition`] }],
+    name: `Exhibition Reviews`,
+    maintainers: [`Fatpandac`],
+    handler: i,
+    url: `caareviews.org/reviews/exhibition`,
+};
+async function i(r) {
+    let i = `${t}/reviews/exhibition`;
+    return { title: `Exhibition Reviews`, link: i, item: await n(r, await e(i)) };
+}
+export { r as route };

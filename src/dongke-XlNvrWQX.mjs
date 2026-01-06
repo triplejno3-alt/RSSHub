@@ -1,0 +1,48 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { r as n } from './common-utils-uYpL50sT.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './timezone-CrV-DT8S.mjs';
+import { load as a } from 'cheerio';
+const o = { path: `/dongke/*`, name: `Unknown`, maintainers: [], handler: s };
+async function s(o) {
+    let s = o.req.query(`limit`) ? Number.parseInt(o.req.query(`limit`), 10) : 10,
+        c = `https://dongke.yangtzeu.edu.cn`,
+        l = new URL(`${n(o).replace(/^\/dongke/, ``) || `/yqzl/xyxw`}.htm`, c).href,
+        { data: u } = await r(l),
+        d = a(u),
+        f = d(`ul.list-item li a`)
+            .slice(0, s)
+            .toArray()
+            .map((e) => ((e = d(e)), { title: e.text(), link: new URL(e.prop(`href`), c).href }));
+    return (
+        (f = await Promise.all(
+            f.map((n) =>
+                e.tryGet(n.link, async () => {
+                    let { data: e } = await r(n.link),
+                        o = a(e);
+                    return (
+                        (n.title = o(`title`).text()),
+                        (n.description = o(`div.v_news_content`).html()),
+                        (n.category = o(`meta[name="keywords"]`).prop(`content`).split(`,`)),
+                        (n.pubDate = i(
+                            t(
+                                o(`p.content-info`)
+                                    .text()
+                                    .match(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)[1]
+                            ),
+                            8
+                        )),
+                        n
+                    );
+                })
+            )
+        )),
+        { item: f, title: d(`title`).text(), link: l, language: `zh-cn`, image: new URL(d(`#head-img a img`).prop(`src`), c).href, author: `长江大学动物科学学院` }
+    );
+}
+export { o as route };

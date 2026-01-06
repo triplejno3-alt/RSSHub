@@ -1,0 +1,32 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './auth-CxuQ4hiC.mjs';
+const r = {
+    path: `/xhu/people/posts/:hexId`,
+    categories: [`social-media`],
+    example: `/zhihu/xhu/people/posts/246e6cf44e94cefbf4b959cb5042bc91`,
+    parameters: { hexId: `用户的 16 进制 id，获取方式同 [xhu - 用户动态](#zhi-hu-xhu-yong-hu-dong-tai)` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `xhu - 用户文章`,
+    maintainers: [`JimenezLi`],
+    handler: i,
+};
+async function i(r) {
+    let i = await n.getCookie(),
+        a = r.req.param(`hexId`),
+        o = `https://www.zhihu.com/people/${a}/posts`,
+        s = (await t({ method: `get`, url: `https://api.zhihuvvv.workers.dev/people/${a}/articles?limit=20&offset=0`, headers: { Referer: `https://api.zhihuvvv.workers.dev`, Cookie: i } })).data.data;
+    return {
+        title: `${s[0].author.name} 的知乎文章`,
+        link: o,
+        image: s[0].author.avatar_url,
+        description: s[0].author.headline,
+        item: s.map((t) => ({ title: t.title, description: t.excerpt, pubDate: e(t.created * 1e3), link: `https://zhuanlan.zhihu.com/p/${t.id}`, author: t.author.name })),
+    };
+}
+export { r as route };

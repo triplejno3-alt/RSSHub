@@ -1,0 +1,90 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { renderToString as s } from 'hono/jsx/dom/server';
+import c from 'query-string';
+function l(e, t, n) {
+    let { id: r, source: i, owner: a, file_url: o, tags: s, score: c } = e,
+        l = /^https?:\/\//.test(i),
+        d = l ? new URL(i).host : i || `unknown`,
+        f = { sample: `sample_url`, orig: `file_url` },
+        p = [`mp4`, `webm`],
+        m = o.slice(o.lastIndexOf(`.`) + 1),
+        h = p.includes(m),
+        g = e[f[n]] || o;
+    return (h && (g = o), u({ id: r, source: i, owner: a, tags: s, link: t, isHttp: l, sourceHost: d, contentURL: g, isVideo: h, score: c || 0 }));
+}
+const u = ({ id: e, source: t, owner: n, tags: r, link: c, isHttp: l, sourceHost: u, contentURL: d, isVideo: f, score: p }) =>
+    s(
+        o(i, {
+            children: [
+                a(`div`, { children: f ? a(`video`, { controls: !0, preload: `metadata`, src: d }) : a(`img`, { src: d }) }),
+                o(`h2`, { children: [`Info of `, o(`a`, { href: c, children: [`#`, e] }), `:`, ` `] }),
+                o(`p`, { children: [l ? a(`a`, { href: t, children: `Source` }) : o(`span`, { children: [`Source: `, t] }), ` (`, u, `)`] }),
+                o(`p`, { children: [`Upload by: `, a(`a`, { href: `https://gelbooru.com/index.php?page=post&s=list&tags=user:${n}`, children: n })] }),
+                o(`p`, { children: [`Score: `, p] }),
+                o(`p`, { children: [`Tags: `, a(`p`, { children: r })] }),
+            ],
+        })
+    );
+function d() {
+    return { apiKey: e.gelbooru.apiKey || ``, userId: e.gelbooru.userId || `` };
+}
+const f = {
+    path: `/post/:tags?/:quality?`,
+    categories: [`picture`],
+    view: r.Pictures,
+    example: `/gelbooru/post/1girl rating:general`,
+    parameters: { tags: '要搜索的标签，多个标签用 ` `（空格）隔开', quality: { description: '图片质量，可选值为 `sample`（压缩后的图片，推荐值） 或 `orig`（原图），默认为 `sample`', default: `sample` } },
+    features: {
+        requireConfig: [
+            { name: `GELBOORU_API_KEY`, description: 'Gelbooru 偶尔会开启 API 认证，需配合 `GELBOORU_USER_ID`，从 `https://gelbooru.com/index.php?page=account&s=options` 获取', optional: !0 },
+            { name: `GELBOORU_USER_ID`, description: '参见 `GELBOORU_API_KEY`', optional: !0 },
+        ],
+        requirePuppeteer: !1,
+        antiCrawler: !1,
+        supportRadar: !0,
+        supportBT: !1,
+        supportPodcast: !1,
+        supportScihub: !1,
+        nsfw: !0,
+    },
+    radar: [{ source: [`gelbooru.com/index.php`] }],
+    name: `标签查询`,
+    maintainers: [`magicFeirl`],
+    description:
+        '\n- 默认查询: `/gelbooru/post` 功能等同查询 Gelbooru 网站最新的投稿\n- 单标签查询: `/gelbooru/post/1girl` 查询 `1girl` 的最新投稿\n- 多标签查询: `/gelbooru/post/1girl school_uniform rating:general`\n- 指定为原图: `/gelbooru/post/1girl school_uniform rating:general/orig`\n- 更多例子: 请参考 Gelbooru 官方 wiki https://gelbooru.com/index.php?page=wiki&s=&s=view&id=25921\n\n**可选的 URL 参数**\n- limit 页面返回数据量，默认 40，可选 1 ~ 100\n\ne.g.: `/gelbooru/post?limit=20&`\n',
+    handler: p,
+};
+async function p(e) {
+    let { tags: r = ``, quality: i = `sample` } = e.req.param(),
+        a = decodeURIComponent(r).trim(),
+        { limit: o = 40 } = e.req.query(),
+        { apiKey: s, userId: u } = d(),
+        f = (await n({ url: `https://gelbooru.com/index.php`, searchParams: c.stringify({ page: `dapi`, s: `post`, q: `index`, tags: a, api_key: s, user_id: u, limit: o <= 0 || o > 100 ? 40 : o, json: 1 }) })).data.post;
+    return {
+        title: a ? `${a} - gelbooru.com` : `gelbooru.com post list`,
+        link: `https://gelbooru.com/index.php?page=post&s=list&tags=${a}`,
+        icon: `https://gelbooru.com/favicon.png`,
+        logo: `https://gelbooru.com/favicon.png`,
+        description: `Gelbooru post list`,
+        item: f.map((e) => ({
+            title: e.id,
+            id: e.id,
+            link: `https://gelbooru.com/index.php?page=post&s=view&id=${e.id}`,
+            author: e.owner,
+            pubDate: t(e.created_at),
+            description: l(e, `https://gelbooru.com/index.php?page=post&s=view&id=${e.id}`, i),
+            upvotes: e.score,
+            updated: t(e.change),
+            media: { content: { url: e.file_url }, thumbnail: { url: e.preview_url } },
+            category: e.tags.split(/\s+/g),
+        })),
+    };
+}
+export { f as route };

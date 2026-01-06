@@ -1,0 +1,59 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { load as r } from 'cheerio';
+const i = `https://www.kisskiss.tv/kiss/diary.php`,
+    a = {
+        path: `/blog/:category?`,
+        categories: [`game`],
+        example: `/blog/DLC`,
+        parameters: { category: `category` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+        radar: [{ source: [`www.kisskiss.tv/kiss/diary.php`], target: `/blog` }],
+        name: `ブログ`,
+        maintainers: [`keocheung`],
+        handler: o,
+    };
+async function o(a) {
+    let { category: o } = a.req.param(),
+        s = o ? `${i}?category=${o}` : i,
+        c = r((await t(s)).data);
+    return {
+        title: `KISS ブログ`,
+        link: s,
+        item: c(`table.blog_frame_top`)
+            .toArray()
+            .map((t) => {
+                let r = c(t),
+                    i = r.next(`div.blog_frame_middle`),
+                    a = {
+                        title: r.find(`tbody tr td`).text(),
+                        link: r.find(`tbody tr td a`).attr(`href`),
+                        pubDate: n(
+                            e(
+                                i
+                                    .find(`div.blog_data div.data_r`)
+                                    .text()
+                                    .match(/\d+年\d+月\d+日 \(\d+:\d+\)/)[0],
+                                `YYYY年M月D日 (HH:mm)`
+                            ),
+                            9
+                        ),
+                    };
+                return (
+                    i.find(`a img`).each(function () {
+                        (c(this).attr(`src`, c(this).parent(`a`).attr(`href`)), c(this).unwrap());
+                    }),
+                    i.find(`div.blog_data`).remove(),
+                    (a.description = `<div lang="ja-JP">${i.html()}</div>`),
+                    a
+                );
+            }),
+        language: `ja`,
+    };
+}
+export { a as route };

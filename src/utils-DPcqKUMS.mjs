@@ -1,0 +1,282 @@
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { i as n, n as r, t as i } from './readable-social--hCfpJhv.mjs';
+import a from 'node:url';
+import { TwitterApi as o } from 'twitter-api-v2';
+const s = (e) => a.parse(e, !0).query,
+    c = (e) => {
+        let t = null;
+        if ((t = e.match(/^(https?:\/\/\w+\.twimg\.com\/media\/[^/:]+)\.(jpg|jpeg|gif|png|bmp|webp)(:\w+)?$/i))) {
+            let e = t[2];
+            return (t[2] === `jpeg` && (e = `jpg`), `${t[1]}?format=${e}&name=orig`);
+        } else if ((t = e.match(/^(https?:\/\/\w+\.twimg\.com\/.+)(\?.+)$/i))) {
+            let n = s(e);
+            return !n.format || !n.name || n.name === `orig` ? e : t[1] + `?format=` + n.format + `&name=orig`;
+        } else return e;
+    },
+    l = (e) => e.replaceAll(/<br><br>|<br>/g, ` `),
+    u = (e) => {
+        let t = e.full_text,
+            n = e.id_str || e.conversation_id_str,
+            r = e.entities.urls || [];
+        for (let e of r) t = t.replaceAll(e.url, e.expanded_url?.endsWith(n) ? `` : e.expanded_url);
+        let i = e.extended_entities?.media || [];
+        for (let e of i) t = t.replaceAll(e.url, ``);
+        return t.trim().replaceAll(
+            `
+`,
+            `<br>`
+        );
+    },
+    d = (e, { data: a = [] }, o = {}) => {
+        let s = new URLSearchParams(e.req.param(`routeParams`));
+        o = {
+            readable: i(o.readable, r(s.get(`readable`)), !1),
+            authorNameBold: i(o.authorNameBold, r(s.get(`authorNameBold`)), !1),
+            showAuthorInTitle: i(o.showAuthorInTitle, r(s.get(`showAuthorInTitle`)), !1),
+            showAuthorAsTitleOnly: i(o.showAuthorAsTitleOnly, r(s.get(`showAuthorAsTitleOnly`)), !1),
+            showAuthorInDesc: i(o.showAuthorInDesc, r(s.get(`showAuthorInDesc`)), !1),
+            showQuotedAuthorAvatarInDesc: i(o.showQuotedAuthorAvatarInDesc, r(s.get(`showQuotedAuthorAvatarInDesc`)), !1),
+            showAuthorAvatarInDesc: i(o.showAuthorAvatarInDesc, r(s.get(`showAuthorAvatarInDesc`)), !1),
+            showEmojiForRetweetAndReply: i(o.showEmojiForRetweetAndReply, r(s.get(`showEmojiForRetweetAndReply`)), !1),
+            showSymbolForRetweetAndReply: i(o.showSymbolForRetweetAndReply, r(s.get(`showSymbolForRetweetAndReply`)), !0),
+            showRetweetTextInTitle: i(o.showRetweetTextInTitle, r(s.get(`showRetweetTextInTitle`)), !0),
+            addLinkForPics: i(o.addLinkForPics, r(s.get(`addLinkForPics`)), !1),
+            showTimestampInDescription: i(o.showTimestampInDescription, r(s.get(`showTimestampInDescription`)), !1),
+            showQuotedInTitle: i(o.showQuotedInTitle, r(s.get(`showQuotedInTitle`)), !1),
+            widthOfPics: i(o.widthOfPics, n(s.get(`widthOfPics`)), -1),
+            heightOfPics: i(o.heightOfPics, n(s.get(`heightOfPics`)), -1),
+            sizeOfAuthorAvatar: i(o.sizeOfAuthorAvatar, n(s.get(`sizeOfAuthorAvatar`)), 48),
+            sizeOfQuotedAuthorAvatar: i(o.sizeOfQuotedAuthorAvatar, n(s.get(`sizeOfQuotedAuthorAvatar`)), 24),
+            mediaNumber: i(o.mediaNumber, n(s.get(`mediaNumber`)), !1),
+        };
+        let {
+                readable: d,
+                authorNameBold: f,
+                showAuthorInTitle: p,
+                showAuthorAsTitleOnly: m,
+                showAuthorInDesc: h,
+                showQuotedAuthorAvatarInDesc: g,
+                showAuthorAvatarInDesc: _,
+                showEmojiForRetweetAndReply: v,
+                showSymbolForRetweetAndReply: y,
+                showRetweetTextInTitle: b,
+                addLinkForPics: x,
+                showTimestampInDescription: S,
+                showQuotedInTitle: C,
+                mediaNumber: w,
+                widthOfPics: T,
+                heightOfPics: E,
+                sizeOfAuthorAvatar: D,
+                sizeOfQuotedAuthorAvatar: O,
+            } = o,
+            k = (e, t = ``) => {
+                let n = ``,
+                    r = null;
+                for (let t of e.video_info.variants) (!r || (t.bitrate || 0) > (r.bitrate || -1 / 0)) && (r = t);
+                if (r && r.url) {
+                    let i = e.type === `animated_gif` ? `autoplay loop muted webkit-playsinline playsinline` : ``;
+                    (d || (n += `<br>`), (n += `<video width="${e.sizes.large.w}" height="${e.sizes.large.h}" src='${r.url}' ${i} controls='controls' poster='${c(e.media_url_https)}' ${t}></video>`));
+                }
+                return n;
+            },
+            A = (e) => {
+                let t = ``;
+                if (e.extended_entities) {
+                    let n = e.extended_entities.media.length,
+                        r = 1;
+                    for (let i of e.extended_entities.media) {
+                        let e = ``,
+                            a = ``,
+                            o;
+                        switch (i.type) {
+                            case `animated_gif`:
+                            case `video`:
+                                e = k(i);
+                                break;
+                            case `photo`:
+                            default:
+                                ((o = c(i.media_url_https)),
+                                    d || (e += `<br>`),
+                                    x && (e += `<a href='${o}' target='_blank' rel='noopener noreferrer'>`),
+                                    (e += `<img `),
+                                    T >= 0 && ((e += ` width="${T}"`), (a += `width: ${T}px;`)),
+                                    E > 0 && ((e += `height="${E}" `), (a += `height: ${E}px;`)),
+                                    T <= 0 && E <= 0 && (e += `width="${i.sizes.large.w}" height="${i.sizes.large.h}" `),
+                                    (e += ` style="${a}" ${d ? `hspace="4" vspace="8"` : ``} src="${o}">`),
+                                    x && (e += `</a>`));
+                                break;
+                        }
+                        ((t += e), w && ((t += `<p style="text-align:center">${r}/${n}</p>`), r++));
+                    }
+                }
+                return (d && t && (t = `<br clear='both' /><div style='clear: both'></div>` + t), t);
+            },
+            j = (e) => {
+                let t = ``;
+                if (e.extended_entities)
+                    for (let n of e.extended_entities.media) {
+                        let e, r;
+                        switch (n.type) {
+                            case `video`:
+                                e = k(n, `width="0" height="0"`);
+                                break;
+                            case `photo`:
+                            default:
+                                ((r = c(n.media_url_https)), (e = `<img width='0' height='0' hidden='true' src='${r}'>`));
+                                break;
+                        }
+                        t += e;
+                    }
+                return t;
+            };
+        return a.map((e) => {
+            let n = e;
+            ((e = e.retweeted_status || e), (e.full_text = e.full_text || e.text), (e.full_text = u(e)));
+            let r = A(e),
+                i = j(e),
+                a = ``,
+                o = ``;
+            if (e.is_quote_status) {
+                let n = e.quoted_status;
+                if (n) {
+                    n.full_text = n.full_text || n.text;
+                    let e = n.user;
+                    ((a += `<div class="rsshub-quote">`),
+                        d
+                            ? ((a += `<br clear='both' /><div style='clear: both'></div>`),
+                              (a += `<blockquote style='background: #80808010;border-top:1px solid #80808030;border-bottom:1px solid #80808030;margin:0;padding:5px 20px;'>`))
+                            : (a += `<br><br>`),
+                        d && (a += `<a href='https://x.com/${e.screen_name}' target='_blank' rel='noopener noreferrer'>`),
+                        g && (a += `<img width='${O}' height='${O}' src='${e.profile_image_url_https}' ${d ? `hspace="8" vspace="8" align="left"` : ``}>`),
+                        f && (a += `<strong>`),
+                        (a += e.name),
+                        f && (a += `</strong>`),
+                        d && (a += `</a>`),
+                        (a += `:&ensp;`),
+                        (a += u(n)),
+                        d || (a += `<br>`),
+                        (a += A(n)),
+                        (i += j(n)),
+                        (o += v ? ` 💬 ` : y ? ` RT ` : ``),
+                        (o += `${e.name}: ${u(n)}`),
+                        d &&
+                            (a += `<br><small>Link: <a href='https://x.com/${e.screen_name}/status/${n.id_str || n.conversation_id_str}' target='_blank' rel='noopener noreferrer'>https://x.com/${e.screen_name}/status/${n.id_str || n.conversation_id_str}</a></small>`),
+                        S && ((a += `<br><small>` + t(n.created_at)), (a += `</small>`), d && (a += `<br clear='both' /><div style='clear: both'></div>`)),
+                        d && (a += `</blockquote>`),
+                        (a += `</div>`));
+                }
+            }
+            let s = ``;
+            p && (s += n.user?.name + `: `);
+            let c = n !== e,
+                x = e.is_quote_status;
+            (!c && (!x || b) && (e.in_reply_to_screen_name && (s += v ? `↩️ ` : y ? `Re ` : ``), (s += l(n.full_text))),
+                c && ((s += v ? `🔁 ` : y ? `RT ` : ``), (s += e.user.name + `: `), e.in_reply_to_screen_name && (s += v ? ` ↩️ ` : y ? ` Re ` : ``), (s += l(e.full_text))),
+                C && (s += o),
+                m && (s = n.user?.name));
+            let w = ``;
+            (h && _ && (w += i),
+                c &&
+                    (h &&
+                        (d && ((w += `<small>`), (w += `<a href='https://x.com/${n.user?.screen_name}' target='_blank' rel='noopener noreferrer'>`)),
+                        f && (w += `<strong>`),
+                        (w += n.user?.name),
+                        f && (w += `</strong>`),
+                        d && (w += `</a>`),
+                        (w += `&ensp;`)),
+                    (w += v ? `🔁` : y ? `RT` : ``),
+                    h ||
+                        ((w += `&ensp;`),
+                        d && (w += `<a href='https://x.com/${e.user?.screen_name}' target='_blank' rel='noopener noreferrer'>`),
+                        f && (w += `<strong>`),
+                        (w += e.user?.name),
+                        f && (w += `</strong>`),
+                        d && (w += `</a>`)),
+                    d && (w += `</small>`),
+                    (w += `<br>`)),
+                h &&
+                    (d && (w += `<a href='https://x.com/${e.user?.screen_name}' target='_blank' rel='noopener noreferrer'>`),
+                    _ && (w += `<img width='${D}' height='${D}' src='${e.user.profile_image_url_https}' ${d ? `hspace="8" vspace="8" align="left"` : ``}>`),
+                    f && (w += `<strong>`),
+                    (w += e.user?.name),
+                    f && (w += `</strong>`),
+                    d && (w += `</a>`),
+                    (w += `:&ensp;`)),
+                e.in_reply_to_screen_name && (w += v ? `↩️ ` : y ? `Re ` : ``),
+                (w += e.full_text));
+            let T = w.match(/(\s)?(#[^\s;<]+)/g)?.map((e) => e?.match(/#([^\s<]+)/)?.[1]);
+            ((w += r), (w += a), d && (w += `<br clear='both' /><div style='clear: both'></div>`), S && (d && (w += `<hr>`), (w += `<small>${t(e.created_at)}</small>`)));
+            let E =
+                n.user?.screen_name && (n.id_str || n.conversation_id_str)
+                    ? `https://x.com/${n.user?.screen_name}/status/${n.id_str || n.conversation_id_str}`
+                    : `https://x.com/${e.user?.screen_name}/status/${e.id_str || e.conversation_id_str}`;
+            return {
+                title: s,
+                author: [{ name: n.user?.name, url: `https://x.com/${n.user?.screen_name}`, avatar: n.user?.profile_image_url_https }],
+                description: w,
+                pubDate: t(e.created_at),
+                link: E,
+                guid: E.replace(`x.com`, `twitter.com`),
+                category: T,
+                _extra:
+                    (c && { links: [{ url: `https://x.com/${e.user?.screen_name || userScreenName}/status/${e.conversation_id_str}`, type: `repost` }] }) ||
+                    (e.is_quote_status && { links: [{ url: `https://x.com/${e.quoted_status?.user?.screen_name}/status/${e.quoted_status?.id_str || e.quoted_status?.conversation_id_str}`, type: `quote` }] }) ||
+                    (e.in_reply_to_screen_name && e.in_reply_to_status_id_str && { links: [{ url: `https://x.com/${e.in_reply_to_screen_name}/status/${e.in_reply_to_status_id_str}`, type: `reply` }] }),
+            };
+        });
+    };
+let f = () => null;
+if (e.twitter.consumer_key && e.twitter.consumer_secret) {
+    let t = e.twitter.consumer_key.split(`,`),
+        n = e.twitter.consumer_secret.split(`,`),
+        r = {},
+        i = 0,
+        a = -1;
+    for (let [e, a] of t.entries()) {
+        let t = n[e];
+        a && t && ((r[e] = new o({ appKey: a, appSecret: t }).readOnly), (i = e + 1));
+    }
+    f = () => (a++, r[a % i].appLogin());
+}
+var p = {
+    ProcessFeed: d,
+    getAppClient: f,
+    parseRouteParams: (e) => {
+        let t,
+            a,
+            o,
+            s,
+            c = !1;
+        switch (e) {
+            case `exclude_rts_replies`:
+            case `exclude_replies_rts`:
+                ((a = !1), (o = !1));
+                break;
+            case `include_replies`:
+                ((a = !0), (o = !0));
+                break;
+            case `exclude_rts`:
+                ((a = !1), (o = !1));
+                break;
+            default: {
+                let l = new URLSearchParams(e);
+                ((t = i(void 0, n(l.get(`count`)))),
+                    (a = i(void 0, r(l.get(`includeReplies`)), !1)),
+                    (o = i(void 0, r(l.get(`includeRts`)), !0)),
+                    (c = i(void 0, r(l.get(`forceWebApi`)), !1)),
+                    (s = i(void 0, r(l.get(`onlyMedia`)), !1)));
+            }
+        }
+        return { count: t, include_replies: a, include_rts: o, force_web_api: c, only_media: s };
+    },
+    excludeRetweet: function (e) {
+        let t = [];
+        for (let n of e) n.retweeted_status || t.push(n);
+        return t;
+    },
+    keepOnlyMedia: function (e) {
+        return e.filter((e) => e.extended_entities && e.extended_entities.media);
+    },
+};
+export { p as t };

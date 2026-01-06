@@ -1,0 +1,44 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { a as t, i as n, n as r, r as i, t as a } from './utils-DAZORnRC.mjs';
+import { load as o } from 'cheerio';
+const s = {
+    path: `/research/:journal?`,
+    categories: [`journal`],
+    example: `/nature/research/ng`,
+    parameters: { journal: 'short name for a journal, `nature` by default' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !0 },
+    radar: [{ source: [`nature.com/:journal/research-articles`, `nature.com/:journal`, `nature.com/`], target: `/research/:journal` }],
+    name: `Latest Research`,
+    maintainers: [`y9c`, `TonyRL`, `pseudoyu`],
+    handler: c,
+    description: `|   \`:journal\`  |   Full Name of the Journal  | Route                                                                              |
+| :-----------: | :-------------------------: | ---------------------------------------------------------------------------------- |
+|     nature    |            Nature           | [/nature/research/nature](https://rsshub.app/nature/research/nature)               |
+|      nbt      |     Nature Biotechnology    | [/nature/research/nbt](https://rsshub.app/nature/research/nbt)                     |
+|     neuro     |     Nature Neuroscience     | [/nature/research/neuro](https://rsshub.app/nature/research/neuro)                 |
+|       ng      |       Nature Genetics       | [/nature/research/ng](https://rsshub.app/nature/research/ng)                       |
+|       ni      |      Nature Immunology      | [/nature/research/ni](https://rsshub.app/nature/research/ni)                       |
+|     nmeth     |        Nature Method        | [/nature/research/nmeth](https://rsshub.app/nature/research/nmeth)                 |
+|     nchem     |       Nature Chemistry      | [/nature/research/nchem](https://rsshub.app/nature/research/nchem)                 |
+|      nmat     |       Nature Materials      | [/nature/research/nmat](https://rsshub.app/nature/research/nmat)                   |
+| natmachintell | Nature Machine Intelligence | [/nature/research/natmachintell](https://rsshub.app/nature/research/natmachintell) |
+
+  -   Using router (\`/nature/research/\` + "short name for a journal") to query latest research paper for a certain journal of Nature Publishing Group.
+      If the \`:journal\` parameter is blank, then latest research of Nature will return.
+  -   The journals from NPG are run by different group of people, and the website of may not be consitent for all the journals
+  -   Only abstract is rendered in some researches`,
+};
+async function c(s) {
+    let c = `${a}/${s.req.param(`journal`) ?? `nature`}/research-articles`,
+        l = o((await e(c, { cookieJar: r })).data),
+        u = t(l).content.journal.title,
+        d = n(l);
+    return ((d = await Promise.all(d.map((e) => i(e)))), { title: `Nature (${u}) | Latest Research`, description: l(`meta[name="description"]`).attr(`content`) || `Nature, a nature research journal`, link: c, item: d });
+}
+export { s as route };

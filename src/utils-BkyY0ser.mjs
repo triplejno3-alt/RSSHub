@@ -1,0 +1,7 @@
+function e(e) {
+    return /^\w+?:\/\/.*?\//.test(e);
+}
+function t(t, n) {
+    return e(n) ? n : (t.endsWith(`/`) || (t += `/`), n.startsWith(`/`) && (n = n.slice(1)), t + n);
+}
+export { t };

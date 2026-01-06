@@ -1,0 +1,16 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { i as t, n, r, t as i } from './utils-DnCBP1jc.mjs';
+import * as a from 'cheerio';
+import o from 'p-map';
+const s = { path: `/focusread`, radar: [{ source: [`www.myzaker.com/`], target: `/focusread` }], name: `精读`, example: `/zaker/focusread`, maintainers: [`AlexdanerZe`, `TonyRL`], handler: c };
+async function c() {
+    let s = `${i}/?pos=selected_article`,
+        { cookie: c, data: l } = await r(s);
+    return { title: `ZAKER 精读新闻`, link: s, item: await o(t(a.load(l)), (t) => e.tryGet(t.link, () => n(t, c)), { concurrency: 2 }) };
+}
+export { s as route };

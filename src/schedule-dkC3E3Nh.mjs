@@ -1,0 +1,34 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+const n = {
+    path: `/schedule/:propertyId?/:typeId?`,
+    categories: [`bbs`],
+    example: `/nowcoder/schedule`,
+    parameters: { propertyId: `行业, 在控制台中抓取接口，可获得行业id，默认0`, typeId: `类别，同上` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`nowcoder.com/`], target: `/schedule` }],
+    name: `校招日程`,
+    maintainers: [`junfengP`],
+    handler: r,
+    url: `nowcoder.com/`,
+};
+async function r(n) {
+    let r = n.req.param(`propertyId`) ?? 0,
+        i = (await t(`https://www.nowcoder.com/school/schedule/data?token=&query=&typeId=${n.req.param(`typeId`) ?? 0}&propertyId=${r}&onlyFollow=false&_=${Date.now()}`)).data;
+    if (i.code !== 0) throw Error(`接口错误，错误代码:${i.code},错误原因:${i.msg}`);
+    return {
+        title: `名企校招日程`,
+        link: `https://www.nowcoder.com/school/schedule`,
+        description: `名企校招日程`,
+        item: i.data.companyList.map((t) => {
+            let n = `<tr><td><img src="${t.logo}" referrerpolicy="no-referrer""></td></tr>`;
+            for (let e of t.schedules) n += `<tr><td>${e.content}</td><td>${e.time}</td></tr>`;
+            return { title: t.name, description: `<table>${n}</table>`, pubDate: e(t.createTime), link: `https://www.nowcoder.com/school/schedule/${t.id}` };
+        }),
+    };
+}
+export { n as route };

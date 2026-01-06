@@ -1,0 +1,50 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/:language?/:channel?/:subChannel?`,
+    categories: [`traditional-media`],
+    example: `/rfa/english`,
+    parameters: { language: `language, English by default`, channel: `channel`, subChannel: `subchannel, where applicable` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `News`,
+    maintainers: [`zphw`],
+    handler: a,
+    description:
+        'Delivers a better experience by supporting parameter specification.\n\nParameters can be obtained from the official website, for instance:\n\n`https://www.rfa.org/cantonese/news` corresponds to `/rfa/cantonese/news`\n\n`https://www.rfa.org/cantonese/news/htm` corresponds to `/rfa/cantonese/news/htm`',
+};
+async function a(i) {
+    let a = `https://www.rfa.org/` + (i.req.param(`language`) ?? `english`);
+    (i.req.param(`channel`) && (a += `/` + i.req.param(`channel`)), i.req.param(`subChannel`) && (a += `/` + i.req.param(`subChannel`)));
+    let o = r((await n(a)).data),
+        s = [`div[id=topstorywidefull]`, `div.two_featured`, `div.three_featured`, `div.single_column_teaser`, `div.sectionteaser`, `div.specialwrap`],
+        c = [];
+    for (let e of s)
+        o(e).each((e, t) => {
+            let n = { title: o(t).find(`h2 a span`).first().text(), link: o(t).find(`h2 a`).first().attr(`href`) };
+            c.push(n);
+        });
+    return {
+        title: `RFA`,
+        link: `https://www.rfa.org/`,
+        item: await Promise.all(
+            c.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let e = r((await n(i.link)).data);
+                    return (
+                        (i.description = e(`#headerimg`).html() + e(`div[id=storytext]`).html()),
+                        (i.pubDate = t(e(`span[id=story_date]`).text())),
+                        e(`meta[property=og:audio]`).attr(`content`) !== void 0 && ((i.enclosure_url = e(`meta[property=og:audio]`).attr(`content`)), (i.enclosure_type = e(`meta[property=og:audio:type]`).attr(`content`))),
+                        i
+                    );
+                })
+            )
+        ),
+    };
+}
+export { i as route };

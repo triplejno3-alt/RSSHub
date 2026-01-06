@@ -1,0 +1,43 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { n as t, r as n, t as r } from './const-CBcqBA2o.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/popular/:period`,
+    categories: [`picture`],
+    example: `/4kup/popular/7`,
+    parameters: { period: `Days` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+    radar: [{ source: [`4kup.net/:period`], target: `/popular/:period` }],
+    name: `Popular`,
+    maintainers: [`AiraNadih`],
+    handler: s,
+    url: `4kup.net/`,
+};
+function o(e) {
+    return e === `7`
+        ? { url: `${t}hot-of-week/`, range: `last7days`, title: `${r} - Top views in 7 days` }
+        : e === `30`
+          ? { url: `${t}hot-of-month/`, range: `last30days`, title: `${r} - Top views in 30 days` }
+          : { url: `${t}most-view/`, range: `all`, title: `${r} - Most views` };
+}
+async function s(r) {
+    let a = Number.parseInt(r.req.query(`limit`)) || 20,
+        { url: s, range: c, title: l } = o(r.req.param(`period`)),
+        { data: u } = await e.post(`${t}wp-json/wordpress-popular-posts/v2/widget`, { json: { limit: a, range: c, order_by: `views` } }),
+        d = i(u.widget),
+        { data: f } = await e(
+            `${t}wp-json/wp/v2/posts?slug=${d(`.wpp-list li`)
+                .toArray()
+                .map((e) => d(e).find(`.wpp-post-title`).attr(`href`))
+                .filter((e) => e !== void 0)
+                .map((e) => e.split(`/`).findLast(Boolean))
+                .join(`,`)}&per_page=${a}`
+        );
+    return { title: l, link: s, item: f.map((e) => n(e)) };
+}
+export { a as route };

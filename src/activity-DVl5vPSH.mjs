@@ -1,0 +1,49 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { Fragment as t, jsx as n, jsxs as r } from 'hono/jsx/jsx-runtime';
+import { load as i } from 'cheerio';
+import { renderToString as a } from 'hono/jsx/dom/server';
+import { raw as o } from 'hono/html';
+const s = {
+    path: `/activity/:city/:category/:subcategory/:keyword?`,
+    categories: [`shopping`],
+    example: `/damai/activity/上海/音乐会/全部/柴可夫斯基`,
+    parameters: { city: '城市，如果不需要限制，请填入`全部`', category: '分类，如果不需要限制，请填入`全部`', subcategory: '子分类，如果不需要限制，请填入`全部`', keyword: `搜索关键字，置空为不限制` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `票务更新`,
+    maintainers: [`hoilc`, `Konano`],
+    handler: c,
+    description: `城市、分类名、子分类名，请参见[大麦网搜索页面](https://search.damai.cn/search.htm)`,
+};
+async function c(s) {
+    let c = s.req.param(`city`) === `全部` ? `` : s.req.param(`city`),
+        l = s.req.param(`category`) === `全部` ? `` : s.req.param(`category`),
+        u = s.req.param(`subcategory`) === `全部` ? `` : s.req.param(`subcategory`),
+        d = s.req.param(`keyword`) ?? ``,
+        f = (await e(`https://search.damai.cn/searchajax.html`, { searchParams: { keyword: d, cty: c, ctl: l, sctl: u, tsg: 0, st: ``, et: ``, order: 3, pageSize: 30, currPage: 1, tn: `` } })).data.pageData.resultData || [];
+    return {
+        title: `大麦网票务 - ${c || `全国`} - ${l || `全部分类`}${u ? ` - ` + u : ``}${d ? ` - ` + d : ``}`,
+        link: `https://search.damai.cn/search.htm`,
+        allowEmpty: !0,
+        item: f.map((e) => ({
+            title: e.nameNoHtml,
+            author: e.actors ? i(e.actors, null, !1).text() : `大麦网`,
+            description: a(
+                r(t, {
+                    children: [
+                        n(`img`, { src: e.verticalPic }),
+                        n(`p`, { children: e.description ? o(e.description) : null }),
+                        r(`p`, { children: [`地点：`, e.venuecity, ` | `, e.venue] }),
+                        r(`p`, { children: [`时间：`, e.showtime] }),
+                        r(`p`, { children: [`票价：`, e.price_str] }),
+                    ],
+                })
+            ),
+            link: `https://detail.damai.cn/item.htm?id=${e.projectid}`,
+        })),
+    };
+}
+export { s as route };

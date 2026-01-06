@@ -1,0 +1,45 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/live`,
+    categories: [`multimedia`],
+    example: `/bandcamp/live`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`bandcamp.com/live_schedule`] }],
+    name: `Upcoming Live Streams`,
+    maintainers: [`nczitzk`],
+    handler: i,
+    url: `bandcamp.com/live_schedule`,
+};
+async function i() {
+    let r = `https://bandcamp.com/live_schedule`,
+        i = n((await t({ method: `get`, url: r })).data);
+    i(`.curated-wrapper`).remove();
+    let a = i(`.live-listing`)
+        .toArray()
+        .map(
+            (t) => (
+                (t = i(t)),
+                {
+                    link: t.find(`.title-link`).attr(`href`),
+                    title: t.find(`.show-title`).text(),
+                    author: t.find(`.show-artist`).text(),
+                    pubDate: e(t.find(`.show-time-container`).text().trim().split(` UTC`)[0]),
+                    description: `<img src="${
+                        t
+                            .find(`.show-thumb-image`)
+                            .attr(`style`)
+                            .match(/background-image: url\((.*)\);/)[1]
+                    }">`,
+                }
+            )
+        );
+    return { title: i(`title`).text(), link: r, item: a };
+}
+export { r as route };

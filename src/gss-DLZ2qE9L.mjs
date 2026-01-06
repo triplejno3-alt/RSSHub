@@ -1,0 +1,58 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/mof/gss/:category?`,
+    categories: [`government`],
+    example: `/gov/mof/gss`,
+    parameters: { category: `列表标签，默认为政策发布` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `关税政策文件`,
+    maintainers: [`la3rence`],
+    handler: async (a) => {
+        let { category: o = `zhengcefabu` } = a.req.param(),
+            s = `https://gss.mof.gov.cn/gzdt/${o}/`,
+            { data: c } = await n(s),
+            l = i(c),
+            u = l(`title`).text(),
+            d = l(`div.zzName`).text(),
+            f = l(`meta[name="SiteName"]`).prop(`content`),
+            p = l(`meta[name="ColumnDescription"]`).prop(`content`),
+            m = l(`ul.liBox li`)
+                .toArray()
+                .map((e) => {
+                    let n = l(e).find(`a`),
+                        i = l(e).find(`span`).text(),
+                        a = n.prop(`href`),
+                        o = a.startsWith(`http`) ? a : new URL(a, s).href;
+                    return { title: n.prop(`title`), link: o, pubDate: r(t(i), 8) };
+                });
+        return {
+            item: await Promise.all(
+                m.map((t) =>
+                    e.tryGet(t.link, async () => {
+                        let { data: e } = await n(t.link);
+                        return ((t.description = i(e)(`div.my_doccontent`).html() ?? ``), (t.author = d), t);
+                    })
+                )
+            ),
+            title: u,
+            link: s,
+            description: `${p} - ${f}`,
+            author: d,
+        };
+    },
+    description: `#### 关税文件发布
+
+| 政策发布 | 政策解读 |
+| ------------- | -------------- |
+| zhengcefabu   | zhengcejiedu   |`,
+    radar: [{ source: [`gss.mof.gov.cn/gzdt/:category/`], target: `/mof/gss/:category` }],
+};
+export { a as route };

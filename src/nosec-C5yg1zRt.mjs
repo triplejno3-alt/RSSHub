@@ -1,0 +1,48 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = { threaten: `威胁情报`, security: `安全动态`, hole: `漏洞预警`, leakage: `数据泄露`, speech: `专题报告`, skill: `技术分析`, tool: `安全工具` },
+    i = {
+        path: `/:keykind?`,
+        categories: [`programming`],
+        example: `/nosec/hole`,
+        parameters: { keykind: `对应文章分类` },
+        name: `Posts`,
+        maintainers: [`hellodword`],
+        description:
+            '| 分类     | 标识       |\n| :------- | :--------- |\n| 威胁情报 | `threaten` |\n| 安全动态 | `security` |\n| 漏洞预警 | `hole`     |\n| 数据泄露 | `leakage`  |\n| 专题报告 | `speech`   |\n| 技术分析 | `skill`    |\n| 安全工具 | `tool`     |',
+        handler: a,
+        radar: [{ source: [`nosec.org/home/index/:keykind`, `nosec.org/home/index`], target: (e) => `/nosec${e.keykind ? `/${e.keybind.replace(`.html`, ``)}` : ``}` }],
+    };
+async function a(i) {
+    let a = await e.raw(`https://nosec.org/home/index`),
+        o = n(a._data)(`meta[name="csrf-token"]`).attr(`content`),
+        s = a.headers.getSetCookie().toString(),
+        c = s.match(/XSRF-TOKEN=[^\s;]+/)[0],
+        l = s.match(/laravel_session[^\s;]+/)[0],
+        u = i.req.param(`keykind`) || ``,
+        d,
+        f,
+        p;
+    Object.hasOwn(r, u)
+        ? ((d = `keykind=${u}&page=1`), (f = `NOSEC 安全讯息平台 - ${r[u]}`), (p = `https://nosec.org/home/index/${u}.html`))
+        : ((d = `keykind=&page=1`), (f = `NOSEC 安全讯息平台`), (p = `https://nosec.org/home/index`));
+    let m = (
+        await t({
+            method: `post`,
+            url: `https://nosec.org/home/ajaxindexdata`,
+            headers: { 'Content-Type': `application/x-www-form-urlencoded; charset=UTF-8`, Accept: `application/json`, cookie: `${c};${l}`, 'X-CSRF-TOKEN': o },
+            body: d,
+        })
+    ).data.data.threatData.data;
+    return {
+        title: f,
+        link: p,
+        description: f,
+        item: m.map((e) => ({ title: e.title, description: e.summary, pubDate: new Date(e.publiced_at).toUTCString(), link: `https://nosec.org/home/detail/${e.id}.html`, author: e.username })),
+    };
+}
+export { i as route };

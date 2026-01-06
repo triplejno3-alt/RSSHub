@@ -1,0 +1,76 @@
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { Fragment as n, jsx as r, jsxs as i } from 'hono/jsx/jsx-runtime';
+import { load as a } from 'cheerio';
+import { renderToString as o } from 'hono/jsx/dom/server';
+import { raw as s } from 'hono/html';
+const c = `https://www.javlibrary.com`,
+    l = `1`,
+    u = `amjq`,
+    d = `arlq`,
+    f = `ja`,
+    p = ({ cover: e, info: t, comment: a, videos: c, thumbs: l }) =>
+        o(
+            i(n, {
+                children: [
+                    r(`img`, { src: e }),
+                    t ? r(n, { children: s(t) }) : null,
+                    a ? i(n, { children: [r(`br`, {}), s(a), r(`br`, {})] }) : null,
+                    c?.length ? c.map((e) => r(`video`, { controls: !0, children: r(`source`, { src: e, type: `video/mp4` }) })) : null,
+                    l?.length ? l.map((e) => r(`img`, { src: e })) : null,
+                ],
+            })
+        ),
+    m = async (n, r, i) => {
+        let o = a((await t({ method: `get`, url: r })).data);
+        o(`.toolbar, .info, .videoinfo`).remove();
+        let s = o(`.videotextlist, #video_comments`)
+            .find(`a`)
+            .toArray()
+            .filter((e) => o(e).parent().hasClass(`video`) || o(e).parent().get(0).tagName === `strong`)
+            .map((t) => {
+                t = o(t);
+                let r = t.parentsUntil(`table`),
+                    i = `${c}/${n}/${t.attr(`href`).replace(/^\.\//, ``)}`;
+                return { link: i, url: i.replace(/video.*\.php/, ``), title: t.text(), description: r.find(`textarea`).text(), pubDate: e(r.find(`.date`).text()) };
+            });
+        return (
+            (s = await Promise.all(
+                s.map((n) =>
+                    i(n.url, async () => {
+                        let r = await t({ method: `get`, url: n.url }),
+                            i = a(r.data);
+                        return (
+                            i(`.icn_edit, .btn_videoplayer, a[rel="bookmark"]`).remove(),
+                            i(`span`).each(function () {
+                                i(this).attr(`class`)?.startsWith(`icn_`) && i(this).remove();
+                            }),
+                            (n.author = i(`.star`)
+                                .toArray()
+                                .map((e) => i(e).text())
+                                .filter((e) => e !== ``)
+                                .join(`,`)),
+                            (n.category = i(`a[rel]`)
+                                .toArray()
+                                .map((e) => i(e).text())
+                                .filter((e) => e !== ``)),
+                            (n.description = p({
+                                cover: i(`#video_jacket_img`).attr(`src`),
+                                info: i(`#video_info`).html().replaceAll(`span><span`, `span>,&nbsp;<span`),
+                                comment: n.description?.replaceAll(`[img]`, `<img src="`)?.replaceAll(`[/img]`, `"/>`),
+                                thumbs: i(`.previewthumbs img`)
+                                    .toArray()
+                                    .map((e) => i(e).attr(`src`).replaceAll(`-`, `jp-`)),
+                                videos: [...new Set(r.data.match(/(http[^"[\]]+\.mp4)/g))],
+                            })),
+                            (n.pubDate = n.pubDate.toString() === `Invalid Date` ? e(i(`#video_date`).find(`.text`).text()) : n.pubDate),
+                            delete n.url,
+                            n
+                        );
+                    })
+                )
+            )),
+            { title: o(`title`).text(), link: r, item: s, allowEmpty: !0 }
+        );
+    };
+export { l as a, d as i, u as n, c as o, f as r, m as t };

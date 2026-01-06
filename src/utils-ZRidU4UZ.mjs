@@ -1,0 +1,35 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import * as n from 'cheerio';
+import r from 'crypto-js';
+const i = `https://3g.dxy.cn`,
+    a = `https://www.dxy.cn`,
+    o = (e = 8, t = `alphabet`) => {
+        let n = { alphabet: `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`, number: `0123456789` },
+            r = ``,
+            i = n[t] || n.alphabet;
+        for (let t = 0; t < e; t++) r += i.charAt(Math.floor(Math.random() * i.length));
+        return r;
+    },
+    s = (e) => {
+        let t = new URLSearchParams(e);
+        return (t.append(`appSignKey`, `4bTogwpz7RzNO2VTFtW7zcfRkAE97ox6ZSgcQi7FgYdqrHqKB7aGqEZ4o7yssa2aEXoV3bQwh12FFgVNlpyYk2Yjm9d2EZGeGu3`), t.sort(), r.SHA1(t.toString()).toString());
+    },
+    c = (r, i) =>
+        i(r.link, async () => {
+            let i = { postId: r.postId, serverTimestamp: Date.now(), timestamp: Date.now(), noncestr: o(8, `number`) },
+                a = await e(`https://www.dxy.cn/bbs/newweb/post/detail`, { query: { ...i, sign: s(i) } });
+            if (a.code !== `success`) throw Error(a.message);
+            let c = n.load(a.data.body, null, !1);
+            return (
+                c(`img`).each((e, t) => {
+                    ((t = c(t)), t.data(`hsrc`) && (t.attr(`src`, t.data(`hsrc`)), t.removeAttr(`data-hsrc`)), t.data(`osrc`) && (t.attr(`src`, t.data(`osrc`)), t.removeAttr(`data-osrc`)));
+                }),
+                (r.description = c.html()),
+                (r.pubDate = t(a.data.createTime, `x`)),
+                (r.updated = a.data.lastEditTime ? t(a.data.lastEditTime, `x`) : r.pubDate),
+                (r.category = [...new Set([...r.category, ...a.data.tagInfos.map((e) => e.tagName)])]),
+                r
+            );
+        });
+export { a, s as i, c as n, i as r, o as t };

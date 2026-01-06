@@ -1,0 +1,85 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { n as t, t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './timezone-CrV-DT8S.mjs';
+import { load as a } from 'cheerio';
+const o = { path: `/:params{.+}?`, name: `Unknown`, maintainers: [], handler: s };
+async function s(o) {
+    let { params: s = `posts` } = o.req.param(),
+        c = o.req.query(`limit`) ? Number.parseInt(o.req.query(`limit`), 10) : 30,
+        l = s === `hot`,
+        u = `https://www.toodaylab.com`,
+        d = new URL(l ? `posts` : s, u).href,
+        { data: f } = await r(d),
+        p = a(f),
+        m = l
+            ? p(`div.hot-list a`)
+                  .slice(0, c)
+                  .toArray()
+                  .map((e) => ((e = p(e)), { title: e.find(`div.hot-item p`).text(), link: new URL(e.prop(`href`), u).href }))
+            : p(`div.single-post`)
+                  .slice(0, c)
+                  .toArray()
+                  .map((e) => {
+                      e = p(e);
+                      let r = e.find(`p.title a`),
+                          a = e
+                              .find(`div.left-infos p`)
+                              .text()
+                              .trim()
+                              .split(/\/\/\s/)
+                              .pop();
+                      return {
+                          title: r.text(),
+                          link: new URL(r.prop(`href`), u).href,
+                          description: e.find(`p.excerpt`).html(),
+                          author: e.find(`div.left-infos p a`).text().trim(),
+                          pubDate: i(/[年日月]/.test(a) ? n(a, [`YYYY年M月D日 HH:mm`, `M月D日 HH:mm`]) : t(a), 8),
+                      };
+                  });
+    m = await Promise.all(
+        m.map((o) =>
+            e.tryGet(o.link, async () => {
+                let { data: e } = await r(o.link),
+                    s = a(e),
+                    c = s(`div.left-infos p`)
+                        .text()
+                        .trim()
+                        .split(/\/\/\s/)
+                        .pop();
+                return (
+                    (o.title = s(`h1`).text() || o.title),
+                    (o.description = s(`div.post-content`).html() ?? o.description),
+                    (o.author = s(`div.left-infos p a`).text().trim() ?? o.author),
+                    (o.category = s(`div.right-infos a`)
+                        .slice(1)
+                        .toArray()
+                        .map((e) => s(e).text().replace(/#/, ``))),
+                    (o.pubDate = o.pubDate ?? i(/[年日月]/.test(c) ? n(c, [`YYYY年M月D日 HH:mm`, `M月D日 HH:mm`]) : t(c), 8)),
+                    (o.upvotes = s(`#like_count`).text() ? Number.parseInt(s(`#like_count`).text(), 10) : 0),
+                    (o.comments = Number.parseInt(s(`div.right-infos a`).first().text(), 10) || 0),
+                    o
+                );
+            })
+        )
+    );
+    let h = p(`title`).text().split(/\s-/)[0],
+        g = p(`link[rel="apple-touch-icon"]`).last().prop(`href`);
+    return {
+        item: m,
+        title: l ? h.replace(/[^|]+/, `最热 `) : h,
+        link: d,
+        description: p(`meta[name="description"]`).prop(`content`),
+        language: p(`html`).prop(`lang`),
+        image: p(`h3.logo a img`).prop(`src`),
+        icon: g,
+        logo: g,
+        subtitle: p(`meta[name="keywords"]`).prop(`content`),
+        author: p(`h3.logo a img`).prop(`alt`),
+    };
+}
+export { o as route };

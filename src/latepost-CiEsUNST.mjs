@@ -1,0 +1,76 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { n as t, t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './timezone-CrV-DT8S.mjs';
+import { load as a } from 'cheerio';
+const o = (e) => Object.fromEntries(e.map(({ id: e, ...t }) => [e, { ...t }])),
+    s = {
+        path: `/:proma?`,
+        categories: [`new-media`],
+        example: `/latepost`,
+        parameters: { proma: `栏目 id，见下表，默认为最新报道` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `报道`,
+        maintainers: [`nczitzk`],
+        handler: c,
+        description: `| 最新报道 | 晚点独家 | 人物访谈 | 晚点早知道 | 长报道 |
+| -------- | -------- | -------- | ---------- | ------ |
+|          | 1        | 2        | 3          | 4      |`,
+    };
+async function c(s) {
+    let c = s.req.param(`proma`),
+        l = s.req.query(`limit`) ? Number.parseInt(s.req.query(`limit`), 10) : 5,
+        u = `晚点`,
+        d = `https://www.latepost.com`,
+        f = new URL(c ? `news/index?proma=${c}` : ``, d).href,
+        p = new URL(`site/get-column`, d).href,
+        m = new URL(`news/get-comment`, d).href,
+        h = new URL(c ? `news/get-news-data` : `site/index`, d).href,
+        { data: g } = await r(p),
+        _ = o(g?.data ?? []),
+        { data: v } = await r.post(h, { form: { page: 1, limit: l, programa: Number.parseInt(c, 10) } }),
+        y = v.data
+            .slice(0, l)
+            .map((e) => ({
+                title: e.title,
+                link: new URL(e.detail_url, d).href,
+                category: [e.is_dj ? `晚点独家` : void 0, e.programa ? _[e.programa]?.title : void 0, ...e.label.map((e) => e.label)],
+                guid: e.id,
+                pubDate: n(e.release_time, [`MM月DD日`, `YYYY年MM月DD日`]),
+            }));
+    y = await Promise.all(
+        y.map((o) =>
+            e.tryGet(o.link, async () => {
+                let { data: e } = await r(o.link),
+                    { data: s } = await r.post(m, { news_id: o.guid, page: 1, limit: 1 / 0, sort: 1, delete_num: 0 }),
+                    c = a(e);
+                ((o.title = o.title ?? c(`div.article-header-title`).text()),
+                    (o.description = c(`#select-main`).html().replaceAll(`<p><br></p>`, ``)),
+                    (o.author = c(`div.article-header-author div.author-link a.label`).first().text()),
+                    (o.category = o.category.filter(Boolean)),
+                    (o.guid = `latepost-${o.guid}`));
+                let l = c(`div.article-header-date`).text();
+                return (l && (o.pubDate = /\d+月\d+日/.test(l) ? n(l, [`YYYY年MM月DD日 HH:mm`, `MM月DD日 HH:mm`]) : t(l)), (o.pubDate = i(o.pubDate, 8)), (o.comments = s.data?.length() ?? 0), o);
+            })
+        )
+    );
+    let b = new URL(`favicon.ico`, d).href,
+        { data: x } = await r(f),
+        S = a(x);
+    return {
+        item: y,
+        title: `${u} - ${c ? _[c].title : `最新报道`}`,
+        link: f,
+        description: S(`div.logo-txt`).first().text(),
+        language: `zh-cn`,
+        image: new URL(S(`div.logo-txt img`).prop(`src`), d).href,
+        icon: b,
+        logo: b,
+        author: u,
+    };
+}
+export { s as route };

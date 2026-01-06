@@ -1,0 +1,57 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './config-not-found-DGyG6Tbz.mjs';
+const a = {
+    path: `/timeline/:usergroup_id?`,
+    categories: [`finance`],
+    example: `/xueqiu/timeline/`,
+    parameters: { usergroup_id: `用户组 ID，-1 为全部关注用户` },
+    features: { requireConfig: [{ name: `XUEQIU_COOKIES`, description: `` }], requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `用户关注时间线`,
+    maintainers: [`ErnestDong`],
+    handler: o,
+    description: `::: warning
+  用户关注动态需要登录后的 Cookie 值，所以只能自建，详情见部署页面的配置模块。
+:::
+
+| -1   | -2       | 1             |
+| ---- | -------- | ------------- |
+| 全部 | 关注精选 | 自定义第 1 组 |`,
+};
+async function o(r) {
+    let a = e.xueqiu.cookies,
+        o = r.req.query(`limit`) || 15,
+        c = r.req.param(`usergroup_id`) ?? -1;
+    if (a === void 0) throw new i(`缺少雪球用户登录后的 Cookie 值`);
+    let l = [],
+        u = -1;
+    async function d() {
+        let e = await s(u, a, c),
+            r = await Promise.all(
+                e.home_timeline.map((e) =>
+                    t.tryGet(e.target, async () => {
+                        let t = e.retweeted_status ? `<blockquote>${e.retweeted_status.user.screen_name}:&nbsp;${e.retweeted_status.description}</blockquote>` : ``,
+                            r = e.description + t;
+                        return await Promise.resolve({
+                            title: e.title === `` ? e.user.screen_name + (e.retweeted_status ? ` 转发` : ``) : e.title,
+                            description: e.text ? e.text + t : r,
+                            pubDate: n(e.created_at),
+                            link: `https://xueqiu.com` + e.target,
+                        });
+                    })
+                )
+            );
+        ((l = [...l, ...r]), (u = e.next_max_id), l.length < o && (await d()));
+    }
+    return (await d(), { title: `雪球关注动态`, link: `https://xueqiu.com/`, item: l });
+}
+async function s(e, t, n = -1) {
+    let i = `https://xueqiu.com/v4/statuses/system/home_timeline.json?source=user&usergroup_id=${n}`;
+    return (e > 0 && (i += `&max_id=${e}`), (await r({ method: `get`, url: i, headers: { Cookie: t } })).data);
+}
+export { a as route };

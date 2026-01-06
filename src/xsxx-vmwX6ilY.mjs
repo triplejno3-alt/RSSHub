@@ -1,0 +1,37 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/news/xsxx`,
+    categories: [`university`],
+    example: `/dhu/news/xsxx`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`news.dhu.edu.cn/6410`] }],
+    name: `学术信息`,
+    maintainers: [`fox2049`],
+    handler: a,
+    url: `news.dhu.edu.cn/6410`,
+};
+async function a() {
+    let { data: i } = await n(`https://news.dhu.edu.cn/_wp3services/generalQuery?queryObj=articles&siteId=14&columnId=6410&pageIndex=1&rows=20`, { headers: { Referer: `https://news.dhu.edu.cn/6410/` } }),
+        a = i.data.map((e) => ({ title: e.title, link: e.wapUrl, pubDate: t(e.publishTime), author: e.publisher }));
+    return {
+        title: `学术信息`,
+        link: `https://news.dhu.edu.cn/6410`,
+        item: await Promise.all(
+            a.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let { data: e } = await n(t.link);
+                    return ((t.description = r(e)(`.new_zwCot`).first().html()), t);
+                })
+            )
+        ),
+    };
+}
+export { i as route };

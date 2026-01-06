@@ -1,0 +1,103 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './invalid-parameter-DGZgOgO2.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import * as s from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+import { raw as l } from 'hono/html';
+const u = `https://kpmg.com`,
+    d = {
+        query: ``,
+        filters: {
+            all: [
+                { kpmg_tab_type: [`Insights`] },
+                { kpmg_article_type: [`Article-General`] },
+                { kpmg_template_type: [`article-details-template`, `insights-flexible-template`, `editable-flex-template`, `editable-campaign-template`] },
+            ],
+        },
+        result_fields: {
+            kpmg_description: { raw: {} },
+            kpmg_banner_flag: { raw: {} },
+            kpmg_primary_tag: { raw: {} },
+            kpmg_article_date: { raw: {} },
+            kpmg_contact_job_ttl: { raw: {} },
+            kpmg_title: { raw: {} },
+            kpmg_contact_city: { raw: {} },
+            kpmg_event_start_time: { raw: {} },
+            kpmg_article_date_time: { raw: {} },
+            kpmg_tab_type: { raw: {} },
+            kpmg_short_desc: { raw: {} },
+            kpmg_image_alt: { raw: {} },
+            kpmg_url: { raw: {} },
+            kpmg_template_type: { raw: {} },
+            kpmg_image: { raw: {} },
+            kpmg_non_decorative_alt_text: { raw: {} },
+            kpmg_article_readtime: { raw: {} },
+            kpmg_contact_fn: { raw: {} },
+            kpmg_contact_ln: { raw: {} },
+            kpmg_event_type: { raw: {} },
+            kpmg_contact_country: { raw: {} },
+            kpmg_is_rendition_optimized: { raw: {} },
+            kpmg_article_primary_format: { raw: {} },
+            kpmg_article_type: { raw: {} },
+            kpmg_event_startdate: { raw: {} },
+        },
+        page: { size: 20, current: 1 },
+        sort: { kpmg_filter_date: `desc` },
+    },
+    f = { en: { title: `Insights - KPMG `, link: `${u}/xx/en/home/insights.html`, api: `${u}/esearch/xx-en` }, zh: { title: `洞察 - 毕马威`, link: `${u}/cn/zh/home/insights.html`, api: `${u}/esearch/cn-zh` } },
+    p = (e) => c(a(m, { ...e })),
+    m = ({ image: e, alt: t, content: n, pdf: r }) =>
+        o(i, { children: [e ? a(`img`, { src: `https://assets.kpmg.com${e}`, alt: t }) : null, n ? o(i, { children: [a(`br`, {}), l(n)] }) : null, r ? o(i, { children: [a(`br`, {}), l(r)] }) : null] }),
+    h = {
+        path: `/insights/:lang?`,
+        example: `/kpmg/insights`,
+        parameters: { lang: 'Language, either `en` or `zh`' },
+        radar: [
+            { source: [`kpmg.com/xx/en/home/insights.html`], target: `/insights/en` },
+            { source: [`kpmg.com/cn/zh/home/insights.html`], target: `/insights/zh` },
+        ],
+        name: `Insights`,
+        maintainers: [`LogicJake`],
+        handler: async (i) => {
+            let { lang: a = `en` } = i.req.param(),
+                o = f[a];
+            if (!o) throw new r(`Invalid language`);
+            let c = o.link,
+                l = (await e(o.api, { method: `POST`, body: d })).results.map((e) => ({
+                    title: e.kpmg_title.raw,
+                    description: e.kpmg_description.raw,
+                    link: e.kpmg_url.raw,
+                    pubDate: n(e.kpmg_article_date_time.raw),
+                    image: e.kpmg_image.raw,
+                    imageAlt: e.kpmg_image_alt?.raw,
+                }));
+            return {
+                title: `KPMG Insights`,
+                link: c,
+                item: await Promise.all(
+                    l.map((n) =>
+                        t.tryGet(n.link, async () => {
+                            let t = await e(n.link),
+                                r = s.load(t),
+                                i = r(`.bodytext-data`)
+                                    .toArray()
+                                    .map((e) => {
+                                        let t = r(e);
+                                        return (t.find(`.hidden-xs, .sr-only`).remove(), t.parent().html());
+                                    })
+                                    .join(``),
+                                a = r(`.pdfdetails`).parent().parent().parent();
+                            return (a.find(`.hidden-xs, .sr-only`).remove(), (n.description = p({ image: n.image, alt: n.imageAlt, content: i, pdf: a.prop(`outerHTML`) })), n);
+                        })
+                    )
+                ),
+            };
+        },
+        url: `kpmg.com/xx/en/home/insights.html`,
+        zh: { name: `洞察` },
+    };
+export { h as route };

@@ -1,0 +1,47 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/tianjin/tjrcgzw-notice/:cate/:subCate`,
+    categories: [`government`],
+    example: `/gov/tianjin/tjrcgzw-notice/rczc/sjrczc/`,
+    parameters: { channelId: `公告分类id、详细信息点击源网站https://hrss.tj.gov.cn/ztzl/ztzl1/tjrcgzw/请求中寻找` },
+    radar: [{ source: [`hrss.tj.gov.cn/ztzl/ztzl1/tjrcgzw/`], target: `/tianjin/tjrcgzw-notice/:cate/:subCate` }],
+    name: `天津人才工作网-公告`,
+    url: `hrss.tj.gov.cn/ztzl/ztzl1/tjrcgzw/`,
+    maintainers: [`HaoyuLee`],
+    async handler(r) {
+        let { cate: i, subCate: a } = r.req.param(),
+            o = `https://hrss.tj.gov.cn/ztzl/ztzl1/tjrcgzw/${i}/${a}/`,
+            { data: s } = await t(o),
+            c = n(s)(`.routeBlockAuto`).text().trim();
+        return {
+            title: `天津人才工作网-公告`,
+            link: o,
+            item: n(s)(`ul.listUlBox01>li`)
+                .toArray()
+                .map((t) => {
+                    let r = n(t),
+                        i = r(`a`).text().trim(),
+                        a = r(`a`).attr(`href`) || ``,
+                        s = r(`span`).text().trim(),
+                        l = a.includes(`http`) ? a : new URL(a, o).href;
+                    return {
+                        title: `天津人才工作网:${i}`,
+                        link: l,
+                        pubDate: e(s),
+                        author: `天津人才工作网`,
+                        description: `
+                        <h4>${c}</h4>
+                        <a href="${l}">${i}</a>
+                    `,
+                    };
+                }),
+        };
+    },
+};
+export { r as route };

@@ -1,0 +1,81 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = `https://www.setn.com`,
+    o = { 娛樂: `https://star.setn.com`, 健康: `https://health.setn.com`, 旅遊: `https://travel.setn.com`, 富房網: `https://fuhouse.setn.com`, 女孩: `https://watch.setn.com` },
+    s = { 即時: ``, 熱門: 0, 政治: 6, 社會: 41, 國際: 5, 兩岸: 68, 生活: 4, 運動: 34, 地方: 97, 財經: 2, 名家: 9, 新奇: 42, 科技: 7, 汽車: 12, 寵物: 47, HOT焦點: 31 },
+    c = (e) => {
+        let t = Object.hasOwn(o, e) ? o[e] : a;
+        return Object.hasOwn(s, e) ? `${t}/ViewAll.aspx${s[e] === `` ? `` : `?PageGroupID=${s[e]}`}` : `${t}/viewall`;
+    },
+    l = {
+        path: `/:category?`,
+        categories: [`traditional-media`],
+        example: `/setn`,
+        parameters: { category: `分类，见下表，默认为即時` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`setn.com/ViewAll.aspx`, `setn.com/`], target: `` }],
+        name: `新聞`,
+        maintainers: [`nczitzk`],
+        handler: u,
+        url: `setn.com/ViewAll.aspx`,
+        description: `| 即時 | 熱門 | 娛樂 | 政治 | 社會 |
+| ---- | ---- | ---- | ---- | ---- |
+
+| 國際 | 兩岸 | 生活 | 健康 | 旅遊 |
+| ---- | ---- | ---- | ---- | ---- |
+
+| 運動 | 地方 | 財經 | 富房網 | 名家 |
+| ---- | ---- | ---- | ------ | ---- |
+
+| 新奇 | 科技 | 汽車 | 寵物 | 女孩 | HOT 焦點 |
+| ---- | ---- | ---- | ---- | ---- | -------- |`,
+    };
+async function u(s) {
+    let l = s.req.param(`category`) ?? `即時`,
+        u = s.req.query(`limit`) ? Number.parseInt(s.req.query(`limit`)) : 42,
+        d = c(l),
+        f = i((await n({ method: `get`, url: d })).data),
+        p = f(`#NewsList, .newsList, .hotNewsList`)
+            .find(`.newsItems, .st-news, .all_three_list, div.title-word`)
+            .slice(0, u)
+            .toArray()
+            .map((e) => {
+                e = f(e);
+                let t = e.find(`a`).last(),
+                    n = t.attr(`href`).replaceAll(/(\?|&)utm_campaign=.*/g, ``);
+                return { title: t.text(), link: n.startsWith(`http`) ? n : `${Object.hasOwn(o, l) ? o[l] : a}${n}` };
+            });
+    return (
+        (p = await Promise.all(
+            p.map((a) =>
+                e.tryGet(a.link, async () => {
+                    let e = i((await n({ method: `get`, url: a.link })).data),
+                        o = {};
+                    try {
+                        o = JSON.parse(e(`script[type="application/ld+json"]`).first().text());
+                    } catch {
+                        o = {};
+                    }
+                    return (
+                        e(`#gad_setn_innity_oop_1x1`).remove(),
+                        (a.title = e(`h1`).text()),
+                        (a.author = o?.author?.name || e(`meta[name="author"]`).attr(`content`)),
+                        (a.category = [e(`meta[property="article:section"]`).attr(`content`), ...e(`meta[name="news_keywords"]`).attr(`content`).split(`,`)]),
+                        (a.pubDate = r(t(e(`meta[property="article:published_time"]`).attr(`content`)), 8)),
+                        (a.description = e(`article, .content-p`).html()),
+                        a
+                    );
+                })
+            )
+        )),
+        { title: `三立新聞網 - ${l}`, link: d, item: p }
+    );
+}
+export { l as route };

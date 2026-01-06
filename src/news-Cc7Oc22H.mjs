@@ -1,0 +1,27 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+const n = {
+    path: `/news`,
+    categories: [`finance`],
+    example: `/unusualwhales/news`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`unusualwhales.com/news`, `unusualwhales.com/`] }],
+    name: `News Feed`,
+    maintainers: [`TonyRL`],
+    handler: r,
+    url: `unusualwhales.com/news`,
+};
+async function r() {
+    return {
+        title: `Market Data - News`,
+        description: `Explore unusual options, options flow, dark pools, short activity, and stock activity on unusualwhales.com. Unusual whales has a full news service available!`,
+        link: `https://unusualwhales.com/news-feed`,
+        image: `https://unusualwhales.com/android-icon-192x192.png`,
+        language: `en-US`,
+        item: (await e(`https://phx.unusualwhales.com/api/news/headlines-feed?limit=100`)).data.map((e) => ({ title: e.headline, link: e.url, guid: e.id, author: e.source, pubDate: t(e.created_at), category: e.tickers })),
+    };
+}
+export { n as route };

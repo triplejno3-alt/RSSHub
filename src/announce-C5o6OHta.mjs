@@ -1,0 +1,35 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/announce`,
+    categories: [`programming`],
+    example: `/wechat/announce`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`mp.weixin.qq.com/cgi-bin/announce`] }],
+    name: `公众平台系统公告栏目`,
+    maintainers: [`xyqfer`],
+    handler: i,
+    url: `mp.weixin.qq.com/cgi-bin/announce`,
+};
+async function i() {
+    let { data: r } = await t({ method: `get`, url: `https://mp.weixin.qq.com/cgi-bin/announce?action=getannouncementlist&lang=zh_CN` }),
+        i = n(r),
+        a = [];
+    return (
+        i(`.mp_news_list > .mp_news_item`).each(function () {
+            let t = i(this),
+                n = t.find(`a`),
+                r = t.find(`.read_more`).text(),
+                o = t.find(`strong`).text();
+            a.push({ title: `${r} ${o}`, link: `https://mp.weixin.qq.com${n.attr(`href`)}`, description: o, pubDate: e(r) });
+        }),
+        { title: `微信公众平台-系统公告栏目`, link: `https://mp.weixin.qq.com/cgi-bin/announce?action=getannouncementlist&lang=zh_CN`, item: a }
+    );
+}
+export { r as route };

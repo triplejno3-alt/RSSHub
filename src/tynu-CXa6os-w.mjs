@@ -1,0 +1,30 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = `http://www.tynu.edu.cn`,
+    a = { path: `/`, radar: [{ source: [`tynu.edu.cn/index/tzgg.htm`, `tynu.edu.cn/index.htm`, `tynu.edu.cn/`], target: `` }], name: `Unknown`, maintainers: [`2PoL`], handler: o, url: `tynu.edu.cn/index/tzgg.htm` };
+async function o() {
+    let a = `${i}/index/tzgg.htm`,
+        o = (await n(a)).data,
+        s = r(o),
+        c = s(`.news_content_list`)
+            .toArray()
+            .map((e) => ((e = s(e)), { title: e.find(`h3`).text(), link: new URL(e.find(s(`a`)).attr(`href`), i).href, pubDate: t(e.find(`.content_list_time`).text(), `YYYYMM-DD`) }));
+    return (
+        await Promise.all(
+            c.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = r((await n(t.link)).data);
+                    return ((t.description = e(`#vsb_content`).html() + (e(`.content ul`).not(`.btm-cate`).html() || ``)), t);
+                })
+            )
+        ),
+        { title: `太原师范学院通知公告`, link: a, item: c }
+    );
+}
+export { a as route };

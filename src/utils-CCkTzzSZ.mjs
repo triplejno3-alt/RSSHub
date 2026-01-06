@@ -1,0 +1,16 @@
+import { Fragment as e, jsx as t, jsxs as n } from 'hono/jsx/jsx-runtime';
+import { renderToString as r } from 'hono/jsx/dom/server';
+import { raw as i } from 'hono/html';
+const a = (e) => (e.includes(`?x-oss-process`) ? e.split(`?`)[0] : e),
+    o = (o) =>
+        r(
+            n(e, {
+                children: [
+                    o.description ? t(e, { children: i(o.description) }) : null,
+                    o.productImages?.map((r) => n(e, { children: [r.urlBig ? t(`img`, { src: a(r.urlBig) }) : null, r.description ? t(e, { children: i(r.description) }) : null] })),
+                ],
+            })
+        ),
+    s = (e) => e.props.pageProps.data.summary + e.props.pageProps.data.memo,
+    c = (e) => o(e.props.pageProps.data);
+export { c as n, s as t };

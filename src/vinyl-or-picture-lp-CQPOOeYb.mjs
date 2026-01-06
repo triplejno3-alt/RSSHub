@@ -1,0 +1,57 @@
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { n as e } from './puppeteer-BbZGb8cd.mjs';
+import { load as t } from 'cheerio';
+const n = {
+    path: `/vinyl/:cat?`,
+    categories: [`shopping`],
+    example: `/hkushop/vinyl`,
+    parameters: { cat: `分类，见下表，默认不分类` },
+    features: { requireConfig: !1, requirePuppeteer: !0, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, supportRadar: !0 },
+    radar: [{ source: [`hkushop.com/vinyl-or-picture-lp.html`, `hkushop.com/`], target: `/vinyl` }],
+    name: `HKU Shop 黑胶专区`,
+    maintainers: [`gideonsenku`],
+    handler: r,
+    description: `常见分类:
+| 華語音樂 | 經典復刻 | 古典跨界 | 爵士音樂 | 國際音樂 | 電影原聲帶 | 黑膠日本音樂 |
+| ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| 37 | 38 | 40 | 41 | 39 | 170 | 224 |`,
+    url: `hkushop.com/vinyl-or-picture-lp.html`,
+};
+async function r(n) {
+    let r = `https://hkushop.com`,
+        i = n.req.param(`cat`) ?? ``,
+        a = i ? `${r}/vinyl-or-picture-lp.html?cat=${i}` : `${r}/vinyl-or-picture-lp.html`,
+        o = await e(),
+        s = await o.newPage();
+    (await s.setRequestInterception(!0),
+        s.on(`request`, (e) => {
+            e.resourceType() === `document` || e.resourceType() === `script` ? e.continue() : e.abort();
+        }),
+        await s.goto(a, { waitUntil: `domcontentloaded` }));
+    let c = await s.content();
+    (await s.close(), await o.close());
+    let l = t(c),
+        u = l(`.products.list.items.product-items .product-item`)
+            .toArray()
+            .map((e) => {
+                let t = l(e),
+                    n = t.find(`.product-item-link`),
+                    r = t.find(`.price`),
+                    i = t.find(`.product-image-photo`),
+                    a = t.find(`.artist a`).text().trim();
+                return {
+                    title: n.text().trim(),
+                    link: n.attr(`href`),
+                    description: `
+                <img src="${i.attr(`src`)}" />
+                <p>作者: ${a}</p>
+                <p>价格: ${r.text().trim()}</p>
+            `,
+                    guid: n.attr(`href`),
+                };
+            });
+    return { title: i ? `黑胶彩胶系列 - ${l(`.page-title`).text().trim()}` : `黑胶彩胶系列 - HKU Shop 环球唱片网店`, link: a, description: `HKU Shop 黑胶唱片最新商品信息`, item: u };
+}
+export { n as route };

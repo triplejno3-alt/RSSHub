@@ -1,0 +1,45 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/news/:category?`,
+    categories: [`anime`],
+    example: `/dmzj/news/donghuaqingbao`,
+    parameters: { category: `类别` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`news.dmzj.com/`], target: `/news` }],
+    name: `新闻站`,
+    maintainers: [`vzz64`],
+    handler: a,
+    url: `news.dmzj.com/`,
+    description: `| 漫画情报      | 轻小说情报          | 动漫周边       | 声优情报        | 音乐资讯    | 游戏资讯   | 美图欣赏      | 漫展情报       | 大杂烩  |
+| ------------- | ------------------- | -------------- | --------------- | ----------- | ---------- | ------------- | -------------- | ------- |
+| manhuaqingbao | qingxiaoshuoqingbao | manhuazhoubian | shengyouqingbao | yinyuezixun | youxizixun | meituxinshang | manzhanqingbao | dazahui |`,
+};
+async function a(i) {
+    let a = `https://news.dmzj.com/${i.req.param(`category`) || ``}`,
+        o = r((await t(a)).data);
+    return {
+        title: o(`title`).text(),
+        link: a,
+        item: o(`.briefnews_con_li .li_img_de`)
+            .toArray()
+            .map((t) => ({
+                title: o(t).find(`h3 a`).text(),
+                link: o(t).find(`h3 a`).attr(`href`),
+                author: o(t).find(`.head_con_p_o span:nth-child(3)`).text().split(`：`)[1],
+                pubDate: n(e(o(t).find(`.head_con_p_o span`).first().text(), `YYYY-MM-DD HH:mm`), 8),
+                description: o(t).find(`p.com_about`).text(),
+                category: o(t)
+                    .find(`.u_comfoot a .bqwarp`)
+                    .toArray()
+                    .map((e) => o(e).text()),
+            })),
+    };
+}
+export { i as route };

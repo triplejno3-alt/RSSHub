@@ -1,0 +1,28 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import * as n from 'cheerio';
+const r = {
+    path: `/page/:bookId`,
+    example: `/fanqienovel/page/6621052928482348040`,
+    parameters: { bookId: `小说 ID，可在 URL 中找到` },
+    maintainers: [`TonyRL`],
+    name: `小说更新`,
+    handler: i,
+    radar: [{ source: [`fanqienovel.com/page/:bookId`] }],
+};
+async function i(r) {
+    let { bookId: i } = r.req.param(),
+        a = `https://fanqienovel.com/page/${i}`,
+        o = await e(a),
+        s = n.load(o),
+        c = JSON.parse(
+            s(`script:contains("window.__INITIAL_STATE__")`)
+                .text()
+                .match(/window\.__INITIAL_STATE__\s*=\s*(.*);/)?.[1] ?? `{}`
+        ).page,
+        l = c.chapterListWithVolume.flatMap((e) => e.map((e) => ({ title: e.title, link: `https://fanqienovel.com/reader/${e.itemId}`, description: e.volume_name, pubDate: t(e.firstPassTime, `X`), author: c.author })));
+    return { title: `${c.bookName} - ${c.author}`, description: c.abstract, link: a, language: `zh-CN`, image: c.thumbUri, item: l };
+}
+export { r as route };

@@ -1,0 +1,40 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { load as r } from 'cheerio';
+const i = `https://www.qiche365.org.cn`,
+    a = {
+        path: `/recall/:channel`,
+        name: `汽车召回`,
+        example: `/qiche365/recall/1`,
+        parameters: { channel: `频道，见下表` },
+        description: `| 国内召回新闻 | 国内召回公告 | 国外召回新闻 | 国外召回公告 |
+| ------------ | ------------ | ------------ | ------------ |
+| 1            | 2            | 3            | 4            |`,
+        categories: [`government`],
+        maintainers: [`huanfe1`],
+        handler: o,
+        url: `qiche365.org.cn/index/recall/index.html`,
+    };
+async function o(a) {
+    let { channel: o } = a.req.param(),
+        { html: s } = await e(`${i}/index/recall/index/item/${o}.html?loadmore=1`, { method: `get`, headers: { 'Accept-Language': `zh-CN,zh;q=0.9` } }),
+        c = r(s),
+        l = c(`li`)
+            .toArray()
+            .map((e) => {
+                let r = c(e);
+                return {
+                    title: r.find(`h1`).text(),
+                    link: `${i}${r.find(`a`).attr(`href`)}`,
+                    pubDate: n(t(r.find(`h2`).html().match(`</i>(.*?)<b>`)[1]), 8),
+                    description: r.find(`p`).text().trim(),
+                    author: r.find(`h3 span`).text(),
+                    image: r.find(`img`).attr(`src`) && `${i}${r.find(`img`).attr(`src`)}`,
+                };
+            });
+    return { title: [`国内召回公告`, `国内召回新闻`, `国外召回公告`, `国外召回新闻`][o - 1], link: `${i}/index/recall/index.html`, item: l, language: `zh-CN` };
+}
+export { a as route };

@@ -1,0 +1,34 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/uread/:userid`,
+    categories: [`new-media`],
+    example: `/wechat/uread/shensing`,
+    parameters: { userid: `公众号的微信号, 可在 微信-公众号-更多资料 中找到。并不是所有的都支持，能不能用随缘` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `公众号（优读来源）`,
+    maintainers: [`kt286`],
+    handler: i,
+};
+async function i(r) {
+    let i = r.req.param(`userid`),
+        a = (await t({ method: `get`, url: `http://119.29.146.143:8080/reading/subscription/account/recent?uid=${i}` })).data,
+        o = (e) => n(e)(`.rich_media_content`).html(),
+        s = await Promise.all(
+            a.data.map(async (n) => {
+                let r = n.url,
+                    i = await e.get(r);
+                if (i) return JSON.parse(i);
+                let a = o((await t({ method: `get`, url: r })).data),
+                    s = { title: n.title, description: a, link: r, author: n.official_account, pubDate: n.publish_time };
+                return (e.set(r, JSON.stringify(s)), s);
+            })
+        );
+    return { title: `优读 - ${i}`, link: `https://uread.ai/`, item: s };
+}
+export { r as route };

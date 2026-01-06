@@ -1,0 +1,24 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { a as e, d as t, f as n, t as r } from './service-8NkLHBf0.mjs';
+const i = {
+    path: `/event/:cityCode/:showStyle?`,
+    categories: [`shopping`],
+    example: `/showstart/event/571/3`,
+    parameters: { cityCode: `演出城市 (编号)`, showStyle: `演出风格 (编号)` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `按城市 - 演出更新`,
+    maintainers: [`lchtao26`],
+    handler: a,
+    description:
+        '::: tip\n-   演出城市 `cityCode` 查询: `/showstart/search/city/:keyword`, 如: [https://rsshub.app/showstart/search/city/杭州](https://rsshub.app/showstart/search/city/杭州)\n\n-   演出风格 `showStyle` 查询: `/showstart/search/style/:keyword`，如: [https://rsshub.app/showstart/search/style/摇滚](https://rsshub.app/showstart/search/style/摇滚)\n:::',
+};
+async function a(i) {
+    let a = Number.parseInt(i.req.param(`cityCode`)).toString(),
+        o = Number.parseInt(i.req.param(`showStyle`)).toString(),
+        s = await r({ cityCode: a, showStyle: o }),
+        { cityName: c, showName: l } = await e(a, o);
+    return { title: `${n} - ${[c, l].filter(Boolean).join(` - `)}`, link: t, item: s };
+}
+export { i as route };

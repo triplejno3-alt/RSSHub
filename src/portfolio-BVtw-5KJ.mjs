@@ -1,0 +1,25 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { a as t, i as n, n as r, o as i, r as a, t as o } from './utils-DgcddF0f.mjs';
+const s = {
+    path: [`/portfolio/:user`],
+    categories: [`social-media`],
+    example: `/cara/portfolio/fengz`,
+    parameters: { user: `username` },
+    name: `Portfolio`,
+    maintainers: [`KarasuShin`],
+    handler: c,
+    radar: [{ source: [`cara.app/:user`, `cara.app/:user/*`], target: `/portfolio/:user` }],
+};
+async function c(s) {
+    let c = s.req.param(`user`),
+        l = s.req.query(`limit`) ? Number.parseInt(s.req.query(`limit`), 10) : 15,
+        u = await a(c),
+        d = await o(`${n}/profiles/portfolio?id=${u.id}&take=${l}`),
+        f = await Promise.all(d.data.map((t) => e.tryGet(`${i}/post/${t.postId}`, async () => await r(t))));
+    return { title: `Portfolio - ${u.name}`, link: `${i}/${c}/portfolio`, image: `${t}/${u.photo}`, item: f };
+}
+export { s as route };

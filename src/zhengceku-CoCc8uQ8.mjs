@@ -1,0 +1,28 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { t as e } from './common-config-Dzt4CsME.mjs';
+const t = {
+    path: `/zhengce/zhengceku/:department`,
+    categories: [`government`],
+    example: `/gov/zhengce/zhengceku/bmwj`,
+    parameters: { department: `库名` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `国务院政策文件库`,
+    maintainers: [`zxx-457`],
+    handler: n,
+};
+async function n(t) {
+    let n = `http://www.gov.cn/zhengce/zhengceku/${t.req.param(`department`)}/`;
+    return await e({
+        link: n,
+        url: n,
+        title: `%title%`,
+        description: `政府文件库, 当页的所有列表`,
+        params: { title: `$('.channel_tab > .noline > a').text().trim() + ' - 政府文件库'` },
+        item: { item: `.news_box > .list > ul > li:not(.line)`, title: `$('h4 > a').text()`, link: `$('h4 > a').attr('href')`, pubDate: `parseDate($('h4 > .date').text().trim())` },
+    });
+}
+export { t as route };

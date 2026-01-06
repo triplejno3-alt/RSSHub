@@ -1,0 +1,27 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import { t } from './invalid-parameter-DGZgOgO2.mjs';
+import { i as n } from './utils-D_GlxMfh.mjs';
+const r = {
+    path: `/news/providers/:region/list`,
+    categories: [`new-media`],
+    example: `/yahoo/news/providers/tw/list`,
+    parameters: { region: `地区, 同路由"新闻来源"中的支持地区, 即 hk 或 tw` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`hk.news.yahoo.com/`] }, { source: [`tw.news.yahoo.com/`] }],
+    name: `新聞來源列表`,
+    maintainers: [`TonyRL`, `williamgateszhao`],
+    handler: i,
+};
+async function i(r) {
+    let i = r.req.param(`region`);
+    if (![`hk`, `tw`].includes(i)) throw new t(`Unknown region: ${i}`);
+    let a = (await n(i, e.tryGet)).map((e) => ({ ...e, description: e.key }));
+    return { title: `Yahoo 新聞 - 新聞來源列表`, link: `https://${i}.news.yahoo.com`, image: `https://s.yimg.com/cv/apiv2/social/images/yahoo_default_logo-1200x1200.png`, item: a };
+}
+export { r as route };

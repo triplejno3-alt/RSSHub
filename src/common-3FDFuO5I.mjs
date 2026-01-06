@@ -1,0 +1,42 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+import { t as r } from './parse-date-DjdQS_Nt.mjs';
+import { r as i } from './common-utils-uYpL50sT.mjs';
+import { Fragment as a, jsx as o, jsxs as s } from 'hono/jsx/jsx-runtime';
+import { load as c } from 'cheerio';
+import { renderToString as l } from 'hono/jsx/dom/server';
+import { raw as u } from 'hono/html';
+async function d(t) {
+    return (await e(t)).results;
+}
+async function f(f) {
+    let p = `https://www.nber.org/api/v1/working_page_listing/contentType/working_paper/_/_/search`,
+        m = await n.tryGet(p, () => d(p), t.cache.routeExpire, !1);
+    return {
+        title: `NBER Working Paper`,
+        link: `https://www.nber.org/papers`,
+        item: await Promise.all(
+            m
+                .filter((e) => i(f) === `/papers` || e.newthisweek)
+                .map((t) => {
+                    let i = `https://www.nber.org${t.url}`;
+                    return n.tryGet(i, async () => {
+                        let n = c(await e(i)),
+                            d = n(`meta[name="citation_pdf_url"]`).attr(`content`),
+                            f = n(`.page-header__intro-inner`).html();
+                        return {
+                            title: t.title,
+                            author: n(`meta[name="dcterms.creator"]`).attr(`content`),
+                            pubDate: r(n(`meta[name="citation_publication_date"]`).attr(`content`), `YYYY/MM/DD`),
+                            link: i,
+                            doi: n(`meta[name="citation_doi"]`).attr(`content`),
+                            description: l(s(a, { children: [f ? u(f) : null, d ? o(`a`, { href: d, children: `Download PDF` }) : null] })),
+                        };
+                    });
+                })
+        ),
+        description: `National Bureau of Economic Research Working Papers articles`,
+    };
+}
+export { f as t };

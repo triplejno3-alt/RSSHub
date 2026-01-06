@@ -1,0 +1,78 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { jsx as n, jsxs as r } from 'hono/jsx/jsx-runtime';
+import i from 'dayjs';
+import { renderToString as a } from 'hono/jsx/dom/server';
+import o from 'dayjs/plugin/localizedFormat.js';
+import 'dayjs/locale/zh-cn.js';
+i.extend(o);
+const s = [`全部`, `已受理`, `已询问`, `通过`, `未通过`, `提交注册`, `补充审核`, `注册结果`, `中止`, `终止`],
+    c = {
+        path: `/renewal`,
+        categories: [`finance`],
+        example: `/sse/renewal`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`kcb.sse.com.cn/home`, `kcb.sse.com.cn/`] }],
+        name: `科创板项目动态`,
+        maintainers: [`Jeason0228`],
+        handler: l,
+        url: `kcb.sse.com.cn/home`,
+    };
+async function l() {
+    let r = `https://kcb.sse.com.cn/renewal/`;
+    return {
+        title: `上海证券交易所 - 科创板项目动态`,
+        link: r,
+        item: (
+            await t(`https://query.sse.com.cn/statusAction.do`, {
+                searchParams: {
+                    isPagination: !0,
+                    sqlId: `SH_XM_LB`,
+                    'pageHelp.pageSize': 20,
+                    offerType: ``,
+                    commitiResult: ``,
+                    registeResult: ``,
+                    province: ``,
+                    csrcCode: ``,
+                    currStatus: ``,
+                    order: `updateDate|desc,stockAuditNum|desc`,
+                    keyword: ``,
+                    auditApplyDateBegin: ``,
+                    auditApplyDateEnd: ``,
+                    _: Date.now(),
+                },
+                headers: { Referer: r },
+            })
+        ).data.result.map((t) => ({
+            title: `【${s[t.currStatus]}】${t.stockAuditName}`,
+            description: a(
+                n(u, { item: t, currStatus: s[t.currStatus], updateDate: i(t.updateDate, `YYYYMMDDHHmmss`).locale(`zh-cn`).format(`lll`), auditApplyDate: i(t.auditApplyDate, `YYYYMMDDHHmmss`).locale(`zh-cn`).format(`lll`) })
+            ),
+            pubDate: e(t.updateDate, `YYYYMMDDHHmmss`),
+            link: `https://kcb.sse.com.cn/renewal/xmxq/index.shtml?auditId=${t.stockAuditNum}`,
+            author: t.stockAuditName,
+        })),
+    };
+}
+const u = ({ item: e, currStatus: t, updateDate: i, auditApplyDate: a }) =>
+    r(`table`, {
+        children: [
+            r(`tr`, { children: [n(`th`, { id: `stockIssuer`, desc: `发行人全称`, children: `发行人全称` }), n(`td`, { children: e.stockAuditName })] }),
+            r(`tr`, { children: [n(`th`, { id: `currStatus`, desc: `审核状态`, children: `审核状态` }), n(`td`, { children: t })] }),
+            r(`tr`, { children: [n(`th`, { id: `s_province`, desc: `注册地`, children: `注册地` }), n(`td`, { children: e.stockIssuer[0].s_province })] }),
+            r(`tr`, { children: [n(`th`, { id: `s_csrcCodeDesc`, desc: `证监会行业`, children: `证监会行业` }), n(`td`, { children: e.stockIssuer[0].s_csrcCodeDesc })] }),
+            r(`tr`, { children: [n(`th`, { id: `intermediary`, desc: `保荐机构`, children: `保荐机构` }), n(`td`, { children: e.intermediary[0].i_intermediaryName })] }),
+            r(`tr`, { children: [n(`th`, { id: `intermediary`, desc: `律师事务所`, children: `律师事务所` }), n(`td`, { children: e.intermediary[2].i_intermediaryName })] }),
+            r(`tr`, { children: [n(`th`, { id: `intermediary`, desc: `会计师事务所`, children: `会计师事务所` }), n(`td`, { children: e.intermediary[1].i_intermediaryName })] }),
+            e.intermediary[3] ? r(`tr`, { children: [n(`th`, { id: `intermediary`, desc: `评估机构`, children: `评估机构` }), n(`td`, { children: e.intermediary[3].i_intermediaryName })] }) : null,
+            r(`tr`, { children: [n(`th`, { id: `updateDate`, desc: `更新日期`, children: `更新日期` }), n(`td`, { children: i })] }),
+            r(`tr`, { children: [n(`th`, { id: `auditApplyDate`, desc: `受理日期`, children: `受理日期` }), n(`td`, { children: a })] }),
+            r(`tr`, { children: [n(`th`, { children: `详细链接` }), n(`td`, { children: n(`a`, { href: `http://kcb.sse.com.cn/renewal/xmxq/index.shtml?auditId=${e.stockAuditNum}`, children: `查看详情` }) })] }),
+        ],
+    });
+export { c as route };

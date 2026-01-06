@@ -1,0 +1,41 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { t as i } from './rss-parser-CKuAfhVS.mjs';
+import { load as a } from 'cheerio';
+const o = async (r) => {
+        let o = await i.parseURL(`https://feed.iplaysoft.com`),
+            s = Number.parseInt(r.req.query(`limit`) || `20`, 10),
+            c = o.items.filter((e) => (!e?.link || !e?.pubDate ? !1 : new URL(e.link).hostname.match(/.*\.iplaysoft\.com$/))).slice(0, s);
+        return {
+            title: `异次元软件世界`,
+            description: `软件改变生活`,
+            language: `zh-CN`,
+            link: `https://www.iplaysoft.com`,
+            item: await Promise.all(
+                c.map((r) =>
+                    t.tryGet(r.link, async () => {
+                        let t = a(await e(r.link));
+                        return (t(`.entry-content`).find(`div[style*="overflow:hidden"]`).remove(), { title: r.title, description: t(`.entry-content`).html(), link: r.link, author: r.author, pubDate: n(r.pubDate) });
+                    })
+                )
+            ),
+        };
+    },
+    s = {
+        path: `/`,
+        name: `首页`,
+        url: `www.iplaysoft.com`,
+        maintainers: [`williamgateszhao`, `cscnk52`, `LokHsu`],
+        handler: o,
+        example: `/iplaysoft`,
+        parameters: {},
+        categories: [`program-update`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`www.iplaysoft.com`], target: `/` }],
+        view: r.Articles,
+    };
+export { o as handler, s as route };

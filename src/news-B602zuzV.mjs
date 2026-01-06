@@ -1,0 +1,81 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+import { CookieJar as r } from 'tough-cookie';
+import i from 'form-data';
+const a = {
+    path: `/news/:caty/:year?/:country?/:type?`,
+    categories: [`journal`],
+    example: `/telecompaper/news/mobile/2020/China/News`,
+    parameters: {
+        caty: `Category, see table below`,
+        year: 'Year. The year in respective category page filter, `all` for unlimited year, empty by default',
+        country: 'Country or continent, `all` for unlimited country or continent, empty by default',
+        type: 'Type, can be found in the `Types` filter, `all` for unlimited type, unlimited by default',
+    },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `News`,
+    maintainers: [`nczitzk`],
+    handler: o,
+    description:
+        'Category\n\n| WIRELESS | BROADBAND | VIDEO     | GENERAL | IT | INDUSTRY RESOURCES |\n| -------- | --------- | --------- | ------- | -- | ------------------ |\n| mobile   | internet  | boardcast | general | it | industry-resources |\n\n::: tip\n  If `country` or `type` includes empty space, use `-` instead. For example, `United States` needs to be replaced with `United-States`, `White paper` needs to be replaced with `White-paper`\n\n  Filters in [INDUSTRY RESOURCES](https://www.telecompaper.com/industry-resources) only provides `Content Type` which corresponds to `type`. `year` and `country` are not supported.\n:::',
+};
+async function o(a) {
+    let o = `https://www.telecompaper.com/${a.req.param(`caty`) === `industry-resources` ? a.req.param(`caty`) : `international/news/` + a.req.param(`caty`)}`,
+        s = a.req.param(`year`) ?? `all`,
+        c = a.req.param(`country`) ? a.req.param(`country`).split(`-`).join(` `) : `all`,
+        l = a.req.param(`type`) ? a.req.param(`type`).split(`-`).join(` `) : `all`,
+        u = new r(),
+        d = await t({ method: `get`, url: o, cookieJar: u }),
+        f = n(d.data),
+        p = new i();
+    (p.append(`__EVENTTARGET`, `ctl00$MainPlaceHolder$ddlContentType`),
+        p.append(`__EVENTARGUMENT`, ``),
+        p.append(`__LASTFOCUS`, ``),
+        p.append(`__VIEWSTATE`, f(`#__VIEWSTATE`).attr(`value`)),
+        p.append(`__VIEWSTATEGENERATOR`, `E4EF4CD1`),
+        p.append(`ctl00$header$searchText`, a.req.param(`keyword`) || ``),
+        p.append(`ctl00$header$searchTextMobile`, a.req.param(`keyword`) || ``),
+        a.req.param(`caty`) !== `industry-resources` &&
+            (p.append(
+                `ctl00$MainPlaceHolder$ddlYears`,
+                s && s !== `all`
+                    ? f(`select[name="ctl00$MainPlaceHolder$ddlYears"] option`)
+                          .filter((e, t) => f(t).text().split(` (`)[0] === a.req.param(`year`))
+                          .attr(`value`)
+                    : `0`
+            ),
+            p.append(
+                `ctl00$MainPlaceHolder$ddlCountries`,
+                c && c !== `all`
+                    ? f(`select[name="ctl00$MainPlaceHolder$ddlCountries"] option`)
+                          .filter((e, t) => f(t).text().split(` (`)[0] === c)
+                          .attr(`value`)
+                    : `0`
+            )),
+        p.append(
+            `ctl00$MainPlaceHolder$ddlContentType`,
+            l && l !== `all`
+                ? f(`select[name="ctl00$MainPlaceHolder$ddlContentType"] option`)
+                      .filter((e, t) => f(t).text().split(` (`)[0] === l)
+                      .attr(`value`)
+                : ``
+        ),
+        (d = await t({ method: `post`, url: o, cookieJar: u, headers: { referer: `https://www.telecompaper.com/international/news/mobile` }, body: p })),
+        (f = n(d.data)));
+    let m = f(`table.details_rows tbody tr`)
+            .slice(0, 10)
+            .toArray()
+            .map((e) => {
+                e = f(e);
+                let t = e.find(`a`);
+                return { title: t.text(), link: t.attr(`href`), pubDate: new Date(e.find(`span.source`).text().replace(`Published `, ``).split(` CET | `)[0] + ` GMT+1`).toUTCString() };
+            }),
+        h = await Promise.all(m.map((r) => e.tryGet(r.link, async () => ((r.description = n((await t({ method: `get`, url: r.link })).data)(`#pageContainer`).html()), r))));
+    return { title: `Telecompaper - ` + f(`h1`).text(), link: o, item: h };
+}
+export { a as route };

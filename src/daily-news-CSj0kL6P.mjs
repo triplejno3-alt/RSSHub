@@ -1,0 +1,60 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+const i = `https://web.stockedge.com/share/`,
+    a = (t) => e(t, { headers: { Host: `api.stockedge.com`, Origin: `https://web.stockedge.com`, Referer: `https://web.stockedge.com/`, accept: `application/json, text/plain, */*` } }),
+    o = (e) =>
+        e.map((e) => {
+            let { ID: t, Description: r, Date: a, NewsitemSecurities: o, NewsitemSectors: s, NewsitemIndustries: c } = e,
+                l = o?.[0]?.SecurityID,
+                u = o?.[0]?.SecuritySlug,
+                d = s.map((e) => e.SectorName),
+                f = c.map((e) => e.IndustryName);
+            return {
+                id: t,
+                title: `${r}  [${d.join(`, `)}]`,
+                description: r,
+                securityID: l,
+                link: o?.length === 0 ? `` : `${i}${u}/${l}?section=news`,
+                guid: o?.length === 0 ? t : `${i}${u}/${l}`,
+                pubDate: n(a),
+                category: [...f, ...d],
+            };
+        }),
+    s = {
+        path: `/daily-updates/news`,
+        categories: [`finance`],
+        view: r.Notifications,
+        example: `/stockedge/daily-updates/news`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`web.stockedge.com/daily-updates/news`] }],
+        name: `Daily Updates News`,
+        maintainers: [`Rjnishant530`],
+        handler: c,
+        url: `web.stockedge.com/daily-updates/news`,
+    };
+async function c() {
+    let e = o(await a(`https://api.stockedge.com/Api/DailyDashboardApi/GetLatestNewsItems`));
+    return {
+        title: `Stock Edge`,
+        link: `https://web.stockedge.com/daily-updates?section=news`,
+        item: await Promise.all(
+            e.map((e) =>
+                t.tryGet(e.link, async () => {
+                    if (!e.securityID) return e;
+                    let t = await a(`https://api.stockedge.com/Api/SecurityDashboardApi/GetSecurityOverview/${e.securityID}`);
+                    return ((e.description = e.description + `<br><br>` + t?.AboutCompanyText), e);
+                })
+            )
+        ),
+        description: `Daily Updates on stockedge.com`,
+        logo: `https://web.stockedge.com/assets/icon/favicon.png`,
+        icon: `https://web.stockedge.com/assets/img/light/icon.png`,
+        language: `en-us`,
+    };
+}
+export { s as route };

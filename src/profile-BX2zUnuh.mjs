@@ -1,0 +1,57 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './timezone-CrV-DT8S.mjs';
+import { r as a } from './wechat-mp-HNgcLN2K.mjs';
+import { load as o } from 'cheerio';
+const s = `https://freewechat.com`,
+    c = {
+        path: `/profile/:id`,
+        categories: [`new-media`],
+        example: `/freewechat/profile/MzI5NTUxNzk3OA==`,
+        parameters: { id: `公众号 ID，可在URL中找到` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`freewechat.com/profile/:id`] }],
+        name: `公众号`,
+        maintainers: [`TonyRL`],
+        handler: l,
+    };
+async function l(c) {
+    let l = `${s}/profile/${c.req.param(`id`)}`,
+        { data: u } = await r(l, { headers: { 'User-Agent': e.trueUA } }),
+        d = o(u),
+        f = d(`h2`).text().trim(),
+        p = d(`.main`)
+            .toArray()
+            .slice(0, -1)
+            .map((e) => {
+                e = d(e);
+                let t = e.find(`h3 a`);
+                return { title: t.text().trim(), author: f, link: `${s}${t.attr(`href`)}`, description: e.find(`.preview`).text(), category: e.find(`.classification`).text().trim() };
+            }),
+        m = await Promise.all(
+            p.map((s) =>
+                t.tryGet(s.link, async () => {
+                    let t = o((await r(s.link, { headers: { Referer: l, 'User-Agent': e.trueUA } })).data);
+                    return (
+                        t(`.js_img_placeholder`).remove(),
+                        t(`amp-img`).each((e, n) => {
+                            ((n = t(n)), n.replaceWith(`<img src="${new URL(n.attr(`src`), s.link).href}" width="${n.attr(`width`)}" height="${n.attr(`height`)}" decoding="async">`));
+                        }),
+                        t(`amp-video`).each((e, n) => {
+                            ((n = t(n)), n.replaceWith(`<video width="${n.attr(`width`)}" height="${n.attr(`height`)}" controls poster="${n.attr(`poster`)}">${n.html()}</video>`));
+                        }),
+                        (s.description = a(t(`#js_content`))),
+                        (s.pubDate = i(n(t(`#publish_time`).text()), 8)),
+                        s
+                    );
+                })
+            )
+        );
+    return { title: d(`head title`).text(), link: l, image: `https://freewechat.com/favicon.ico`, item: m };
+}
+export { c as route };

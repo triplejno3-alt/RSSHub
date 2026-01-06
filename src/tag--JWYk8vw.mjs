@@ -1,0 +1,40 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+const r = {
+    path: `/tag/:keyword`,
+    categories: [`new-media`],
+    example: `/sspai/tag/apple`,
+    parameters: { keyword: `关键词` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`sspai.com/tag/:keyword`] }],
+    name: `标签订阅`,
+    maintainers: [`Jeason0228`],
+    handler: i,
+};
+async function i(r) {
+    let i = r.req.param(`keyword`),
+        a = encodeURIComponent(decodeURIComponent(i)),
+        o = `https://sspai.com/api/v1/articles?offset=0&limit=50&has_tag=1&tag=${a}&include_total=false`,
+        s = `https://beta.sspai.com/tag/${a}`,
+        c = (await n({ method: `get`, url: o, headers: { Referer: s } })).data.list,
+        l = await Promise.all(
+            c.map((r) => {
+                let i = `https://sspai.com/api/v1/article/info/get?id=${r.id}&view=second&support_webp=true`,
+                    a,
+                    o = `sspai: ${r.id}`;
+                return e.tryGet(o, async () => {
+                    let e = (await n({ method: `get`, url: i, headers: { Referer: s } })).data.data,
+                        o = e.promote_image;
+                    if ((o && (a = `<img src="${o}" alt="Article Cover Image" style="display: block; margin: 0 auto;"><br>`), e.body_extends)) for (let t of e.body_extends) a += t.body;
+                    return ((a += e.body), { title: r.title.trim(), description: a, link: `https://sspai.com/post/${r.id}`, pubDate: t(r.released_at * 1e3), author: r.author.nickname });
+                });
+            })
+        );
+    return { title: `#${i} - 少数派`, link: s, description: `${i} 更新推送 `, item: l };
+}
+export { r as route };

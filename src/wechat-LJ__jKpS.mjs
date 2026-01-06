@@ -1,0 +1,46 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './config-not-found-DGyG6Tbz.mjs';
+import { n as r } from './wechat-mp-HNgcLN2K.mjs';
+import { t as i } from './utils-CHbLMKpZ.mjs';
+import { load as a } from 'cheerio';
+const o = {
+    path: `/wechat/:wxid`,
+    categories: [`social-media`],
+    example: `/newrank/wechat/chijiread`,
+    parameters: { wxid: `微信号，若微信号与新榜信息不一致，以新榜为准` },
+    features: { requireConfig: [{ name: `NEWRANK_COOKIE`, description: `` }], requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `微信公众号`,
+    maintainers: [`lessmoe`, `pseudoyu`],
+    handler: s,
+};
+async function s(o) {
+    if (!e.newrank || !e.newrank.cookie) throw new n(`newrank RSS is disabled due to the lack of <a href="https://docs.rsshub.app/deploy/config#route-specific-configurations">relevant config</a>`);
+    let s = o.req.param(`wxid`),
+        c = i.random_nonce(9),
+        { data: l } = await t({ method: `get`, url: `https://www.newrank.cn/new/readDetial?account=${s}`, headers: { Connection: `keep-alive`, Cookie: e.newrank.cookie } }),
+        u = a(l)(`script`)
+            .toArray()
+            .find((e) => (e.attribs.src || ``).startsWith(`/new/static/js/main.`)).attribs.src,
+        { data: d } = await t({ method: `get`, url: `https://www.newrank.cn${u}` }),
+        f = d.match(/"N-Token":"([^"]+)/);
+    if (!f) throw Error(`Cannot find n-token`);
+    let p = f[1],
+        m = await t({
+            method: `post`,
+            url: `https://gw.newrank.cn/api/wechat/xdnphb/detail/v1/rank/article/lists`,
+            headers: { Connection: `keep-alive`, Cookie: e.newrank.cookie, 'n-token': p },
+            form: { account: s, nonce: c, xyz: i.decrypt_wechat_detail_xyz(s, c) },
+        }),
+        h = m.data.value.user.name,
+        g = i.flatten(m.data.value.realTimeArticles),
+        _ = i.flatten(m.data.value.articles),
+        v = [...g, ..._].map((e) => ({ id: e.id, title: e.title, description: ``, link: e.url, pubDate: e.publicTime }));
+    return (await Promise.all(v.map((e) => r(e))), { title: h + ` - 微信公众号`, link: `https://www.newrank.cn/new/readDetial?account=${s}`, item: v });
+}
+export { o as route };

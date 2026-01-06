@@ -1,0 +1,90 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+import { raw as c } from 'hono/html';
+const l = ({ description: e, images: t }) => a(r, { children: [e ? c(e) : null, t?.map((e, t) => i(`figure`, { children: i(`img`, { src: e.src, alt: e.alt }) }, `${e.src}-${t}`))] }),
+    u = (e) => s(i(l, { ...e })),
+    d = { path: `/:category{.+}?`, radar: [{ source: [`asiantolick.com/`], target: `` }], name: `Unknown`, maintainers: [], handler: f, url: `asiantolick.com/`, features: { nsfw: !0 } };
+async function f(r) {
+    let i = r.req.param(`category`),
+        a = r.req.query(`limit`) ? Number.parseInt(r.req.query(`limit`), 10) : 24,
+        s = `https://asiantolick.com`,
+        c = new URL(`ajax/buscar_posts.php`, s).href,
+        l = new URL(i?.replace(/^(tag|category)?\/(\d+)/, `$1-$2`) ?? ``, s).href,
+        d = {},
+        f = i?.match(/^(tag|category|search|page)?[/-]?(\w+)/) ?? void 0;
+    if (f) {
+        let e = f[1] === `category` ? `cat` : f[1];
+        d[e] = f[2];
+    } else i && (d.page = `news`);
+    let { data: p } = await n(c, { searchParams: d }),
+        m = o(p),
+        h = m(`a.miniatura`)
+            .slice(0, a)
+            .toArray()
+            .map((e) => {
+                e = m(e);
+                let t = e.find(`div.background_miniatura img`);
+                return {
+                    title: e.find(`div.base_tt`).text(),
+                    link: e.prop(`href`),
+                    description: u({ images: t ? [{ src: t.prop(`data-src`).split(/\?/)[0], alt: t.prop(`alt`) }] : void 0 }),
+                    author: e.find(`.author`).text(),
+                    category: e
+                        .find(`.category`)
+                        .toArray()
+                        .map((e) => m(e).text()),
+                    guid: t ? t.prop(`post-id`) : e.link.match(/\/(\d+)/)[1],
+                };
+            });
+    h = await Promise.all(
+        h.map((r) =>
+            e.tryGet(r.link, async () => {
+                let { data: e } = await n(r.link),
+                    i = o(e);
+                return (
+                    (r.title = i(`h1`).first().text()),
+                    (r.description = u({
+                        description: i(`#metadata_qrcode`).html(),
+                        images: i(`div.miniatura`)
+                            .toArray()
+                            .map((e) => ({ src: i(e).prop(`data-src`), alt: i(e).find(`img`).prop(`alt`) })),
+                    })),
+                    (r.author = i(`.author`).text()),
+                    (r.category = i(`#categoria_tags_post a`)
+                        .toArray()
+                        .map((e) => i(e).text().trim().replace(/^#/, ``))),
+                    (r.pubDate = t(e.match(/"pubDate":\s"((?!http)[^"]*)"/)[1])),
+                    (r.updated = t(e.match(/"upDate":\s"((?!http)[^"]*)"/)[1])),
+                    (r.enclosure_url = new URL(`ajax/download_post.php?ver=3&dir=/down/new_${r.guid}&post_id=${r.guid}&post_name=${e.match(/"title":\s"((?!http)[^"]*)"/)[1]}`, s).href),
+                    (r.guid = `asiantolick-${r.guid}`),
+                    r
+                );
+            })
+        )
+    );
+    let { data: g } = await n(l);
+    m = o(g);
+    let _ = m(`title`).text().split(/-/)[0].trim(),
+        v = m(`link[rel="icon"]`).first().prop(`href`);
+    return {
+        item: h,
+        title: _ === `Asian To Lick` ? _ : `Asian To Lick - ${_}`,
+        link: l,
+        description: m(`meta[property="og:description"]`).prop(`content`),
+        language: m(`html`).prop(`lang`),
+        image: m(`meta[name="msapplication-TileImage"]`).prop(`content`),
+        icon: v,
+        logo: v,
+        subtitle: _,
+        allowEmpty: !0,
+    };
+}
+export { d as route };

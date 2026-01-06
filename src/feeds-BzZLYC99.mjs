@@ -1,0 +1,63 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { a as r, n as i, o as a, r as o } from './utils-ZvzRBK0Y.mjs';
+const s = {
+    path: `/profile/:handle/feed/:space/:routeParams?`,
+    categories: [`social-media`],
+    view: n.SocialMedia,
+    example: `/bsky.app/profile/jaz.bsky.social/feed/cv:cat`,
+    parameters: { handle: `User handle, can be found in URL`, space: `Space ID, can be found in URL` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `Feeds`,
+    maintainers: [`FerrisChi`],
+    handler: c,
+};
+async function c(n) {
+    let s = n.req.param(`handle`),
+        c = n.req.param(`space`),
+        l = await r(s, e.tryGet),
+        u = `at://${l}/app.bsky.feed.generator/${c}`,
+        d = await o(u, e.tryGet),
+        f = await i(u, e.tryGet),
+        p = f.feed.map(({ post: e }) => ({
+            title: e.record.text.split(`
+`)[0],
+            description: a({
+                text: e.record.text.replaceAll(
+                    `
+`,
+                    `<br>`
+                ),
+                embed: e.embed,
+            }),
+            author: e.author.displayName,
+            pubDate: t(e.record.createdAt),
+            link: `https://bsky.app/profile/${e.author.handle}/post/${e.uri.split(`app.bsky.feed.post/`)[1]}`,
+            upvotes: e.likeCount,
+            comments: e.replyCount,
+        }));
+    return (
+        n.set(`json`, { DID: l, profile: d, feeds: f }),
+        {
+            title: `${d.view.displayName} — Bluesky`,
+            description: d.view.description?.replaceAll(
+                `
+`,
+                ` `
+            ),
+            link: `https://bsky.app/profile/${s}/feed/${c}`,
+            image: d.view.avatar,
+            icon: d.view.avatar,
+            logo: d.view.avatar,
+            item: p,
+            allowEmpty: !0,
+        }
+    );
+}
+export { s as route };

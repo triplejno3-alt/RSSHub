@@ -1,0 +1,38 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = `https://yamap.com/activities/`,
+    o = {
+        path: `/`,
+        categories: [`travel`],
+        example: `/yamap`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `文章`,
+        maintainers: [`valuex`],
+        handler: s,
+        description: ``,
+    };
+async function s() {
+    let o = (await n(`https://api.yamap.com/v3/activities?page=1&per=24`)).data.activities.map((e) => ({ title: e.title, link: a + e.id.toString(), pubDate: t(e.created_at), location: e.map.name || `Japan` }));
+    return {
+        title: `Yamap`,
+        link: a,
+        description: `Yamap`,
+        item: await Promise.all(
+            o.map((a) =>
+                e.tryGet(a.link, async () => {
+                    let e = i((await n(a.link)).data);
+                    return ((a.title = a.title + `-` + a.location), (a.description = e(`div.ActivitiesId__Body main`).html()), (a.pubDate = r(t(e(`span[class=ActivityDetailTabLayout__Middle__Date]`).text()), 8)), a);
+                })
+            )
+        ),
+    };
+}
+export { o as route };

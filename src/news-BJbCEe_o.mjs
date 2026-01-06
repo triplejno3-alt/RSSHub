@@ -1,0 +1,35 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './description-ygTOi2bK.mjs';
+import { load as r } from 'cheerio';
+const i = `https://techcrunch.com`,
+    a = {
+        path: `/news`,
+        categories: [`new-media`],
+        example: `/techcrunch/news`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`techcrunch.com/`] }],
+        name: `News`,
+        maintainers: [`EthanWng97`],
+        handler: o,
+        url: `techcrunch.com/`,
+    };
+async function o() {
+    let { data: a } = await t(`${i}/wp-json/wp/v2/posts`);
+    return {
+        title: `TechCrunch`,
+        link: i,
+        description: `Reporting on the business of technology, startups, venture capital funding, and Silicon Valley.`,
+        item: a.map((t) => {
+            let i = t.yoast_head_json,
+                a = r(t.content.rendered, null, !1);
+            return (a(`.wp-block-techcrunch-inline-cta`).remove(), { title: t.title.rendered, description: n({ head: i, rendered: a.html() }), link: t.link, pubDate: e(t.date_gmt) });
+        }),
+    };
+}
+export { a as route };

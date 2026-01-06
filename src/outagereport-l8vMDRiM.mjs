@@ -1,0 +1,35 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+const t = {
+    path: `/:name/:count?`,
+    categories: [`forecast`],
+    example: `/outagereport/ubisoft/5`,
+    parameters: { name: `Service name, spelling format must be consistent with URL`, count: `Counting threshold, will only be written in RSS if the number of people who report to stop serving is not less than this number` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `Report`,
+    maintainers: [`cxumol`, `nczitzk`],
+    handler: n,
+    description: 'Please skip the local service area code for `name`, for example `https://outage.report/us/verizon-wireless` to `verizon-wireless`.',
+};
+async function n(t) {
+    let n = t.req.param(`name`),
+        r = t.req.param(`count`) || 10,
+        i = `https://outage.report/${n}`,
+        a = (await e({ method: `get`, url: i })).data,
+        o = /class="Gauge__Count.*?>(\d+)<\/text>/,
+        s = /class="Gauge__MessageWrapper.*?class="Gauge__Message.*?>(.*?)<\/span>/,
+        c = /<p class="PageSubheader.*?>(.*?)<\/p>/,
+        l = Number(a.match(o)[1]),
+        u = a.match(s)[1],
+        d = a.match(c)[1],
+        f = [];
+    if (l >= r) {
+        let e = { title: `${n} appear to be (partially) down`, description: String(l) + ` ` + u, pubDate: new Date().toUTCString(), guid: Date.now(), link: i };
+        f.push(e);
+    }
+    return { title: `Is ${n} Down Right Now?`, link: i, description: d, item: f, allowEmpty: !0 };
+}
+export { t as route };

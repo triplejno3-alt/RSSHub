@@ -1,0 +1,80 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = `http://www.sis.zju.edu.cn/sischinese/`,
+    a = new Map([
+        [0, { id: `12614/list.htm`, title: `浙江大学外国语学院-重要公告` }],
+        [1, { id: `12616/list.htm`, title: `浙江大学外国语学院-最新通知` }],
+        [2, { id: `12617/list.htm`, title: `浙江大学外国语学院-教育教学` }],
+        [3, { id: `12618/list.htm`, title: `浙江大学外国语学院-科学研究` }],
+        [4, { id: `12619/list.htm`, title: `浙江大学外国语学院-新闻动态` }],
+        [5, { id: `12620/list.htm`, title: `浙江大学外国语学院-联系我们` }],
+        [6, { id: `12554/list.htm`, title: `浙江大学外国语学院-党政管理` }],
+        [7, { id: `12563/list.htm`, title: `浙江大学外国语学院-组织人事` }],
+        [8, { id: `12572/list.htm`, title: `浙江大学外国语学院-科学研究` }],
+        [9, { id: `12577/list.htm`, title: `浙江大学外国语学院-本科教育` }],
+        [10, { id: `12541/list.htm`, title: `浙江大学外国语学院-研究生教育` }],
+        [11, { id: `12542/list.htm`, title: `浙江大学外国语学院-学生思政` }],
+        [12, { id: `xyll/list.htm`, title: `浙江大学外国语学院-校友联络` }],
+        [13, { id: `12609/list.htm`, title: `浙江大学外国语学院-对外交流` }],
+    ]);
+async function o(e) {
+    let a = r((await n({ method: `get`, url: `${i}${e}` })).data);
+    return a(`.news_list`)
+        .find(`li`)
+        .toArray()
+        .map((e) => {
+            let n = a(e),
+                r = n.find(`a`).attr(`href`),
+                o = n.find(`a`).attr(`title`);
+            return ((o ||= n.find(`a`).text().trim()), { title: o, pubDate: t(n.find(`.news_meta`).text()), link: r ? new URL(r, i).href : void 0 });
+        });
+}
+async function s(t, i) {
+    return t.link
+        ? await e.tryGet(t.link, async () => {
+              try {
+                  let e = r((await n({ method: `get`, url: t.link, headers: { Referer: i } })).data),
+                      a = e(`.wp_articlecontent`).html();
+                  a && (t.description = a);
+                  let o = e(`.arti_metas`).find(`.arti_publisher`).text();
+                  return ((o = o.replace(`发布者：`, ``).trim()), o && (t.author = o), t);
+              } catch {
+                  return t;
+              }
+          })
+        : t;
+}
+const c = {
+    path: `/sis/:type`,
+    categories: [`university`],
+    example: `/zju/sis/0`,
+    parameters: { type: `分类，见下表` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `外国语学院`,
+    description: `| 重要公告 | 最新通知 | 教育教学 | 科学研究 | 新闻动态 | 联系我们 | 党政管理 | 组织人事 | 科学研究 | 本科教育 | 研究生教育 | 学生思政 | 校友联络 | 对外交流 |
+| -------- | -------- | -------- | -------- | -------- | -------- | -------- | -------- | -------- | -------- | -------- | -------- | -------- | -------- |
+| 0        | 1        | 2        | 3        | 4        | 5        | 6        | 7            | 8            | 9       | 10       | 11       | 12       | 13       |
+`,
+    maintainers: [`Alex222222222222`],
+    handler: l,
+    url: `www.sis.zju.edu.cn`,
+};
+async function l(e) {
+    let t = Number.parseInt(e.req.param(`type`)),
+        n = a.get(t);
+    if (!n) {
+        let e = [...a.keys()].join(`, `);
+        throw Error(`Invalid type: ${t}. Valid types are: ${e}`);
+    }
+    let r = `${i}${n.id}`,
+        c = await o(n.id),
+        l = await Promise.all(c.map((e) => s(e, r)));
+    return { title: n.title, link: r, item: l };
+}
+export { c as route };

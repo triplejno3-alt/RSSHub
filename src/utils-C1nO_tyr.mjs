@@ -1,0 +1,44 @@
+import { t as e } from './cache-DLkCV5c7.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { Fragment as n, jsx as r, jsxs as i } from 'hono/jsx/jsx-runtime';
+import { load as a } from 'cheerio';
+import { renderToString as o } from 'hono/jsx/dom/server';
+const s = `https://ac.qq.com`,
+    c = `https://m.ac.qq.com`,
+    l = async (n, i, l, d) => {
+        let f = a((await t({ method: `get`, url: i })).data),
+            p = f(`${l ? `.${l}-month-data ` : ``}.text-overflow`)
+                .slice(0, n.req.query(`limit`) ? Number.parseInt(n.req.query(`limit`)) : 30)
+                .toArray()
+                .map((e) => ((e = f(e)), { title: e.text(), guid: `${s}${e.attr(`href`)}`, link: `${c}${e.attr(`href`).replace(/Comic\/ComicInfo/, `comic/index`)}` }));
+        return (
+            (p = await Promise.all(
+                p.map((n) =>
+                    e.tryGet(n.guid, async () => {
+                        let e = a((await t({ method: `get`, url: n.link })).data);
+                        return (
+                            (n.link = n.guid),
+                            (n.author = e(`.author-wr`)
+                                .toArray()
+                                .map((e) => f(e).text().trim())
+                                .join(`, `)),
+                            (n.description = o(
+                                r(u, {
+                                    image: e(`.head-cover`)?.attr(`src`) ?? ``,
+                                    description: e(`.head-info-desc`)?.text() ?? ``,
+                                    chapters: e(`.reverse .bottom-chapter-item .chapter-link`)
+                                        .toArray()
+                                        .map((t) => ({ link: e(t).attr(`href`), title: e(t).find(`.comic-title`)?.text() ?? ``, image: e(t).find(`.cover-image`)?.attr(`src`) ?? `` })),
+                                })
+                            )),
+                            n
+                        );
+                    })
+                )
+            )),
+            { title: `${d} - 腾讯动漫`, link: i, item: p }
+        );
+    },
+    u = ({ image: e, description: t, chapters: a }) =>
+        i(n, { children: [e === `` ? null : r(`img`, { src: e }), t === `` ? null : r(`p`, { children: t }), a.map((e) => i(`div`, { children: [r(`img`, { src: e.image }), r(`a`, { href: e.link, children: e.title })] }))] });
+export { c as n, s as r, l as t };

@@ -1,0 +1,58 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { t } from './types-Bl_lnefZ.mjs';
+import n from 'query-string';
+const r = {
+    path: `/post/popular_recent/:period?`,
+    categories: [`picture`],
+    view: t.Pictures,
+    example: `/yande/post/popular_recent/1d`,
+    parameters: {
+        period: {
+            description: `展示时间`,
+            options: [
+                { value: `1d`, label: `最近 24 小时` },
+                { value: `1w`, label: `最近一周` },
+                { value: `1m`, label: `最近一月` },
+                { value: `1y`, label: `最近一年` },
+            ],
+            default: `1d`,
+        },
+    },
+    radar: [{ source: [`yande.re/post`] }],
+    name: `Popular Recent Posts`,
+    maintainers: [`magic-akari`, `SettingDust`, `fashioncj`, `NekoAria`],
+    description: `| 最近 24 小时    | 最近一周     | 最近一月    | 最近一年     |
+| ------- | -------- | ------- | -------- |
+| 1d | 1w | 1m | 1y |`,
+    handler: i,
+    features: { nsfw: !0 },
+};
+async function i(t) {
+    let { period: r = `1d` } = t.req.param(),
+        i = (await e({ url: `https://yande.re/post/popular_recent.json`, searchParams: n.stringify({ period: r }) })).data,
+        a = { '1d': `Last 24 hours`, '1w': `Last week`, '1m': `Last month`, '1y': `Last year` },
+        o = { jpg: `jpeg`, png: `png` };
+    return {
+        title: `${a[r]} - yande.re`,
+        link: `https://yande.re/post/popular_recent?period=${r}`,
+        item: i.map((e) => ({
+            title: e.tags,
+            id: `${t.path}#${e.id}`,
+            guid: `${t.path}#${e.id}`,
+            link: `https://yande.re/post/show/${e.id}`,
+            author: e.author,
+            pubDate: new Date(e.created_at * 1e3).toUTCString(),
+            description: (() => {
+                let t = [`<img src="${e.sample_url}" />`, `<p>Rating:${e.rating}</p> <p>Score:${e.score}</p>`];
+                return (e.source && t.push(`<a href="${e.source}">Source</a>`), e.parent_id && t.push(`<a href="https://yande.re/post/show/${e.parent_id}">Parent</a>`), t.join(``));
+            })(),
+            media: { content: { url: e.file_url, type: `image/${o[e.file_ext]}` }, thumbnail: { url: e.preview_url } },
+            category: e.tags.split(/\s+/),
+        })),
+    };
+}
+export { r as route };

@@ -1,0 +1,23 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { n as t, r as n } from './utils-C1nO_tyr.mjs';
+import { load as r } from 'cheerio';
+const i = { path: `/ac/comic/:id?`, radar: [{ source: [`ac.qq.com/Comic/ComicInfo/id/:id`, `ac.qq.com/`], target: `/ac/comic/:id` }], name: `Unknown`, maintainers: [], handler: a };
+async function a(i) {
+    let a = i.req.param(`id`),
+        o = `${n}/Comic/comicInfo/id/${a}`,
+        s = r((await e({ method: `get`, url: `${t}/comic/index/id/${a}` })).data),
+        c = s(`.author-wr`)
+            .toArray()
+            .map((e) => s(e).text().trim())
+            .join(`, `),
+        l = s(`.reverse .bottom-chapter-item .chapter-link`)
+            .toArray()
+            .map((e) => ((e = s(e)), { author: c, title: e.text(), description: `<img src="${e.find(`.cover-image`).attr(`src`)}">`, link: `${n}${e.attr(`href`).replace(/chapter/, `ComicView`)}` }));
+    return { title: `${s(`h1`).text()} - 腾讯动漫`, link: o, item: l, description: `<p>${s(`.head-info-desc`).text()}</p>` };
+}
+export { i as route };

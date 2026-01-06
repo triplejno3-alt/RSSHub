@@ -1,0 +1,52 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { Fragment as t, jsx as n, jsxs as r } from 'hono/jsx/jsx-runtime';
+import { load as i } from 'cheerio';
+import { renderToString as a } from 'hono/jsx/dom/server';
+import { raw as o } from 'hono/html';
+const s = ({ img: e, desc: i }) => r(t, { children: [e ? o(e) : null, n(`br`, {}), i ? o(i) : null] }),
+    c = (e) => a(n(s, { ...e })),
+    l = {
+        path: `/gb/offer`,
+        categories: [`shopping`],
+        example: `/ikea/gb/offer`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`ikea.com/gb/en/offers`, `ikea.com/`] }],
+        name: `UK - Offers`,
+        maintainers: [`HenryQW`],
+        handler: u,
+        url: `ikea.com/gb/en/offers`,
+    };
+async function u() {
+    let t = `https://www.ikea.com/gb/en/offers/`,
+        n = i((await e(t)).data),
+        r = n(`.pub__carousel-slide`)
+            .toArray()
+            .map((e) => {
+                e = n(e);
+                let t = e.find(`h3`),
+                    r = e.find(`.pub__image`).each((e, t) => {
+                        ((t.attribs.src = t.attribs.src.split(`?`)[0]), delete t.attribs.srcset);
+                    }),
+                    { searchParams: i, href: a } = new URL(e.find(`pub-hide-empty-link a`).attr(`href`));
+                return (i.delete(`itm_content`), i.delete(`itm_element`), i.delete(`itm_campaign`), { title: t.text(), description: c({ img: r.parent().html(), desc: t.next().parent().html() }), link: a, guid: `${a}#${t.text()}` });
+            }),
+        a = n(`div[data-pub-type="banner"]`)
+            .toArray()
+            .map((e) => {
+                e = n(e);
+                let t = e.find(`h2`),
+                    r = t.next(),
+                    i = e.find(`.pub__image`).each((e, t) => {
+                        ((t.attribs.src = t.attribs.src.split(`?`)[0]), delete t.attribs.srcset);
+                    }),
+                    { searchParams: a, href: o } = new URL(r.find(`a`).attr(`href`));
+                return (a.delete(`itm_content`), a.delete(`itm_element`), a.delete(`itm_campaign`), { title: t.text(), description: c({ img: i.parent().html(), desc: t.parent().html() }), link: o, guid: `${o}#${t.text()}` });
+            });
+    return { title: `IKEA UK - Offers`, link: t, description: `Offers by IKEA UK.`, item: [...r, ...a] };
+}
+export { l as route };

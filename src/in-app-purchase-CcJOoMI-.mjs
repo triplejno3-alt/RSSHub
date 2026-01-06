@@ -1,0 +1,47 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import { t } from './utils-CwshCOhj.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/iap/:country/:id`,
+    categories: [`program-update`],
+    example: `/appstore/iap/us/id953286746`,
+    parameters: {
+        country: 'App Store Country, obtain from the app URL https://apps.apple.com/us/app/id953286746, in this case, `us`',
+        id: 'App Store app id, obtain from the app URL https://apps.apple.com/us/app/id953286746, in this case, `id953286746`',
+    },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `In-App-Purchase Price Drop Alert`,
+    maintainers: [`HenryQW`],
+    handler: i,
+};
+async function i(r) {
+    let i = r.req.param(`country`),
+        a = r.req.param(`id`),
+        o = `https://apps.apple.com/${i}/app/${a}`,
+        s = n(await e(o))(`html`).attr(`lang`),
+        c = await t(),
+        l = (
+            await e(`https://amp-api-edge.apps.apple.com/v1/catalog/${i}/apps/${a.replace(`id`, ``)}`, {
+                headers: { authorization: `Bearer ${c}`, origin: `https://apps.apple.com` },
+                query: { platform: `web`, include: `merchandised-in-apps,top-in-apps,eula`, l: s },
+            })
+        ).data[0],
+        u = l.attributes,
+        d = u.deviceFamilies.includes(`mac`) ? `macOS` : `iOS`,
+        f = [],
+        p = l.relationships[`top-in-apps`].data;
+    return (
+        p &&
+            (f = p.map(({ attributes: e }) => ({
+                title: `${e.name} is now ${e.offers[0].priceFormatted}`,
+                link: e.url,
+                guid: `${e.url}:${e.offerName}:${e.offers[0].priceString}`,
+                description: e.artwork ? e.description.standard + `<br><img src=${e.artwork.url.replace(`{w}x{h}{c}.{f}`, `3000x3000bb.webp`)}>` : e.description.standard,
+            }))),
+        { title: `${i.toLowerCase() === `cn` ? `内购限免提醒` : `IAP price watcher`}: ${u.name} for ${d}`, link: o, item: f }
+    );
+}
+export { r as route };

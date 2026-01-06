@@ -1,0 +1,35 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './utils-C4JpPoMa.mjs';
+const n = {
+    path: `/top/tracks`,
+    categories: [`multimedia`],
+    example: `/spotify/top/tracks`,
+    parameters: {},
+    features: {
+        requireConfig: [
+            { name: `SPOTIFY_CLIENT_ID`, description: `` },
+            { name: `SPOTIFY_CLIENT_SECRET`, description: `` },
+            { name: `SPOTIFY_REFRESHTOKEN`, description: `` },
+        ],
+        requirePuppeteer: !1,
+        antiCrawler: !1,
+        supportBT: !1,
+        supportPodcast: !1,
+        supportScihub: !1,
+    },
+    radar: [{ source: [`open.spotify.com/`] }],
+    name: `Personal Top Tracks`,
+    maintainers: [`outloudvi`],
+    handler: r,
+    url: `open.spotify.com/`,
+};
+async function r() {
+    return {
+        title: `Spotify: My Top Tracks`,
+        allowEmpty: !0,
+        item: (await e(`https://api.spotify.com/v1/me/top/tracks`, { method: `GET`, headers: { Authorization: `Bearer ${await t.getPrivateToken()}` } })).items.map((e) => t.parseTrack(e)),
+    };
+}
+export { n as route };

@@ -1,0 +1,92 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+import { raw as c } from 'hono/html';
+const l = {
+    path: `/news/:category/:article_type?`,
+    categories: [`traditional-media`],
+    example: `/nikkei/news/news`,
+    parameters: { category: `Category, see table below`, article_type: 'Only includes free articles, set `free` to enable, disabled by default' },
+    radar: [{ source: [`www.nikkei.com/:category/archive`, `www.nikkei.com/:category`], target: `/:category` }],
+    name: `News`,
+    maintainers: [`Arracc`, `ladeng07`],
+    handler: u,
+    description: `| 総合 | オピニオン | 経済    | 政治     | 金融      | マーケット | ビジネス | マネーのまなび | テック     | 国際          | スポーツ | 社会・調査 | 地域  | 文化    | ライフスタイル |
+| ---- | ---------- | ------- | -------- | --------- | ---------- | -------- | -------------- | ---------- | ------------- | -------- | ---------- | ----- | ------- | -------------- |
+| news | opinion    | economy | politics | financial | business   | 不支持   | 不支持         | technology | international | sports   | society    | local | culture | lifestyle      |`,
+};
+async function u(l) {
+    let u = `https://www.nikkei.com`,
+        { category: d, article_type: f = `paid` } = l.req.param(),
+        p = ``;
+    p = d === `news` ? `${u}/news/category/` : `${u}/${d}/archive/`;
+    let m = (await n(p)).data,
+        h = o(m),
+        g = ``,
+        _ = h(`[class^="container_"]  [class^="default_"]:has(article)`),
+        v = `img[class^="icon_"]`,
+        y = _.toArray().map(
+            (e) => (
+                (e = h(e)),
+                e.find(`p a`).remove(),
+                {
+                    title: e.find(`[class^="titleLink_"]`).text(),
+                    link: `${u}${e.find(`[class^="title_"] a`).attr(`href`)}`,
+                    image: e.find(`[class^="image_"] img`).removeAttr(`style`).removeAttr(`width`).removeAttr(`height`).parent().html(),
+                    category: e
+                        .find(`[class^="topicItem_"] a`)
+                        .toArray()
+                        .map((e) => h(e).text()),
+                    paywall: !!e.find(v).length,
+                }
+            )
+        );
+    d === `news`
+        ? ((g = `総合`),
+          (y = [
+              ...y,
+              ...h(`div#CONTENTS_MAIN .m-miM32_itemTitle`)
+                  .toArray()
+                  .map((e) => {
+                      e = h(e);
+                      let t = e.find(`a`).first();
+                      return {
+                          title: t.text(),
+                          link: `${u}${t.attr(`href`)}`,
+                          category: e
+                              .find(`.m-miM32_itemkeyword a`)
+                              .toArray()
+                              .map((e) => h(e).text()),
+                          paywall: !!e.find(v).length,
+                      };
+                  }),
+          ]))
+        : (g = h(`h1.l-miH11_title`).text().trim());
+    let b = await Promise.all(
+        y.map((l) =>
+            e.tryGet(l.link, async () => {
+                let { data: e } = await n(l.link),
+                    u = o(e);
+                (u(`.notFloated_n1oadkwi`).remove(), (l.pubDate = t(u(`meta[property="article:published_time"]`).attr(`content`))));
+                let d = u(`section[class^=container_]`).html();
+                return ((l.description = s(a(r, { children: [l.paywall && l.image ? a(r, { children: [c(l.image), i(`br`, {})] }) : null, d ? c(d) : null] }))), l);
+            })
+        )
+    );
+    return {
+        title: `日本経済新聞 - ` + g,
+        description: h(`meta[name="description"]`).attr(`content`),
+        link: p,
+        image: h(`meta[property="og:image"]`).attr(`content`),
+        language: `ja`,
+        item: f === `free` ? b.filter((e) => !e.paywall) : b,
+    };
+}
+export { l as route };

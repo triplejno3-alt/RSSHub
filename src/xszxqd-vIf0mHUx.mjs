@@ -1,0 +1,48 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { n as r } from './wechat-mp-HNgcLN2K.mjs';
+import { load as i } from 'cheerio';
+const a = `https://www.onlineqd.sdu.edu.cn/`,
+    o = {
+        'xttz-yjs': { title: `学团通知-研究生`, url: `list.jsp?urltype=tree.TreeTempUrl&wbtreeid=1027` },
+        'xttz-bks': { title: `学团通知-本科生`, url: `list.jsp?urltype=tree.TreeTempUrl&wbtreeid=1025` },
+        'xttz-tx': { title: `学团通知-团学`, url: `list.jsp?urltype=tree.TreeTempUrl&wbtreeid=1026` },
+        'xttz-xl': { title: `学团通知-心理`, url: `list.jsp?urltype=tree.TreeTempUrl&wbtreeid=1029` },
+        xtyw: { title: `学团要闻`, url: `list.jsp?urltype=tree.TreeTempUrl&wbtreeid=1008` },
+    },
+    s = {
+        path: `/qd/xszxqd/:type?`,
+        categories: [`university`],
+        example: `/sdu/qd/xszxqd/xtyw`,
+        parameters: { type: '默认为`xtyw`' },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `学生在线（青岛）`,
+        maintainers: [`kukeya`],
+        handler: c,
+        description: `| 学团通知-研究生 | 学团通知-本科生 | 学团通知-团学 | 学团通知-心理 | 学团要闻
+| -------- | -------- |-------- |-------- |-------- |
+| xttz-yjs   | xttz-bks  |  xttz-tx  | xttz-xl  | xtyw  |`,
+    };
+async function c(s) {
+    let c = s.req.param(`type`) ?? `xtyw`,
+        l = new URL(o[c].url, a).href,
+        u = i((await n(l)).data),
+        d = u(`.list_box li`)
+            .toArray()
+            .map((e) => {
+                e = u(e);
+                let n = e.find(`a`),
+                    r = n.attr(`href`).startsWith(`tz_content`) || n.attr(`href`).startsWith(`content`) ? a + n.attr(`href`) : n.attr(`href`);
+                return { title: n.text().trim(), link: r, pubDate: t(e.find(`span`).text().trim(), `YYYY-MM-DD`) };
+            });
+    return (
+        (d = await Promise.all(d.map((t) => e.tryGet(t.link, async () => (new URL(t.link).hostname === `mp.weixin.qq.com` ? r(t) : ((t.description = i((await n(t.link)).data)(`.v_news_content`).html()), t)))))),
+        { title: `山东大学学生在线（青岛）${o[c].title}`, description: u(`title`).text(), link: l, item: d, icon: `https://www.onlineqd.sdu.edu.cn/img/logo.png` }
+    );
+}
+export { s as route };

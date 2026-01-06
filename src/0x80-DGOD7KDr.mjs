@@ -1,0 +1,41 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = { path: `/blog`, categories: [`blog`], example: `/0x80/blog`, url: `0x80.pl/notesen.html`, name: `Articles`, maintainers: [`xnum`], handler: o };
+function a(e) {
+    let t = e.match(/\d{4}-\d{2}-\d{2}/);
+    return t ? t[0] : null;
+}
+async function o() {
+    let i = `http://0x80.pl/`,
+        o = `${i}notesen.html`,
+        s = r((await n({ method: `get`, url: o })).data),
+        c = s(`a.reference.external`)
+            .toArray()
+            .map((e) => {
+                e = s(e);
+                let t = e.attr(`href`) || ``;
+                return { title: e.text() || ``, link: t, pubDate: a(t), category: `Uncategoried` };
+            })
+            .filter((e) => e.link.startsWith(`notesen`));
+    return {
+        title: `0x80.pl articles`,
+        link: o,
+        item: await Promise.all(
+            c.map((a) =>
+                e.tryGet(a.link, async () => {
+                    let e = r((await n({ method: `get`, url: `${i}${a.link}` })).data),
+                        o = e(`tr.author.field td.field-body`).text(),
+                        s = e(`tr.added-on.field td.field-body`).text();
+                    return ((a.author = o), (a.pubDate = t(a.pubDate || s)), (a.description = e(`div.document`).first().html()), a);
+                })
+            )
+        ),
+    };
+}
+export { i as route };

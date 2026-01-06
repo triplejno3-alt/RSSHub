@@ -1,0 +1,36 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './types-Bl_lnefZ.mjs';
+import { t as n } from './invalid-parameter-DGZgOgO2.mjs';
+import { a as r, i, r as a, t as o } from './utils-BDqpzFK3.mjs';
+const s = {
+    path: `/user/:name/:media?`,
+    name: `ユーザー`,
+    categories: [`social-media`],
+    example: `/mixi2/user/@deyo`,
+    parameters: { name: { description: `@で始まるユーザー名` }, media: { description: '`media`を入力するとメディアを含むポストのみを取得、デフォルトは空で全てのポストを取得' } },
+    features: { requireConfig: o, supportRadar: !0 },
+    radar: [
+        { source: [`mixi.social/:id`], target: `/user/:id`, title: `ユーザー - ポスト` },
+        { source: [`mixi.social/:id`], target: `/user/:id/media`, title: `ユーザー - メディア` },
+    ],
+    view: t.SocialMedia,
+    handler: async (t) => {
+        let o = Number.parseInt(t.req.query(`limit`) ?? `20`, 10),
+            s = t.req.param(`name`),
+            c = t.req.param(`media`) === `media`;
+        if (!s.startsWith(`@`)) throw new n(`ユーザー名は@で始まる必要があります`);
+        let l = a(),
+            u = (await l.getPersonaByName({ name: s.slice(1) })).persona,
+            d = await l.getPersonalTimeline({ personaId: u?.personaId, limit: o, mediaOnly: c });
+        return {
+            title: `${u?.name} - ${c ? `メディア` : `ポスト`}`,
+            image: u?.avatarUrl,
+            item: d?.posts?.filter(r).map((t) => ({ title: `@${u?.name}`, description: i(t), pubDate: e(t.createdAt.seconds * 1e3), guid: t.postId, author: u?.name, link: `https://mixi.social/@${u?.name}/posts/${t.postId}` })) ?? [],
+        };
+    },
+    maintainers: [`KarasuShin`],
+};
+export { s as route };

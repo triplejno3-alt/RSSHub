@@ -1,0 +1,60 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+        jx: { title: `中国科学技术大学 - 教学类通知`, url: `https://ustc.edu.cn/tzgg/jxltz.htm` },
+        ky: { title: `中国科学技术大学 - 科研类通知`, url: `https://ustc.edu.cn/tzgg/kyltz.htm` },
+        gl: { title: `中国科学技术大学 - 管理类通知`, url: `https://ustc.edu.cn/tzgg/glltz.htm` },
+        fw: { title: `中国科学技术大学 - 服务类通知`, url: `https://ustc.edu.cn/tzgg/fwltz.htm` },
+    },
+    o = {
+        path: `/news/:type?`,
+        categories: [`university`],
+        example: `/ustc/news/gl`,
+        parameters: { type: `分类，默认为管理类` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`ustc.edu.cn/`], target: `/news` }],
+        name: `官网通知公告`,
+        maintainers: [`hang333`, `jasongzy`],
+        handler: s,
+        url: `ustc.edu.cn/`,
+        description: `| 教学类 | 科研类 | 管理类 | 服务类 |
+| ------ | ------ | ------ | ------ |
+| jx     | ky     | gl     | fw     |`,
+    };
+async function s(o) {
+    let s = o.req.param(`type`) ?? `gl`,
+        c = i((await n({ method: `get`, url: a[s].url })).data),
+        l = c(`table[portletmode=simpleList] > tbody > tr.light`)
+            .toArray()
+            .map((e) => {
+                let n = c(e).children();
+                return {
+                    title: c(n[1]).find(`a`).attr(`title`),
+                    link: c(n[1]).find(`a`).attr(`href`).startsWith(`../`) ? new URL(c(n[1]).find(`a`).attr(`href`), a[s].url).href : c(n[1]).find(`a`).attr(`href`),
+                    pubDate: r(t(c(n[2]).text(), `YYYY-MM-DD`), 8),
+                };
+            });
+    return (
+        (l = await Promise.all(
+            l
+                .filter((e) => e.link)
+                .map((t) =>
+                    e.tryGet(t.link, async () => {
+                        try {
+                            t.description = i((await n(t.link)).data)(`div.v_news_content`).html();
+                        } catch {}
+                        return t;
+                    })
+                )
+        )),
+        { title: a[s].title, description: a[s].title, link: a[s].url, item: l }
+    );
+}
+export { o as route };

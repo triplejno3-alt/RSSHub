@@ -1,0 +1,33 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { load as t } from 'cheerio';
+const n = {
+    path: `/recent-releases`,
+    categories: [`anime`],
+    example: `/gogoanimehd/recent-releases`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`developer.anitaku.to/`] }],
+    name: `Recent Releases`,
+    maintainers: [`user4302`],
+    handler: r,
+    url: `developer.anitaku.to/`,
+};
+async function r() {
+    let n = `https://anitaku.to/home.html`,
+        r = t((await e({ method: `get`, url: n })).data),
+        i = r(r(`.last_episodes`))
+            .find(`li`)
+            .toArray()
+            .map((e) => {
+                let t = r(e).find(`.name a`).attr(`title`),
+                    n = r(e).find(`.episode`).text(),
+                    i = r(e).find(`.name a`).attr(`href`);
+                return { title: t, description: `<h2>${n}</h2><br/><img src='${r(e).find(`.img a img`).attr(`src`)}' alt='${t}'>`, link: i };
+            });
+    return { title: r(`title`).text(), link: n, item: i };
+}
+export { n as route };

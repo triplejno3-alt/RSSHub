@@ -1,0 +1,59 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+import { raw as l } from 'hono/html';
+const u = {
+        path: `/community`,
+        categories: [`programming`],
+        example: `/modelscope/community`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`community.modelscope.cn/`] }],
+        name: `DevPress 官方社区`,
+        maintainers: [`TonyRL`],
+        handler: f,
+        url: `community.modelscope.cn/`,
+    },
+    d = (e, t, n) => c(o(i, { children: [e ? o(i, { children: [a(`img`, { src: e }), a(`br`, {})] }) : null, t ? a(`blockquote`, { children: t }) : null, n ? a(i, { children: l(n) }) : null] }));
+async function f(i) {
+    let a = `https://community.modelscope.cn`,
+        { data: o } = await n.post(`${a}/v1/namespace_page/article`, { json: { id: 142373, notInMediaAidList: [], pageNum: 1, pageSize: i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`)) : 30 } }),
+        c = o.data.content.map((e) => ({
+            title: e.content.name,
+            description: e.content.desc,
+            author: e.nickname,
+            link: `${a}/${e.content.id}.html`,
+            pubDate: r(t(e.content.createdTime), 8),
+            category: e.content.externalData.tags.map((e) => e.name),
+            thumb: e.content.thumb,
+        }));
+    return {
+        title: `ModelScope魔搭社区-DevPress官方社区`,
+        description: `ModelScope魔搭社区 DevPress官方社区-ModelScope旨在打造下一代开源的模型即服务共享平台，为泛AI开发者提供灵活、易用、低成本的一站式模型服务产品，让模型应用更简单。`,
+        image: `https://g.alicdn.com/sail-web/maas/0.8.10/favicon/128.ico`,
+        link: a,
+        item: await Promise.all(
+            c.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let { data: e } = await n(t.link),
+                        r = s(e),
+                        i = JSON.parse(
+                            r(`script`)
+                                .text()
+                                .match(/window\.__INITIAL_STATE__\s*=\s*({.*?});/)[1]
+                        );
+                    return ((t.description = d(t.thumb, t.description, i.pageData.detail.ext.content)), t);
+                })
+            )
+        ),
+    };
+}
+export { u as route };

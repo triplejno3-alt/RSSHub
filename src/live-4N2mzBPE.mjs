@@ -1,0 +1,57 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { t } from './jsonp-helper-CoFLhxde.mjs';
+import { Fragment as n, jsx as r, jsxs as i } from 'hono/jsx/jsx-runtime';
+import { renderToString as a } from 'hono/jsx/dom/server';
+import { raw as o } from 'hono/html';
+const s = {
+    path: `/live`,
+    categories: [`live`],
+    example: `/yoasobi-music/live`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.yoasobi-music.jp/`, `www.yoasobi-music.jp/live`] }],
+    name: `Live`,
+    maintainers: [`Kiotlin`],
+    handler: c,
+    url: `www.yoasobi-music.jp/`,
+};
+async function c() {
+    let n = `https://www.yoasobi-music.jp/live`;
+    return {
+        title: `LATEST LIVE`,
+        link: n,
+        description: `YOASOBI's Latest Live`,
+        item: t((await e({ method: `get`, url: `https://www.sonymusic.co.jp/json/v2/artist/YOASOBI/live/start/0/count/-1` })).data)
+            .items.map((e) => ({ title: e.tourName, imageLink: e.tourImage === `` ? null : `https://www.sonymusic.co.jp${e.tourImage}`, link: `${n}/${e.link.split(`/`).pop()}`, description: e.tourInfo, sessions: e.liveItem }))
+            .map((e) => ({ title: e.title, description: l(e.imageLink, e.description, e.sessions), link: e.link })),
+    };
+}
+const l = (e, t, s) =>
+    a(
+        i(n, {
+            children: [
+                e ? r(`img`, { src: e }) : null,
+                o(t),
+                s.map((e, t) =>
+                    i(
+                        `div`,
+                        {
+                            style: `margin: 0.5em 0; padding: 0.5em 1em; border: 0.1em solid palevioletred;`,
+                            children: [
+                                i(`p`, { children: [e.date, ` [`, e.youbi, `]`] }),
+                                r(`p`, { style: `color: palevioletred;`, children: e.tourName }),
+                                i(`p`, { children: [`会場: `, e.area, ` `, r(`a`, { href: e.mapURL, target: `_blank`, children: e.place })] }),
+                                i(`p`, { children: [`開場/開演: `, e.open, `/`, e.start] }),
+                            ],
+                        },
+                        `${e.date}-${t}`
+                    )
+                ),
+            ],
+        })
+    );
+export { s as route };

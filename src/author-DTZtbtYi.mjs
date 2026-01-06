@@ -1,0 +1,16 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { n, t as r } from './utils-DYHAcR2Y.mjs';
+const i = { path: `/authors/:id`, example: `/inspirehep/authors/1696909`, parameters: { id: `Author ID` }, name: `Author Search`, maintainers: [`TonyRL`], radar: [{ source: [`inspirehep.net/authors/:id`] }], handler: o },
+    a = (n) => t.tryGet(`inspirehep:author:${n}`, () => e(`${r}/api/authors/${n}`, { headers: { accept: `application/vnd+inspire.record.ui+json` }, parseResponse: JSON.parse }));
+async function o(t) {
+    let i = t.req.param(`id`),
+        o = t.req.query(`limit`) ? Number.parseInt(t.req.query(`limit`)) : 25,
+        s = await a(i),
+        c = n((await e(`${r}/api/literature`, { query: { sort: `mostrecent`, size: o, page: 1, search_type: `hep-author-publication`, author: s.metadata.facet_author_name } })).hits.hits);
+    return { title: `${s.metadata.name.preferred_name} - INSPIRE`, link: `${r}/authors/${i}`, item: c };
+}
+export { a as getAuthorById, i as route };

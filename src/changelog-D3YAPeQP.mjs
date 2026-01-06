@@ -1,0 +1,31 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/changelog`,
+    name: `Changelog`,
+    categories: [`program-update`],
+    example: `/raycast/changelog`,
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    handler: async () => ({
+        title: `Raycast Changelog`,
+        link: `https://www.raycast.com/changelog`,
+        language: `en-US`,
+        item: await t.tryGet(`raycast:changelog`, async () =>
+            r(await e(`https://www.raycast.com/changelog`))(`article`)
+                .toArray()
+                .map((e) => {
+                    let t = r(e),
+                        i = t(`span[id]`).attr(`id`),
+                        a = t(`div.markdown`).html() ?? ``,
+                        o = t(`span[class^=ChangelogEntry_changelogDate]`).text().trim();
+                    return { title: `Version ${i}`, description: a, link: `https://www.raycast.com/changelog/${i?.replaceAll(`.`, `-`)}`, pubDate: n(o) };
+                })
+        ),
+    }),
+    maintainers: [`equt`],
+};
+export { i as route };

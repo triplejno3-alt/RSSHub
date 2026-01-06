@@ -1,0 +1,28 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { c as n, d as r, i, u as a } from './util-DXi5kr31.mjs';
+const o = {
+    path: `/moment`,
+    categories: [`new-media`],
+    example: `/huxiu/moment`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !0, supportPodcast: !0, supportScihub: !1 },
+    radar: [{ source: [`huxiu.com/moment`] }],
+    name: `24 小时`,
+    maintainers: [`nczitzk`],
+    handler: s,
+    url: `huxiu.com/moment`,
+};
+async function s(o) {
+    let s = o.req.query(`limit`) ? Number.parseInt(o.req.query(`limit`), 10) : 20,
+        c = new URL(`web-v3/moment/feed`, i).href,
+        l = new URL(`moment`, r).href,
+        { data: u } = await t.post(c, { form: { platform: `www` } });
+    return { item: await a(u.data.moment_list.datalist, s, e.tryGet), ...(await n(l)) };
+}
+export { o as route };

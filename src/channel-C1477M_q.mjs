@@ -1,0 +1,49 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t as e } from './invalid-parameter-DGZgOgO2.mjs';
+import { a as t, l as n, t as r } from './google-Ewtr97IX.mjs';
+import { t as i } from './youtubei-Dm3Pz4f6.mjs';
+const a = {
+    path: `/channel/:id/:routeParams?`,
+    categories: [`social-media`],
+    example: `/youtube/channel/UCDwDMPOZfxVV0x_dz0eQ8KQ`,
+    parameters: { id: `YouTube channel id`, routeParams: `Extra parameters, see the table below` },
+    radar: [{ source: [`www.youtube.com/channel/:id`], target: `/channel/:id` }],
+    name: `Channel with id`,
+    maintainers: [`DIYgod`, `pseudoyu`],
+    handler: o,
+    description: `::: tip Parameter
+| Name       | Description                                                                         | Default |
+| ---------- | ----------------------------------------------------------------------------------- | ------- |
+| embed      | Whether to embed the video, fill in any value to disable embedding                  | embed   |
+| filterShorts | Whether to filter out shorts from the feed, fill in any falsy value to show shorts | true    |
+:::
+
+::: tip
+YouTube provides official RSS feeds for channels, for instance [https://www.youtube.com/feeds/videos.xml?channel_id=UCDwDMPOZfxVV0x_dz0eQ8KQ](https://www.youtube.com/feeds/videos.xml?channel_id=UCDwDMPOZfxVV0x_dz0eQ8KQ).
+:::`,
+    features: {
+        requireConfig: [{ name: `YOUTUBE_KEY`, description: ' YouTube API Key, support multiple keys, split them with `,`, [API Key application](https://console.developers.google.com/)', optional: !0 }],
+        requirePuppeteer: !1,
+        antiCrawler: !1,
+        supportBT: !1,
+        supportPodcast: !1,
+        supportScihub: !1,
+    },
+};
+async function o(a) {
+    let o = a.req.param(`id`),
+        s = a.req.param(`routeParams`),
+        c = new URLSearchParams(s),
+        l = !c.get(`embed`),
+        u = c.get(`filterShorts`),
+        d = u === null || u === `` || u === `true`;
+    if (!n.isYouTubeChannelId(o))
+        throw new e(`Invalid YouTube channel ID. 
+You may want to use <code>/youtube/user/:id</code> instead.`);
+    return await t({ googleApi: r, youtubeiApi: i, params: { channelId: o, embed: l, filterShorts: d, isJsonFeed: a.req.query(`format`) === `json` } });
+}
+export { a as route };

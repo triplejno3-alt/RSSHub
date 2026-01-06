@@ -1,0 +1,40 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { n as e } from './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import { t } from './invalid-parameter-DGZgOgO2.mjs';
+import { n, t as r } from './util-DHp4k4sj.mjs';
+const i = { 1: `电影`, 2: `电视剧`, 3: `近日热门`, 4: `本周热门`, 5: `本月热门` },
+    a = {
+        path: `/tlist/:sc/:domain?`,
+        categories: [`multimedia`],
+        example: `/bt0/tlist/1`,
+        parameters: { sc: `分类(1-5), 1:电影, 2:电视剧, 3:近日热门, 4:本周热门, 5:本月热门`, domain: `数字1-9, 比如1表示请求域名为 1bt0.com, 默认为 2` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !0, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`2bt0.com/tlist/`] }],
+        name: `最新资源列表`,
+        maintainers: [`miemieYaho`],
+        handler: o,
+    };
+async function o(a) {
+    let o = a.req.param(`domain`) ?? `2`,
+        s = a.req.param(`sc`);
+    if (!/^[1-9]$/.test(o)) throw new t(`Invalid domain`);
+    if (!/^[1-5]$/.test(s)) throw new t(`Invalid sc`);
+    let c = `https://www.${o}bt0.com`,
+        l = (await r(0, c, `${c}/prod/core/system/getTList?sc=${s}`)).data.list.map((t) => ({
+            title: t.zname,
+            guid: t.zname,
+            description: `《${t.title}》  导演: ${t.daoyan}<br>编剧: ${t.bianji}<br>演员: ${t.yanyuan}<br>简介: ${t.conta.trim()}`,
+            link: c + t.aurl,
+            pubDate: t.eztime.endsWith(`前`) ? e(t.eztime) : t.eztime,
+            enclosure_type: `application/x-bittorrent`,
+            enclosure_url: t.zlink,
+            enclosure_length: n(t.zsize),
+            itunes_item_image: t.epic,
+        }));
+    return { title: `不太灵-最新资源列表-${i[s]}`, link: `${c}/tlist/${s}_1.html`, item: l };
+}
+export { a as route };

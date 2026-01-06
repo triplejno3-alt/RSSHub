@@ -1,0 +1,63 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+const n = {
+    path: `/pins/:type?`,
+    categories: [`programming`],
+    example: `/juejin/pins/6824710202487472141`,
+    parameters: { type: `默认为 recommend，见下表` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `沸点`,
+    maintainers: [`xyqfer`, `laampui`],
+    handler: r,
+    description: `| 推荐      | 热门 | 上班摸鱼            | 内推招聘            | 一图胜千言          | 今天学到了          | 每天一道算法题      | 开发工具推荐        | 树洞一下            |
+| --------- | ---- | ------------------- | ------------------- | ------------------- | ------------------- | ------------------- | ------------------- | ------------------- |
+| recommend | hot  | 6824710203301167112 | 6819970850532360206 | 6824710202487472141 | 6824710202562969614 | 6824710202378436621 | 6824710202000932877 | 6824710203112423437 |`,
+};
+async function r(n) {
+    let r = n.req.param(`type`) ?? `recommend`,
+        i = {
+            recommend: `推荐`,
+            hot: `热门`,
+            '6824710203301167112': `上班摸鱼`,
+            '6819970850532360206': `内推招聘`,
+            '6824710202487472141': `一图胜千言`,
+            '6824710202562969614': `今天学到了`,
+            '6824710202378436621': `每天一道算法题`,
+            '6824710202000932877': `开发工具推荐`,
+            '6824710203112423437': `树洞一下`,
+        },
+        a = ``,
+        o = {};
+    /^\d+$/.test(r)
+        ? ((a = `https://api.juejin.cn/recommend_api/v1/short_msg/topic`), (o = { id_type: 4, sort_type: 500, cursor: `0`, limit: 20, topic_id: r }))
+        : ((a = `https://api.juejin.cn/recommend_api/v1/short_msg/${r}`), (o = { id_type: 4, sort_type: 200, cursor: `0`, limit: 20 }));
+    let s = (await e(a, { method: `POST`, body: o })).data.data.map((e) => {
+        let n = e.msg_Info.content,
+            r = n,
+            i = e.msg_id,
+            a = `https://juejin.cn/pin/${i}`,
+            o = t(e.msg_Info.ctime * 1e3),
+            s = e.author_user_info.user_name,
+            c = ``;
+        for (let t of e.msg_Info.pic_list) c += `<img src="${t}"><br>`;
+        return {
+            title: r,
+            link: a,
+            description: `
+            ${n.replaceAll(
+                `
+`,
+                `<br>`
+            )}<br>
+            ${c}<br>
+        `,
+            guid: i,
+            pubDate: o,
+            author: s,
+        };
+    });
+    return { title: `沸点 - ${i[r]}`, link: `https://juejin.cn/pins/recommended`, item: s };
+}
+export { n as route };

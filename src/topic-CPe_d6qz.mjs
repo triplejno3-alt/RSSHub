@@ -1,0 +1,51 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import { t } from './logger-_vmdpChp.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+import { t as r } from './parse-date-DjdQS_Nt.mjs';
+import { t as i } from './timezone-CrV-DT8S.mjs';
+import { load as a } from 'cheerio';
+const o = {
+    path: `/topic/:id`,
+    categories: [`programming`],
+    example: `/modb/topic/44158`,
+    parameters: { id: `合辑序号` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `合辑`,
+    maintainers: [`yueneiqi`],
+    handler: s,
+};
+async function s(o) {
+    let s = `https://www.modb.pro`,
+        c = o.req.param(`id`),
+        l = (await e(`${s}/api/columns/getKnowledge`, { query: { pageNum: 1, pageSize: 20, columnId: c } })).list.map((e) => {
+            let n = {},
+                a = {};
+            switch (e.type) {
+                case 0:
+                    ((n = e.knowledge), (a = `${s}/db`));
+                    break;
+                case 1:
+                    ((n = e.dbDoc), (a = `${s}/doc`));
+                    break;
+                default:
+                    t.error(`unknown type ${e.type}`);
+            }
+            return { title: n.title, link: `${a}/${e.rid}`, pubDate: i(r(e.createdTime), 8), author: n.createdByName, category: n.tags };
+        }),
+        u = await Promise.all(
+            l.map((t) =>
+                n.tryGet(
+                    t.link,
+                    async () => (
+                        (t.description = a(await e(t.link))(`div.editor-content-styl.article-style`)
+                            .first()
+                            .html()),
+                        t
+                    )
+                )
+            )
+        );
+    return { title: `墨天轮合辑`, link: `${s}/topic/${c}`, item: u };
+}
+export { o as route };

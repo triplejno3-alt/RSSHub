@@ -1,0 +1,27 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = { path: `/`, radar: [{ source: [`ddosi.org/`], target: `` }], name: `Unknown`, maintainers: [`XinRoom`], handler: a, url: `ddosi.org/` };
+async function a() {
+    let i = e.ua || `Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1`,
+        a = r((await n({ method: `get`, url: `https://www.ddosi.org/`, headers: { 'User-Agent': i, Referer: `https://www.ddosi.org/` } })).data);
+    return {
+        title: `雨苁`,
+        link: `https://www.ddosi.org/`,
+        item: a(`main>article`)
+            .toArray()
+            .map((e) => {
+                let n = a(e),
+                    r = n.find(`a:first-child`).attr(`href`),
+                    i = n.find(`.entry-title a`).text(),
+                    o = n.find(`.entry-content p`).text(),
+                    s = t(n.find(`.meta-date a time`).attr(`datetime`));
+                return { title: String(i), description: String(o), pubDate: s, link: String(r) };
+            }),
+    };
+}
+export { i as route };

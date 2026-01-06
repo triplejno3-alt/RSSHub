@@ -1,0 +1,42 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './article-cjVzTuOw.mjs';
+import { load as a } from 'cheerio';
+const o = {
+    path: `/database`,
+    categories: [`traditional-media`],
+    example: `/caixin/database`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`k.caixin.com/web`, `k.caixin.com/`] }],
+    name: `财新数据通`,
+    maintainers: [`nczitzk`],
+    handler: s,
+    url: `k.caixin.com/web`,
+};
+async function s() {
+    let o = `https://database.caixin.com/news/`,
+        s = a((await n(o)).data),
+        c = s(`h4 a`)
+            .toArray()
+            .map((e) => ((e = s(e)), { title: e.text(), link: e.attr(`href`).replace(`http://`, `https://`) }));
+    return {
+        title: `财新数据通 - 专享资讯`,
+        link: o,
+        item: await Promise.all(
+            c.map((o) =>
+                e.tryGet(o.link, async () => {
+                    let e = a((await n(o.link)).data);
+                    return ((o.pubDate = r(t(e(`#pubtime_baidu`).text()), 8)), (o.description = i({ item: o, $: e })), (o.author = e(`.top-author`).text()), o);
+                })
+            )
+        ),
+    };
+}
+export { o as route };

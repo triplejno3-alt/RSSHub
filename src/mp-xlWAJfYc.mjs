@@ -1,0 +1,166 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { jsx as i } from 'hono/jsx/jsx-runtime';
+import * as a from 'cheerio';
+import { renderToString as o } from 'hono/jsx/dom/server';
+import s from 'crypto-js';
+const c = {
+    path: `/mp/:xpt`,
+    categories: [`new-media`],
+    example: `/sohu/mp/c29odXptdGhnbjZ3NEBzb2h1LmNvbQ==`,
+    parameters: { xpt: `搜狐号 xpt ，可在URL中找到或搜狐号 ID` },
+    radar: [{ source: [`mp.sohu.com/profile`], target: (e, t) => `/sohu/mp/${new URL(t).searchParams.get(`xpt`)}` }],
+    name: `最新`,
+    maintainers: [`HenryQW`],
+    handler: p,
+    description: '搜狐号 ID 可以通过以下方式获取：\n  1.  通过浏览器搜索相关搜狐号 `果壳 site: mp.sohu.com`。\n  2.  通过浏览器控制台执行 `window.globalConst.mkeyConst_mkey`，返回的即为搜狐号 ID。',
+};
+function l(e = 32) {
+    let t = ``;
+    for (let n = 0; n < e; n++) t += `ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678`.charAt(Math.floor(Math.random() * 48));
+    return t;
+}
+function u(e) {
+    let t = s.enc.Utf8.parse(`www.sohu.com6666`);
+    return s.AES.decrypt(e, t, { mode: s.mode.ECB, padding: s.pad.Pkcs7 }).toString(s.enc.Utf8);
+}
+function d() {
+    let e = Date.now(),
+        t = `t` + e;
+    return `v1` + e + s.HmacSHA1(t, `439642a904ef43d092d45509cdc4391c`).toString();
+}
+function f(s) {
+    return t.tryGet(s.link, async () => {
+        let t = await e(s.link),
+            c = a.load(t);
+        if (
+            (c(`.original-title, .lookall-box`).remove(),
+            (s.author = s.author || c(`span[data-role="original-link"] a`).text()),
+            (s.pubDate = r(n(c(`meta[itemprop="dateUpdate"]`).attr(`content`)), 8)),
+            /window\.sohu_mp\.article_video/.test(c(`script`).text()))
+        ) {
+            let e = c(`script`)
+                    .text()
+                    .match(/\s*url: "(.*?)",/)?.[1],
+                t = c(`script`)
+                    .text()
+                    .match(/cover: "(.*?)",/)?.[1],
+                n = e?.split(`.`).pop()?.toLowerCase(),
+                r = n ? i(`source`, { src: e, type: `video/${n}` }) : i(`source`, { src: e });
+            s.description = o(t ? i(`video`, { controls: !0, poster: t, children: r }) : i(`video`, { controls: !0, children: r }));
+        } else {
+            let e = c(`#mp-editor`);
+            (e.find(`#backsohucom, p[data-role="editor-name"]`).each((e, t) => {
+                c(t).remove();
+            }),
+                e.find(`img`).each((e, t) => {
+                    let n = c(t);
+                    n.attr(`data-src`) && !n.attr(`src`) && (n.attr(`src`, u(n.attr(`data-src`))), n.removeAttr(`data-src`));
+                }),
+                (s.description = e.html()));
+        }
+        return s;
+    });
+}
+async function p(t) {
+    let n = t.req.param(`xpt`);
+    if (/^\d+$/.test(n)) return m(t);
+    let r = await e.raw(`https://mp.sohu.com/profile`, { query: { xpt: n } }),
+        i = r.headers
+            ?.getSetCookie()
+            .find((e) => e.startsWith(`SUV`))
+            ?.split(`;`)[0],
+        o = a.load(r._data),
+        s = JSON.parse(
+            o(`script:contains("CBDRenderConst")`)
+                .text()
+                .trim()
+                .match(/CBDRenderConst\s=\s(.*)/)?.[1] || `{}`
+        ),
+        c = JSON.parse(
+            o(`script:contains("contentData")`)
+                .toArray()
+                .map(
+                    (e) =>
+                        o(e)
+                            .text()
+                            .match(/contentData = (.*)/)?.[1]
+                )
+                .toSorted((e, t) => t.length - e.length)[0] || `{}`
+        ),
+        u = JSON.parse(
+            o(`script:contains("column_2_text")`)
+                .text()
+                .match(/({.*})/)?.[1]
+        ),
+        p = u[Object.keys(u).find((e) => e.startsWith(`FeedSlideloadAuthor`))],
+        h = u[Object.keys(u).find((e) => e.startsWith(`BriefIntroductionCard`))].param.data.list[0],
+        g = JSON.parse(
+            o(`script:contains("globalConst")`)
+                .text()
+                .match(/globalConst\s=\s(.*)/)?.[1] || `{}`
+        ),
+        _ = JSON.parse(
+            o(`script:contains("originalRequest")`)
+                .text()
+                .match(/originalRequest\s=\s(.*)/)?.[1] || `{}`
+        ),
+        v = (
+            await e(`https://odin.sohu.com/odin/api/blockdata`, {
+                method: `POST`,
+                headers: {
+                    Cookie: Object.entries({ SUV: i, itssohu: `true`, reqtype: `pc`, t: Date.now() })
+                        .map(([e, t]) => `${e}=${t}`)
+                        .join(`; `),
+                },
+                body: {
+                    pvId: s.COMMONCONFIG.pvId || `${Date.now()}_${l(7)}`,
+                    pageId: `${Date.now()}_${`1612268936507kas0gk`?.slice(0, -5)}_${l(3)}`,
+                    mainContent: {
+                        productType: c.businessType || `13`,
+                        productId: c.id || `324`,
+                        secureScore: c.secureScore || `5`,
+                        categoryId: c.categoryId || `47`,
+                        adTags: c.adTags || `11111111`,
+                        authorId: c.account.id || 121135924,
+                    },
+                    resourceList: [
+                        {
+                            tplCompKey: p.param.data2.reqParam.tplCompKey || `FeedSlideloadAuthor_2_0_pc_1655965929143_data2`,
+                            isServerRender: p.param.data2.reqParam.isServerRender || !1,
+                            isSingleAd: p.param.data2.reqParam.isSingleAd || !1,
+                            configSource: p.param.data2.reqParam.configSource || `mp`,
+                            content: {
+                                productId: p.param.data2.reqParam.content.productId || `325`,
+                                productType: p.param.data2.reqParam.content.productType || `13`,
+                                size: 20,
+                                pro: p.param.pro || `0,1,3,4,5`,
+                                feedType: p.param.feedType || `XTOPIC_SYNTHETICAL`,
+                                view: `operateFeedMode`,
+                                innerTag: p.param.data2.reqParam.content.innerTag || `work`,
+                                spm: p.param.data2.reqParam.content.spm || `smpc.channel_248.block3_308_hHsK47_2_fd`,
+                                page: 1,
+                                requestId: `${Date.now()}${l(7)}_${c.id}`,
+                            },
+                            adInfo: {},
+                            context: { mkey: g.mkeyConst_mkey },
+                        },
+                    ],
+                    asId: d(),
+                },
+            })
+        ).data[p.param.data2.reqParam.tplCompKey].list.map((e) => ({ title: e.title, description: e.brief, link: `https://www.sohu.com/a/${e.id}_${g.mkeyConst_mkey}` })),
+        y = await Promise.all(v.map((e) => f(e)));
+    return { title: `搜狐号 - ${g.title}`, description: h.column_9_text, link: _.url, image: `https:${h.column_2_image}`, item: y };
+}
+async function m(t) {
+    let r = t.req.param(`xpt`),
+        i = (await e(`https://v2.sohu.com/author-page-api/author-articles/pc/${r}`)).data.pcArticleVOS.map((e) => ({ title: e.title, link: e.link.startsWith(`http`) ? e.link : `https://${e.link}`, pubDate: n(e.publicTime) })),
+        a = await Promise.all(i.map((e) => f(e)));
+    return { title: `搜狐号 - ${r}`, item: a };
+}
+export { c as route };

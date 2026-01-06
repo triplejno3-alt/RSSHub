@@ -1,0 +1,37 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = `http://www.dyyy.xjtu.edu.cn`,
+    a = { path: `/dyyy/:path{.+}`, name: `Unknown`, maintainers: [], handler: o };
+async function o(a) {
+    let o = a.req.param(`path`),
+        s = await n(`${i}/${o}.htm`),
+        c = r(s.data),
+        l = c(`.list_right_con div li`)
+            .toArray()
+            .map((e) => ((e = c(e)), { title: e.find(`a`).attr(`title`), link: new URL(e.find(`a`).attr(`href`), s.url).href, pubDate: t(e.find(`.data`).text()) }));
+    return (
+        await Promise.all(
+            l.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let { data: e } = await n(t.link),
+                        i = r(e);
+                    return (
+                        (t.author = i(`.content_source`)
+                            .text()
+                            .match(/责任编辑：(.*)\(点击/)[1]),
+                        (t.description = i(`.content_con`).html()),
+                        t
+                    );
+                })
+            )
+        ),
+        { title: c(`head title`).text(), link: `${i}/${o}.htm`, item: l }
+    );
+}
+export { a as route };

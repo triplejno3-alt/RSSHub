@@ -1,0 +1,28 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = `http://news.hrbeu.edu.cn`,
+    a = { path: `/gx/list/:column/:id?`, name: `Unknown`, maintainers: [], handler: o };
+async function o(a) {
+    let o = a.req.param(`column`),
+        s = a.req.param(`id`) || ``,
+        c = s === `` ? `${i}/${o}.htm` : `${i}/${o}/${s}.htm`,
+        l = r((await n(c, { headers: { Referer: i } })).data),
+        u = l(`div.list-left-tt`)
+            .text()
+            .replaceAll(/[\n\r ]/g, ``),
+        d = l(`li.txt-elise`)
+            .toArray()
+            .map((e) => {
+                let n = l(e).find(`a`).attr(`href`);
+                return (n.includes(`info`) && s !== `` && (n = new URL(n, i).href), n.includes(`info`) && s === `` && (n = `${i}/${n}`), { title: l(e).find(`a`).attr(`title`), pubDate: t(l(e).find(`span`).text()), link: n });
+            }),
+        f = await Promise.all(d.map((t) => e.tryGet(t.link, async () => (t.link.includes(`info`) ? (t.description = r((await n(t.link)).data)(`div.v_news_content`).html()) : (t.description = `本文需跳转，请点击标题后阅读`), t))));
+    return { title: `工学-` + u, link: c, item: f };
+}
+export { a as route };

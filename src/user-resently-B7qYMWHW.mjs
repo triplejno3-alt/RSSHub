@@ -1,0 +1,20 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './timezone-CrV-DT8S.mjs';
+import { a as n, m as r, r as i, s as a, u as o } from './api-Dcvu7xdq.mjs';
+const s = { path: `/ff14risingstones/user-resently/:uid`, categories: [`bbs`], example: `/sdo/ff14risingstones/user-resently/10008214`, name: `游戏近况`, maintainers: [`KarasuShin`], features: { requireConfig: r }, handler: c };
+async function c(r) {
+    a();
+    let s = r.req.param(`uid`),
+        [c, l] = await Promise.all([i(s), n(s)]);
+    return {
+        title: `石之家 - ${l.character_name}@${l.group_name} 的游戏近况`,
+        link: `${o}#/me/info?uuid=${s}`,
+        image: l.avatar,
+        item: c.map((n) => ({ title: `${n.event_type} - ${n.detail}`, pubDate: t(e(n.log_time), 8), guid: `sdo/ff14risingstones/resently:${s}-${n.detail}` })),
+    };
+}
+export { s as route };

@@ -1,0 +1,38 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/daily`,
+    categories: [`social-media`],
+    example: `/zhihu/daily`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`daily.zhihu.com/*`] }],
+    name: `知乎日报`,
+    maintainers: [`DHPO`, `pseudoyu`],
+    handler: a,
+    url: `daily.zhihu.com/*`,
+};
+async function a() {
+    let i = r(await e(`https://daily.zhihu.com/`));
+    return {
+        title: `知乎日报`,
+        link: `https://daily.zhihu.com`,
+        description: `每天3次，每次7分钟`,
+        image: `http://static.daily.zhihu.com/img/new_home_v3/mobile_top_logo.png`,
+        item: await Promise.all(
+            i(`.box`)
+                .toArray()
+                .map(async (r) => {
+                    r = i(r);
+                    let a = `https://daily.zhihu.com/api/7` + r.find(`.link-button`).attr(`href`),
+                        o = await t.tryGet(a, async () => await e(a));
+                    return { title: o.title, description: o.body, link: o.url, pubDate: n(o.publish_time, `X`) };
+                })
+        ),
+    };
+}
+export { i as route };

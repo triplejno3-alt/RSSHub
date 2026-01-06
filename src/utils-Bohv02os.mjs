@@ -1,0 +1,40 @@
+import { Fragment as e, jsx as t, jsxs as n } from 'hono/jsx/jsx-runtime';
+import { renderToString as r } from 'hono/jsx/dom/server';
+import { raw as i } from 'hono/html';
+const a = {
+        desc: ({ desc: a, media: o }) => r(n(e, { children: [i(a), t(`br`, {}), t(`br`, {}), i(o)] })),
+        cover: ({ img: i, videoList: a }) => {
+            let o = a?.[0];
+            return r(
+                n(e, {
+                    children: [
+                        i ? (o ? t(`a`, { href: o, rel: `noreferrer`, children: t(`img`, { src: i, style: `width: 50%;` }) }) : t(`img`, { src: i, style: `width: 50%;` })) : null,
+                        i && o ? n(e, { children: [t(`br`, {}), t(`br`, {})] }) : null,
+                        o ? t(`a`, { href: o, rel: `noreferrer`, children: `视频直链` }) : null,
+                    ],
+                })
+            );
+        },
+        embed: ({ img: e, duration: n, videoList: i = [] }) =>
+            r(t(`video`, { controls: !0, preload: `metadata`, referrerpolicy: `no-referrer`, style: `width:50%`, poster: e, duration: n, children: i.map((e) => t(`source`, { referrerpolicy: `no-referrer`, src: e })) })),
+        iframe: ({ content: e }) =>
+            r(
+                t(`iframe`, {
+                    referrerpolicy: `no-referrer`,
+                    width: `100%`,
+                    height: `150vh`,
+                    frameborder: `0`,
+                    marginheight: `0`,
+                    marginwidth: `0`,
+                    style: `border:0; margin:0; padding:0; width:100%; height:150vh;`,
+                    srcdoc: `<!DOCTYPE html><html><head><meta name="referrer" content="no-referrer"></head><body>${e}</body></html>`,
+                })
+            ),
+    },
+    o = (e, t = !0, n = !1) => (e ? (e.startsWith(`//`) ? (t ? `https:` : `http:`) + e : n && !/^https?:\/\//.test(e) ? (t ? `https://` : `http://`) + e : e) : ``),
+    s = (e, t) => (e && t ? (t.includes(`?`) ? (t.endsWith(`=`) || (t += `=`), t + encodeURIComponent(e)) : (t.endsWith(`/`) || (t += `/`), t + e)) : e + ``),
+    c = (e) =>
+        o(e)
+            .replace(/^(.*\.douyinpic\.com\/).*(\/aweme-avatar\/)([^?]*)(\?.*)?$/, `$1origin$2$3`)
+            .replaceAll(/~\w+_\d+x\d+/g, ``);
+export { a as i, s as n, o as r, c as t };

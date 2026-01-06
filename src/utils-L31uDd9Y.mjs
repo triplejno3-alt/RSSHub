@@ -1,0 +1,107 @@
+import { t as e } from './cache-DLkCV5c7.mjs';
+import { n as t, t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './timezone-CrV-DT8S.mjs';
+import { load as a } from 'cheerio';
+function o(e, t) {
+    let n = e.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/);
+    if (!n || !n[1]) throw Error(`Failed to find __NEXT_DATA__ script tag in page${t ? `: ${t}` : ``}`);
+    try {
+        return JSON.parse(n[1]);
+    } catch (e) {
+        throw Error(`Failed to parse __NEXT_DATA__ JSON: ${e instanceof Error ? e.message : String(e)}`);
+    }
+}
+function s(e) {
+    let t = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(e);
+    return t ? `rgb(${Number.parseInt(t[1], 16)}, ${Number.parseInt(t[2], 16)}, ${Number.parseInt(t[3], 16)})` : e;
+}
+function c(e, t) {
+    return `<tr><td><div class="body-cell cell${t ? ` start` : ``}"><span style="padding-left: 15px">${e.alias}</span></div></td></tr>`;
+}
+function l(e) {
+    let t = e.plusMinus.startsWith(`-`) ? e.plusMinus : `+${e.plusMinus}`;
+    return `<tr><td><div class="body-cell cell">${e.mins}</div></td><td><div class="body-cell cell">${e.pts}</div></td><td><div class="body-cell cell">${e.reb}</div></td><td><div class="body-cell cell">${e.asts}</div></td><td><div class="body-cell cell">${e.stl}</div></td><td><div class="body-cell cell">${e.blk}</div></td><td><div class="body-cell cell">${e.nfg}</div></td><td><div class="body-cell cell">${e.fgp}</div></td><td><div class="body-cell cell">${e.threePoints}</div></td><td><div class="body-cell cell">${e.tpp}</div></td><td><div class="body-cell cell">${e.ft}</div></td><td><div class="body-cell cell">${e.ftp}</div></td><td><div class="body-cell cell">${e.to}</div></td><td><div class="body-cell cell">${e.oreb}</div></td><td><div class="body-cell cell">${e.dreb}</div></td><td><div class="body-cell cell">${e.blkr}</div></td><td><div class="body-cell cell">${e.pf}</div></td><td><div class="body-cell cell">${e.foulr}</div></td><td><div class="body-cell cell">${t}</div></td></tr>`;
+}
+function u(e) {
+    let t = [...e.start, ...e.reserve],
+        n = t.map((t, n) => c(t, n < e.start.length)).join(``),
+        r = t.map((e) => l(e)).join(``);
+    return `<div class="match-player-data"><div class="table-wrap-views"><div class="table-views table-views-body"><div class="table-body-left"><table cellspacing="0" cellpadding="0"><tbody><tr><td><div class="body-cell cell team" style="border-color: ${s(e.teamColor)}"><span style="padding-left: 15px">${e.teamName}</span></div></td></tr>${n}</tbody></table></div><div class="table-body-right"><table cellspacing="0" cellpadding="0"><tbody><tr><td><div class="body-cell cell">时间</div></td><td><div class="body-cell cell">得分</div></td><td><div class="body-cell cell">篮板</div></td><td><div class="body-cell cell">助攻</div></td><td><div class="body-cell cell">抢断</div></td><td><div class="body-cell cell">盖帽</div></td><td><div class="body-cell cell">投篮</div></td><td><div class="body-cell cell">投篮%</div></td><td><div class="body-cell cell">三分</div></td><td><div class="body-cell cell">三分%</div></td><td><div class="body-cell cell">罚球</div></td><td><div class="body-cell cell">罚球%</div></td><td><div class="body-cell cell">失误</div></td><td><div class="body-cell cell">前板</div></td><td><div class="body-cell cell">后板</div></td><td><div class="body-cell cell">被盖</div></td><td><div class="body-cell cell">犯规</div></td><td><div class="body-cell cell">被犯</div></td><td><div class="body-cell cell">+/-</div></td></tr>${r}</tbody></table></div></div></div></div>${e.dnpPlayerList.length > 0 ? `<div class="not-play mlr-15"><span>未出场队员：</span>${e.dnpPlayerList.join(`、`)}</div>` : ``}`;
+}
+function d(e, t, n, r) {
+    let i = e + t,
+        a = i > 0 ? (e / i) * 100 : 50,
+        o = i > 0 ? (t / i) * 100 : 50;
+    return `<div class="team-compare"><div class="team-item-data"><span class="left">${e}</span><span class="center">${n}</span><span class="right">${t}</span></div><div class="compare-item"><div class="item left"><span class="" style="width: ${a.toFixed(4)}%; background-color: ${r}"></span></div><div class="item right"><span class="gray" style="width: ${o.toFixed(4)}%"></span></div></div></div>`;
+}
+function f(e) {
+    let { playerStats: t, matchStats: n, teamStats: r } = e,
+        i = `<div class="post-player"><div class="post-title mlr-15">球员数据<span class="tips">可横滑查看更多数据</span></div>${u(t.first)}${u(t.second)}</div>`,
+        a = n.firstTeam.section.map((e, t) => `<td><div class="body-cell cell">${t + 1}</div></td>`).join(``),
+        o = n.firstTeam.section.map((e) => `<td><div class="body-cell cell">${e}</div></td>`).join(``),
+        c = n.secondTeam.section.map((e) => `<td><div class="body-cell cell">${e}</div></td>`).join(``),
+        l = `<div class="match-team-data"><div class="table-wrap-views team"><div class="table-views table-views-body"><div class="table-body-left"><table cellspacing="0" cellpadding="0"><tbody><tr><td><div class="body-cell cell"><span style="padding-left: 15px">球队</span></div></td></tr><tr><td><div class="body-cell cell"><span style="padding-left: 15px">${n.firstTeam.teamName}</span></div></td></tr><tr><td><div class="body-cell cell"><span style="padding-left: 15px">${n.secondTeam.teamName}</span></div></td></tr></tbody></table></div><div class="table-body-right"><table cellspacing="0" cellpadding="0"><tbody><tr><td><div class="body-cell cell">总分</div></td>${a}</tr><tr><td><div class="body-cell cell">${n.firstTeam.totalScore}</div></td>${o}</tr><tr><td><div class="body-cell cell">${n.secondTeam.totalScore}</div></td>${c}</tr></tbody></table></div></div></div>`,
+        f = r.leftTeam,
+        p = r.rightTeam,
+        m = s(f.teamColor),
+        h = s(p.teamColor);
+    return `<div class="match-post">${i}${`<div class="post-team"><div class="post-title mlr-15">球队数据<span class="tips">可横滑查看更多数据</span></div>${l}${`<div class="team-name"><span style="background-color: ${m}">${f.teamName}</span><span style="background-color: ${h}">${p.teamName}</span></div><div class="match-team-compare">${d(f.pts, p.pts, `得分`, m)}${d(f.reb, p.reb, `篮板`, m)}${d(f.asts, p.asts, `助攻`, m)}${d(f.stl, p.stl, `抢断`, m)}${d(f.blk, p.blk, `封盖`, m)}</div>`}</div><a href="https://mobile.hupu.com" rel="nofollow"><div class="see-more">进入直播间查看更多数据、视频</div></a>`}</div>`;
+}
+async function p(e) {
+    let t = (await r({ method: `get`, url: `https://games.mobileapi.hupu.com/1/7.4.4/basketballapi/matchCompletedAutoPostContent`, searchParams: { matchId: e } })).data;
+    return t?.result && t.result.playerStats && t.result.matchStats && t.result.teamStats ? f(t.result) : null;
+}
+function m(s) {
+    return s.link
+        ? e.tryGet(s.link, async () => {
+              try {
+                  let e = (await r({ method: `get`, url: s.link })).data,
+                      c = a(e),
+                      l = null;
+                  try {
+                      let t = o(e, s.link).props?.pageProps?.threadData?.data?.moduleConfigList?.content?.moduleContent?.content;
+                      t && (l = JSON.parse(t).matchId ?? null);
+                  } catch {}
+                  let u = c(`.bbs-user-info-name, .bbs-user-wrapper-content-name-span`).text(),
+                      d = c(`.second-line-user-info span:not([class])`).text(),
+                      f = new Date().getFullYear(),
+                      m = new Date(),
+                      h = /^(\d{2})-(\d{2}) (\d{2}):(\d{2})$/,
+                      g = /^(\d{1,2}):(\d{2})$/,
+                      _ = d;
+                  h.test(d) ? (_ = `${f}-${d}`) : g.test(d) && (_ = `${f}-${String(m.getMonth() + 1).padStart(2, `0`)}-${String(m.getDate()).padStart(2, `0`)} ${d}`);
+                  let v = [s.pubDate, i(n(_), 8), i(t(d), 8)].find((e) => e instanceof Date && !Number.isNaN(e.getTime())),
+                      y = c(`.basketballTobbs_tag > a, .tag-player-team`)
+                          .toArray()
+                          .map((e) => c(e).text())
+                          .filter(Boolean);
+                  (c(`.basketballTobbs_tag`).remove(),
+                      c(`.hupu-img`).each(function () {
+                          let e = c(this).attr(`data-gif`) || c(this).attr(`data-origin`) || c(this).attr(`src`);
+                          c(this).parent().html(`<img src="${e}">`);
+                      }));
+                  let b = [],
+                      x = c(`#bbs-thread-content, .bbs-content-font`).html();
+                  x && b.push(x);
+                  let S = c(`.header-video-wrapper`);
+                  if (S.length > 0) {
+                      let e = S.find(`video`);
+                      if (e.length > 0) {
+                          let t = e.prop(`outerHTML`);
+                          t && b.push(t);
+                      }
+                  }
+                  let C = b.length > 0 ? b.join(``) : void 0;
+                  if (l) {
+                      let e = await p(l);
+                      e && (C = (C ?? ``) + e);
+                  }
+                  return { ...s, author: u, category: y.length > 0 ? y : s.category, description: C, pubDate: v };
+              } catch {
+                  return s;
+              }
+          })
+        : Promise.resolve(s);
+}
+export { m as n, o as t };

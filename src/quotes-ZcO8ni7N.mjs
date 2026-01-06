@@ -1,0 +1,22 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t as e } from './types-Bl_lnefZ.mjs';
+import { n as t, r as n, t as r } from './utils-BhdW3mOu.mjs';
+const i = {
+    path: `/quotes`,
+    view: e.Articles,
+    categories: [`blog`],
+    example: `/jamesclear/quotes`,
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`jamesclear.com/quotes`], target: `/quotes` }],
+    name: `Quotes`,
+    maintainers: [`Rjnishant530`],
+    handler: a,
+};
+async function a() {
+    let e = (await r(`quotes`)).map((e) => t(e));
+    return { title: `James Clear - Quotes`, description: `Quotes from James Clear`, link: `${n}/quotes`, item: e, language: `en`, icon: `${n}/favicon.ico` };
+}
+export { i as route };

@@ -1,0 +1,97 @@
+import { t as e } from './cache-DLkCV5c7.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './invalid-parameter-DGZgOgO2.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { renderToString as o } from 'hono/jsx/dom/server';
+const s = `https://apiv3.fansly.com`,
+    c = `https://fansly.com`,
+    l = `${c}/assets/images/icons/apple-touch-icon.png`,
+    u = (e, t) => {
+        let n = t.find((t) => t.id === e);
+        return { displayName: n.displayName, username: n.username };
+    },
+    d = (r) =>
+        e.tryGet(`fansly:account:${r.toLowerCase()}`, async () => {
+            let { data: e } = await t(`${s}/api/v1/account`, { searchParams: { usernames: r, 'ngsw-bypass': !0 } });
+            if (!e.response.length) throw new n(`This profile or page does not exist.`);
+            return e.response[0];
+        }),
+    f = async (e) => {
+        let { data: n } = await t(`${s}/api/v1/timelinenew/${e}`, { searchParams: { before: 0, after: 0, wallId: ``, contentSearch: ``, 'ngsw-bypass': !0 } });
+        return n.response;
+    },
+    p = (n) =>
+        e.tryGet(`fansly:tag:${n.toLowerCase()}`, async () => {
+            let { data: e } = await t(`${s}/api/v1/contentdiscovery/media/tag`, { searchParams: { tag: n, 'ngsw-bypass': !0 } });
+            if (!e.response.mediaOfferSuggestionTag) throw Error(`Couldn't find this hashtag.`);
+            return e.response.mediaOfferSuggestionTag.id;
+        }),
+    m = async (e) => {
+        let { data: n } = await t(`${s}/api/v1/contentdiscovery/media/suggestionsnew`, { searchParams: { before: 0, after: 0, tagIds: e, limit: 25, offset: 0, 'ngsw-bypass': !0 } });
+        return n.response;
+    },
+    h = (e, t) =>
+        e.content.replaceAll(
+            `
+`,
+            `<br>`
+        ) +
+        `<br>` +
+        g(e.attachments, t),
+    g = (e, t) =>
+        e
+            .map((e) => {
+                switch (e.contentType) {
+                    case 1:
+                        return _(e.contentId, t.accountMedia);
+                    case 2: {
+                        let n = ``,
+                            r = t.accountMediaBundles.find((t) => t.id === e.contentId);
+                        for (let e of r.accountMediaIds) n += _(e, t.accountMedia);
+                        return n;
+                    }
+                    case 8: {
+                        let n = `<br><br>`,
+                            r = t.aggregatedPosts.find((t) => t.id === e.contentId) || t.posts.find((t) => t.id === e.contentId);
+                        return ((n += h(r, t)), n);
+                    }
+                    case 7100:
+                        return b(e.contentId, t.tipGoals);
+                    case 32001:
+                        return ``;
+                    case 42001:
+                        return y(e.contentId, t.polls);
+                    default:
+                        throw Error(`Unhandled attachment type: ${e.contentType} for post ${e.postId}`);
+                }
+            })
+            .join(``),
+    _ = (e, t) => {
+        let n = t.find((t) => t.id === e);
+        return n ? v(n.preview ?? n.media) : ``;
+    },
+    v = (e) => {
+        switch (e.mimetype) {
+            case `image/gif`:
+            case `image/jpeg`:
+            case `image/png`:
+            case `video/mp4`:
+            case `audio/mp4`:
+                return o(i(x, { poster: e.mimetype === `video/mp4` ? e.variants[0].locations[0] : null, src: e.locations[0] }));
+            default:
+                throw Error(`Unhandled media type: ${e.mimetype}`);
+        }
+    },
+    y = (e, t) => {
+        let n = t.find((t) => t.id === e);
+        return o(i(S, { title: n.question, options: n.options, version: n.version }));
+    },
+    b = (e, t) => {
+        let n = t.find((t) => t.id === e);
+        return o(i(C, { label: n.label, currentPercentage: n.currentPercentage, currentAmount: n.currentAmount, goalAmount: n.goalAmount }));
+    },
+    x = ({ poster: e, src: t }) =>
+        a(r, { children: [e && t ? i(`video`, { controls: !0, preload: `metadata`, poster: e.location, children: i(`source`, { src: t.location, type: `video/mp4` }) }) : t ? i(`img`, { src: t.location }) : null, i(`br`, {})] }),
+    S = ({ title: e, options: t, version: n }) => a(r, { children: [i(`b`, { children: e }), i(`br`, {}), t.map((e) => a(r, { children: [e.voteCount, `/`, n, ` `, e.title, i(`br`, {})] }))] }),
+    C = ({ label: e, currentPercentage: t, currentAmount: n, goalAmount: o }) => a(r, { children: [e, i(`br`, {}), t, `% $`, n / 1e3, ` / $`, o / 1e3] });
+export { m as a, h as c, p as i, u as n, f as o, d as r, l as s, c as t };

@@ -1,0 +1,56 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './config-not-found-DGyG6Tbz.mjs';
+import './puppeteer-BbZGb8cd.mjs';
+import './utils-Bu8-ZFdB.mjs';
+import { t as r } from './cache-BV7o58Cb.mjs';
+const i = {
+    path: `/user/followers/:uid/:loginUid`,
+    categories: [`social-media`],
+    example: `/bilibili/user/followers/2267573/3`,
+    parameters: { uid: `用户 id, 可在 UP 主主页中找到`, loginUid: `用于登入的用户id,需要配置对应的 Cookie 值` },
+    features: {
+        requireConfig: [
+            {
+                name: `BILIBILI_COOKIE_*`,
+                description:
+                    'BILIBILI_COOKIE_{uid}: 用于用户关注动态系列路由，对应 uid 的 b 站用户登录后的 Cookie 值，`{uid}` 替换为 uid，如 `BILIBILI_COOKIE_2267573`，获取方式：\n1.  打开 [https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/dynamic_new?uid=0&type=8](https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/dynamic_new?uid=0&type=8)\n2.  打开控制台，切换到 Network 面板，刷新\n3.  点击 dynamic_new 请求，找到 Cookie\n4.  视频和专栏，UP 主粉丝及关注只要求 `SESSDATA` 字段，动态需复制整段 Cookie',
+            },
+        ],
+        requirePuppeteer: !1,
+        antiCrawler: !1,
+        supportBT: !1,
+        supportPodcast: !1,
+        supportScihub: !1,
+    },
+    radar: [{ source: [`space.bilibili.com/:uid`], target: `/user/followers/:uid` }],
+    name: `UP 主粉丝`,
+    maintainers: [`Qixingchen`],
+    handler: a,
+    description: `::: warning
+  UP 主粉丝现在需要 b 站登录后的 Cookie 值，所以只能自建，详情见部署页面的配置模块。
+:::`,
+};
+async function a(i) {
+    let a = i.req.param(`uid`),
+        o = i.req.param(`loginUid`),
+        s = e.bilibili.cookies[o];
+    if (s === void 0) throw new n(`缺少对应 loginUid 的 Bilibili 用户登录后的 Cookie 值 <a href="https://docs.rsshub.app/zh/deploy/config#route-specific-configurations">bilibili 用户关注动态系列路由</a>`);
+    let c = await r.getUsernameFromUID(a),
+        l = (await t({ method: `get`, url: `https://api.bilibili.com/x/relation/stat?vmid=${a}`, headers: { Referer: `https://space.bilibili.com/${a}/` } })).data.data.follower,
+        u = await t({ method: `get`, url: `https://api.bilibili.com/x/relation/followers?vmid=${a}`, headers: { Referer: `https://space.bilibili.com/${a}/`, Cookie: s } });
+    if (u.data.code === -6 || u.data.code === -101) throw new n(`对应 loginUid 的 Bilibili 用户的 Cookie 已过期`);
+    let d = u.data.data.list;
+    return {
+        title: `${c} 的 bilibili 粉丝`,
+        link: `https://space.bilibili.com/${a}/#/fans/fans`,
+        description: `${c} 的 bilibili 粉丝`,
+        item: d.map((e) => ({ title: `${c} 新粉丝 ${e.uname}`, description: `${e.uname}<br>${e.sign}<br>总计${l}`, pubDate: new Date(e.mtime * 1e3), link: `https://space.bilibili.com/${e.mid}` })),
+    };
+}
+export { i as route };

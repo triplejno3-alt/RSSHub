@@ -1,0 +1,77 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = `https://jwc.sjtu.edu.cn`;
+async function a(e) {
+    let t = await n(e);
+    if (!t) return null;
+    let a = r(t.body),
+        o = a(`.content-con`);
+    return o.length === 0
+        ? null
+        : (o.find(`img`).each((e, t) => {
+              let n = a(t).attr(`src`),
+                  r = new URL(n, i).href;
+              a(t).attr(`src`, r);
+          }),
+          o.find(`a`).each((e, t) => {
+              let n = a(t).attr(`href`),
+                  r = new URL(n, i).href;
+              a(t).attr(`href`, r);
+          }),
+          o.html() + (a(`.Newslist2`).length ? a(`.Newslist2`).html() : ``));
+}
+const o = {
+    path: `/jwc/:type?`,
+    categories: [`university`],
+    example: `/sjtu/jwc`,
+    parameters: { type: `默认为 notice` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `教务处通知公告`,
+    maintainers: [`SeanChao`],
+    handler: s,
+    description: `| 新闻中心 | 通知通告 | 教学运行  | 注册学务 | 研究办 | 教改办 | 综合办 | 语言文字 | 工会与支部 | 通识教育 | 面向学生的通知 |
+| -------- | -------- | --------- | -------- | ------ | ------ | ------ | -------- | ---------- | -------- |
+| news     | notice   | operation | affairs  | yjb    | jgb    | zhb    | language | party      | ge       | students  |`,
+};
+async function s(o) {
+    let s = o.req.param(`type`) ?? `notice`,
+        c = {
+            all: { section: `通知通告`, link: `/xwtg/tztg.htm` },
+            news: { link: `/xwtg/xwzx.htm`, section: `新闻中心` },
+            notice: { link: `/xwtg/tztg.htm`, section: `通知通告` },
+            operation: { link: `/xwtg/jxyx.htm`, section: `教学运行` },
+            affairs: { link: `/xwtg/zcxw.htm`, section: `注册学务` },
+            yjb: { link: `/xwtg/yjb.htm`, section: `研究办` },
+            jgb: { link: `/xwtg/jgb.htm`, section: `教改办` },
+            zhb: { link: `/xwtg/zhb.htm`, section: `综合办` },
+            language: { link: `/xwtg/yywz.htm`, section: `语言文字` },
+            party: { link: `/xwtg/ghyzb.htm`, section: `工会与支部` },
+            ge: { link: `/xwtg/tsjy.htm`, section: `通识教育` },
+            students: { link: `/index/mxxsdtz.htm`, section: `面向学生的通知` },
+        },
+        l = i + c[s].link,
+        u = r((await n({ method: `get`, url: l })).body),
+        d = await Promise.all(
+            u(`body > div.list-box > div.container > div > div.ny_right > div > div.ny_right_con > div > ul`)
+                .find(`li`)
+                .toArray()
+                .map((n) => {
+                    let r = u(n).find(`.wz`),
+                        i = r.find(`a`).attr(`href`),
+                        o = new URL(i, l).href,
+                        s = r.find(`a > h2`).text(),
+                        c = u(n).find(`.sj`),
+                        d = c.find(`h2`).text(),
+                        f = t(`${c.find(`p`).text()}.${d}`, `YYYY.MM.DD`);
+                    return e.tryGet(o, async () => ({ title: s, link: o, pubDate: f, description: await a(o) }));
+                })
+        );
+    return { title: `上海交通大学教务处 ` + c[s].section, link: l, item: d };
+}
+export { o as route };

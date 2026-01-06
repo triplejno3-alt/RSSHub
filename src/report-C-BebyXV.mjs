@@ -1,0 +1,57 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/report/list/:report?`,
+    categories: [`finance`],
+    example: `/cih-index/report/list/p1-oaddtime-ddesc`,
+    parameters: { report: '报告 id，可在 URL 中找到，留空为 `p1-oaddtime-ddesc`' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `报告`,
+    maintainers: [`TonyRL`],
+    handler: a,
+    url: `www.cih-index.com/report/list/p1-oaddtime-ddesc`,
+    radar: [{ source: [`www.cih-index.com/report/list/:report`] }],
+};
+async function a(i) {
+    let { report: a = `p1-oaddtime-ddesc` } = i.req.param(),
+        o = `https://www.cih-index.com`,
+        s = `${o}/report/list/${a}`,
+        c = r(await e(s)),
+        {
+            dataResult: l,
+            indNavLists: u,
+            secondNameFilter: d,
+            tagList: f,
+            param: p,
+        } = JSON.parse(
+            c(`script:contains("window.__INITIAL_STATE__")`)
+                .text()
+                .match(/window\.__INITIAL_STATE__\s*=\s*({.*?});/)?.[1] || `{}`
+        ).data,
+        m = l.reportInfoDtoList.map((e) => {
+            let r = e.isCharging === 1 ? 3 : e.pageCount,
+                i = ``;
+            for (let t = 1; t <= r; t++) i += `<img src="${o}/report/bp-creis-report-detail/getImg?id=${e.reportId}&pageNum=${t}"><br>`;
+            return {
+                title: e.reportTitle,
+                link: `${o}/report/detail/${e.reportId}.html`,
+                pubDate: n(t(e.addTime), 8),
+                category: [...new Set([...e.reportClassTagDtoList.map((e) => e.tag), ...(e.keywordList || [])])],
+                description: `${e.context}<br>${i}`,
+                image: `${e.coverFigureUrl}/200`,
+            };
+        });
+    return {
+        title: `${p.firstId ? u.find((e) => e.classId === p.firstId)?.className + ` - ` : ``}${p.secondId ? d.find((e) => e.classId === p.secondId)?.className + ` - ` : ``}${p.tagId ? f.find((e) => e.tagId === Number.parseInt(p.tagId))?.tag + ` - ` : ``}中指报告`,
+        description: c(`meta[name="description"]`).attr(`content`),
+        image: `${o}/favicon.ico`,
+        lang: `zh-CN`,
+        link: s,
+        item: m,
+    };
+}
+export { i as route };

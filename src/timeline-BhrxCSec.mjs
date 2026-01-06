@@ -1,0 +1,107 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { t as i } from './description-BF5qJI9E.mjs';
+import { load as a } from 'cheerio';
+const o = {
+    path: `/timeline/:category?`,
+    categories: [`finance`],
+    view: r.Articles,
+    example: `/jinse/timeline`,
+    parameters: {
+        category: {
+            description: `分类`,
+            options: [
+                { value: `头条`, label: `头条` },
+                { value: `独家`, label: `独家` },
+                { value: `铭文`, label: `铭文` },
+                { value: `产业`, label: `产业` },
+                { value: `项目`, label: `项目` },
+                { value: `政策`, label: `政策` },
+                { value: `AI`, label: `AI` },
+                { value: `Web 3.0`, label: `Web 3.0` },
+                { value: `以太坊 2.0`, label: `以太坊 2.0` },
+                { value: `DeFi`, label: `DeFi` },
+                { value: `Layer2`, label: `Layer2` },
+                { value: `NFT`, label: `NFT` },
+                { value: `DAO`, label: `DAO` },
+                { value: `百科`, label: `百科` },
+            ],
+            default: `头条`,
+        },
+    },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `首页`,
+    maintainers: [`nczitzk`],
+    handler: s,
+    description: `| 头条   | 独家 | 铭文    | 产业       | 项目 |
+| ------ | ---- | ------- | ---------- | ---- |
+| 政策   | AI   | Web 3.0 | 以太坊 2.0 | DeFi |
+| Layer2 | NFT  | DAO     | 百科       |      |`,
+};
+async function s(r) {
+    let { category: o = `头条` } = r.req.param(),
+        s = r.req.query(`limit`) ? Number.parseInt(r.req.query(`limit`), 10) : 50,
+        c = `https://www.jinse.cn`,
+        l = new URL(`noah/v3/timelines`, `https://api.jinse.cn`).href,
+        u = c,
+        { data: d } = await n(l, { searchParams: { catelogue_key: o === `头条` ? `www` : o, limit: s, information_id: 0, flag: `up` } }),
+        f = d.data.list
+            .slice(0, s)
+            .map(
+                (e) => (
+                    (e = e.object_1 ?? e.object_2),
+                    {
+                        title: e.title,
+                        link: e.jump_url,
+                        description: i({ images: e.cover ? [{ src: e.cover.replace(/_[^\W_]+(\.\w+)$/, `_true$1`), alt: e.title }] : void 0, intro: e.summary, description: e.content }),
+                        author: e.author.nickname,
+                        guid: `jinse${/\/lives\//.test(e.jump_url) ? `-lives` : ``}-${e.id}`,
+                        pubDate: t(e.published_at, `X`),
+                        upvotes: e.up_counts ?? 0,
+                        downvotes: e.down_counts ?? 0,
+                        comments: e.comment_count ?? 0,
+                    }
+                )
+            );
+    f = await Promise.all(
+        f.map((t) =>
+            e.tryGet(t.link, async () => {
+                if (/\/lives\//.test(t.link)) return t;
+                let { data: e } = await n(t.link),
+                    r = a(e);
+                return (
+                    (t.description += i({ description: r(`section.js-article-content`).html() || r(`div.js-article`).html() })),
+                    (t.category = r(`section.js-article-tag_state_1 a span`)
+                        .toArray()
+                        .map((e) => r(e).text())),
+                    t
+                );
+            })
+        )
+    );
+    let { data: p } = await n(u),
+        m = a(p),
+        h = m(`meta[name="author"]`).prop(`content`),
+        g = m(`a.js-logoBox img`).prop(`src`),
+        _ = new URL(m(`link[rel="favicon"]`).prop(`href`), c).href;
+    return {
+        item: f,
+        title: `${h} - ${o}`,
+        link: u,
+        description: m(`meta[name="description"]`).prop(`content`),
+        language: m(`html`).prop(`lang`),
+        image: g,
+        icon: _,
+        logo: _,
+        subtitle: m(`meta[name="keywords"]`).prop(`content`),
+        author: h,
+        allowEmpty: !0,
+    };
+}
+export { o as route };

@@ -1,0 +1,27 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import { i as t, n, r, t as i } from './util-DGuzRAD7.mjs';
+const a = {
+    path: `/label/:name`,
+    categories: [`new-media`],
+    example: `/cyzone/label/创业邦周报`,
+    parameters: { name: `标签名称，可在对应标签页 URL 中找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`cyzone.cn/label/:name`, `cyzone.cn/`] }],
+    name: `标签`,
+    maintainers: [`nczitzk`],
+    handler: o,
+};
+async function o(a) {
+    let o = a.req.param(`name`),
+        s = a.req.query(`limit`) ? Number.parseInt(a.req.query(`limit`), 10) : 5,
+        c = new URL(`v2/content/tag/tagList`, i).href,
+        l = new URL(`label/${o}`, t).href;
+    return { item: await r(c, s, e.tryGet, { tag: o }), ...(await n(l, e.tryGet)) };
+}
+export { a as route };

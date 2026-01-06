@@ -1,0 +1,37 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/cs`,
+    categories: [`university`],
+    example: `/ccnu/cs`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`cs.ccnu.edu.cn/xwzx/tzgg.htm`, `cs.ccnu.edu.cn/`] }],
+    name: `计算机学院`,
+    maintainers: [`shengmaosu`],
+    handler: i,
+    url: `cs.ccnu.edu.cn/xwzx/tzgg.htm`,
+};
+async function i() {
+    let r = `http://cs.ccnu.edu.cn/xwzx/tzgg.htm`,
+        i = n((await t(r)).data),
+        a = i(`.list_box_07 li`);
+    return {
+        title: `华中师范大学计算机学院`,
+        link: r,
+        description: `华中师范大学计算机学院通知公告`,
+        item:
+            a &&
+            a.toArray().map((t) => {
+                t = i(t);
+                let n = t.find(`a`);
+                return { title: n.attr(`title`), description: t.find(`.overfloat-dot-2`).text(), link: new URL(n.attr(`href`), r).href, pubDate: e(t.find(`.time`).text(), `DDYYYY-MM`) };
+            }),
+    };
+}
+export { r as route };

@@ -1,0 +1,51 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+const r = {
+    path: `/topics/:type`,
+    categories: [`bbs`],
+    view: n.Articles,
+    example: `/v2ex/topics/latest`,
+    parameters: {
+        type: {
+            description: `主题类型`,
+            options: [
+                { value: `hot`, label: `最热主题` },
+                { value: `latest`, label: `最新主题` },
+            ],
+            default: `hot`,
+        },
+    },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `最热 / 最新主题`,
+    maintainers: [`WhiteWorld`],
+    handler: i,
+};
+async function i(n) {
+    let r = n.req.param(`type`),
+        { data: i } = await t(`https://www.v2ex.com/api/topics/${r}.json`),
+        a;
+    return (
+        r === `hot` ? (a = `最热主题`) : r === `latest` && (a = `最新主题`),
+        {
+            title: `V2EX-${a}`,
+            link: `https://www.v2ex.com/`,
+            description: `V2EX-${a}`,
+            item: i.map((t) => ({
+                title: t.title,
+                description: `${t.member.username}: ${t.content_rendered}`,
+                content: { text: t.content, html: t.content_rendered },
+                pubDate: e(t.created, `X`),
+                link: t.url,
+                author: t.member.username,
+                comments: t.replies,
+                category: [t.node.title],
+            })),
+        }
+    );
+}
+export { r as route };

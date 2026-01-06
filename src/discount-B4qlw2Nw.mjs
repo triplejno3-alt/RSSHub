@@ -1,0 +1,68 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './util-CSW__Tzr.mjs';
+const n = {
+        path: `/discount/:platform`,
+        categories: [`game`],
+        example: `/xiaoheihe/discount/pc`,
+        parameters: { platform: `平台分类，见下表` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `游戏折扣`,
+        maintainers: [`tssujt`],
+        handler: s,
+        description: `| PC  | Switch  | PSN   | Xbox |
+| ----- | ------ | ----- | ----- |
+| pc    | switch | psn   | xbox  |`,
+    },
+    r = { pc: { key: `pc`, desc: `PC` }, switch: { key: `switch`, desc: `Switch` }, psn: { key: `ps4`, desc: `PSN` }, xbox: { key: `xbox`, desc: `Xbox` } };
+function i(e) {
+    return `${(100 - e) / 10}折`;
+}
+function a(e, t = !1) {
+    if (!(`is_lowest` in e) || e.is_lowest === 0) return ``;
+    if (t) return `[超史低]`;
+    if (e.is_lowest && e.is_lowest === 1 && e.new_lowest && e.new_lowest === 1) return `[新史低]`;
+    if (e.is_lowest && e.is_lowest === 1) return `[史低]`;
+}
+function o(e) {
+    if (e.coupon_info) {
+        let t = e.cost_coin / 1e3;
+        return ((t -= e.coupon_info.max_reduce), `| 券后价: ${Number.isInteger(t) ? t.toFixed(0) : t.toFixed(2)} [${e.coupon_info.coupon_desc}]`);
+    } else return ``;
+}
+async function s(n) {
+    let s = r[n.req.param(`platform`)],
+        c = (
+            await e(
+                t(
+                    `https://api.xiaoheihe.cn/game/get_game_list_v3/?filter_head=${s.key}&offset=0&limit=30&os_type=web&app=heybox&client_type=mobile&version=999.0.3&x_client_type=web&x_os_type=Mac&x_app=heybox&heybox_id=-1&include_filter=-1`
+                )
+            )
+        ).result.games.map((e) => {
+            let t = `${e.name}${e.name_en ? `/` + e.name_en : ``}`,
+                n = `
+                <img src="${e.image}"/> <br/>
+            `;
+            if (e.platform_infos)
+                for (let t of e.platform_infos)
+                    t.price &&
+                        (t.key && (n += `平台: ${t.key.toUpperCase()}<br/>`),
+                        t.price.current && (n += `当前价格: ${t.price.current} ${a(t.price)}<br/>`),
+                        t.price.initial && (n += `原价: ${t.price.initial}<br/>`),
+                        t.price.discount && t.price.discount > 0 && (n += `折扣力度: ${i(t.price.discount)}<br/>`),
+                        t.price.deadline_date && (n += `截止时间: ${t.price.deadline_date}<br/>`));
+            else
+                e.price &&
+                    ((n += `平台: ${s.desc}<br/>`),
+                    e.heybox_price ? (n += `当前价格: ${e.price.current} ${o(e.heybox_price)} ${a(e.price, e.heybox_price.super_lowest)}<br/>`) : e.price.current && (n += `当前价格: ${e.price.current} ${a(e.price)}<br/>`),
+                    e.price.initial && (n += `原价: ${e.price.initial}<br/>`),
+                    e.price.discount && e.price.discount > 0 && (n += `折扣力度: ${i(e.price.discount)}<br/>`),
+                    e.price.deadline_date && (n += `截止时间: ${e.price.deadline_date}<br/>`));
+            (e.score && (n += `评分: ${e.score}<br/>`), (n += `<br/>`));
+            let r = `https://api.xiaoheihe.cn/game/share_game_detail?appid=${e.steam_appid}`;
+            return (s.key === `pc` && (r = `https://store.steampowered.com/app/${e.steam_appid}`), { title: t, description: n, link: r });
+        });
+    return { title: `小黑盒 ${s.desc} 游戏折扣`, link: `https://xiaoheihe.cn`, item: c };
+}
+export { n as route };

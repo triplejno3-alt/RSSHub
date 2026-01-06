@@ -1,0 +1,34 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { t as e } from './common-config-Dzt4CsME.mjs';
+const t = {
+    path: `/`,
+    categories: [`blog`],
+    example: `/oct0pu5`,
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`oct0pu5.cn`], target: `/` }],
+    name: `Oct的小破站`,
+    maintainers: [`octopus058`, `wiketool`],
+    handler: n,
+};
+async function n() {
+    let t = `https://oct0pu5.cn/`;
+    return await e({
+        link: t,
+        url: t,
+        title: `%title%`,
+        description: `%description%`,
+        params: { title: `博客`, description: `Oct0pu5的博客` },
+        item: {
+            item: `.recent-posts > .recent-post-item`,
+            title: `$('.recent-post-info > a').text()`,
+            link: `$('.recent-post-info > a').attr('href')`,
+            description: `$('.recent-post-info > .content').text()`,
+            pubDate: `Date.parse($('div.recent-post-info > div.article-meta-wrap > span.post-meta-date > time').text().trim())`,
+        },
+    });
+}
+export { t as route };

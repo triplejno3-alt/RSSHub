@@ -1,0 +1,79 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { load as i } from 'cheerio';
+const a = async (r) => {
+        let a = Number.parseInt(r.req.query(`limit`) ?? `30`, 10),
+            o = `http://mysql.taobao.org`,
+            s = new URL(`monthly/`, o).href,
+            c = i(await e(s)),
+            l = c(`html`).attr(`lang`) ?? `zh`,
+            u = [],
+            d = 0;
+        ((u = await Promise.all(
+            c(`h3 a.main`)
+                .toArray()
+                .map(async (t) => {
+                    let r = c(t),
+                        s = r.attr(`href`) ? new URL(r.attr(`href`), o).href : void 0;
+                    if (!s) return;
+                    let u = i(await e(s));
+                    return u(`h3 a.main`)
+                        .toArray()
+                        .map((e) => {
+                            if (d < a) {
+                                let t = u(e),
+                                    r = t.text(),
+                                    i = t.attr(`href`),
+                                    a = i?.split(/monthly\//).pop(),
+                                    s = a,
+                                    c = { title: r, pubDate: a ? n(a) : void 0, link: i ? new URL(i, o).href : void 0, updated: s ? n(s) : void 0, language: l };
+                                return (d++, c);
+                            }
+                        })
+                        .filter(Boolean);
+                })
+        )),
+            (u = await Promise.all(
+                u
+                    .filter(Boolean)
+                    .flat()
+                    .slice(0, a)
+                    .map((r) =>
+                        r.link
+                            ? t.tryGet(r.link, async () => {
+                                  let t = i(await e(r.link)),
+                                      a = t(`h2`).first().text()?.trim() || r.title,
+                                      o = t(`div.content`).html() ?? void 0,
+                                      s = r.link.split(/monthly\//).pop(),
+                                      c = t(`div.block p`)
+                                          .toArray()
+                                          .map((e) => ({ name: t(e).text().split(/:/).pop()?.trim() ?? ``, url: void 0, avatar: void 0 })),
+                                      u = s,
+                                      d = { title: a, description: o, pubDate: s ? n(s) : r.pubDate, author: c, content: { html: o, text: o }, updated: u ? n(u) : r.updated, language: l };
+                                  return { ...r, ...d };
+                              })
+                            : r
+                    )
+            )));
+        let f = c(`title`).text();
+        return { title: f, description: c(`meta[name="description"]`).attr(`content`), link: s, item: u, allowEmpty: !0, author: f, language: l, id: s };
+    },
+    o = {
+        path: `/mysql/monthly`,
+        name: `数据库内核月报`,
+        url: `mysql.taobao.org`,
+        maintainers: [`nczitzk`],
+        handler: a,
+        example: `/taobao/mysql/monthly`,
+        parameters: void 0,
+        description: void 0,
+        categories: [`programming`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`mysql.taobao.org/monthly/`], target: `/mysql/monthly` }],
+        view: r.Articles,
+    };
+export { a as handler, o as route };

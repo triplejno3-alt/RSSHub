@@ -1,0 +1,61 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './invalid-parameter-DGZgOgO2.mjs';
+import { load as r } from 'cheerio';
+const i = (e) => `https://${e}.ithome.com/`,
+    a = {
+        it: { title: `IT 资讯` },
+        soft: { title: `软件之家` },
+        win10: { title: `win10 之家` },
+        win11: { title: `win11 之家` },
+        iphone: { title: `iphone 之家` },
+        ipad: { title: `ipad 之家` },
+        android: { title: `android 之家` },
+        digi: { title: `数码之家` },
+        next: { title: `智能时代` },
+    },
+    o = {
+        path: `/:caty`,
+        categories: [`new-media`],
+        example: `/ithome/it`,
+        parameters: { caty: `类别` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `分类资讯`,
+        maintainers: [`luyuhuang`],
+        handler: s,
+        description: `| it      | soft     | win10      | win11      | iphone      | ipad      | android      | digi     | next     |
+| ------- | -------- | ---------- | ---------- | ----------- | --------- | ------------ | -------- | -------- |
+| IT 资讯 | 软件之家 | win10 之家 | win11 之家 | iphone 之家 | ipad 之家 | android 之家 | 数码之家 | 智能时代 |`,
+    };
+async function s(o) {
+    let s = a[o.req.param(`caty`)];
+    if (!s) throw new n(`Bad category. See <a href="https://docs.rsshub.app/routes/new-media#it-zhi-jia">https://docs.rsshub.app/routes/new-media#it-zhi-jia</a>`);
+    let c = i(o.req.param(`caty`)),
+        l = r((await t({ method: `get`, url: c })).data),
+        u = l(`#list > div.fl > ul > li > div > h2 > a`)
+            .slice(0, 10)
+            .toArray()
+            .map((e) => ((e = l(e)), { title: e.text(), link: e.attr(`href`) })),
+        d = await Promise.all(
+            u.map((n) =>
+                e.tryGet(n.link, async () => {
+                    let e = r((await t({ method: `get`, url: n.link })).data),
+                        i = e(`#paragraph`);
+                    return (
+                        i.find(`img[data-original]`).each((e, t) => {
+                            ((t = l(t)), t.attr(`src`, t.attr(`data-original`)), t.removeAttr(`class`), t.removeAttr(`data-original`));
+                        }),
+                        (n.description = i.html()),
+                        (n.pubDate = new Date(e(`#pubtime_baidu`).text() + ` GMT+8`).toUTCString()),
+                        n
+                    );
+                })
+            )
+        );
+    return { title: `IT 之家 - ` + s.title, link: c, image: `https://img.ithome.com/m/images/logo.png`, item: d };
+}
+export { o as route };

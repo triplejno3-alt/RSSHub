@@ -1,0 +1,41 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { load as n } from 'cheerio';
+const r = `https://${{ name: `Letterboxd`, url: `letterboxd.com`, categories: [`social-media`], lang: `en` }.url}`,
+    i = {
+        path: `/:username/watchlist`,
+        categories: [`social-media`],
+        example: `/letterboxd/matthew/watchlist`,
+        parameters: { username: `Letterboxd username` },
+        radar: [{ source: [`letterboxd.com/:username/watchlist/`] }],
+        name: `User Watchlist`,
+        maintainers: [`johan456789`],
+        handler: a,
+        url: `letterboxd.com`,
+    };
+async function a(i) {
+    let { username: a } = i.req.param(),
+        o = `${r}/${a}/watchlist/`,
+        s = n(await e(o)),
+        c = s(`div.react-component[data-component-class*="LazyPoster"]`).toArray(),
+        l = await Promise.all(
+            c.map(async (n) => {
+                let i = s(n),
+                    a = i.attr(`data-item-link`) || i.attr(`data-target-link`) || ``,
+                    o = a ? new URL(a, r).href : void 0,
+                    c = i.attr(`data-item-full-display-name`) || i.attr(`data-item-name`) || ``,
+                    l;
+                if (o) {
+                    let n = `${o}poster/std/125/`,
+                        r = `letterboxd:poster:${n}`,
+                        i = await t.tryGet(r, () => e(n, { responseType: `json` }));
+                    l = i.url2x || i.url;
+                }
+                return { title: c, link: o, image: l };
+            })
+        );
+    return { title: s(`title`).text().trim().replaceAll(`‎`, ``) || `${a}'s Watchlist • Letterboxd`, link: o, item: l, allowEmpty: !0 };
+}
+export { i as route };

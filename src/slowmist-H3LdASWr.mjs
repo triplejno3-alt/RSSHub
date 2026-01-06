@@ -1,0 +1,44 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { n } from './wechat-mp-HNgcLN2K.mjs';
+const r = {
+    path: `/:type?`,
+    categories: [`new-media`],
+    example: `/slowmist/research`,
+    parameters: { type: `分类，见下表，默认为公司新闻` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`slowmist.com/zh/news.html`] }],
+    name: `动态`,
+    maintainers: [`AtlasQuan`],
+    handler: i,
+    url: `slowmist.com/zh/news.html`,
+    description: `| 公司新闻 | 漏洞披露 | 技术研究 |
+| -------- | -------- | -------- |
+| news     | vul      | research |`,
+};
+async function i(r) {
+    let i = r.req.param(`type`),
+        a = `慢雾科技 - `;
+    switch (i) {
+        case `news`:
+            a += `公司新闻`;
+            break;
+        case `vul`:
+            a += `漏洞披露`;
+            break;
+        case `research`:
+            a += `技术研究`;
+            break;
+        default:
+            ((i = `news`), (a += `公司新闻`));
+    }
+    let o = `https://www.slowmist.com/api/get_list?type=${i}`,
+        s = ((await t(o)).data.data || []).map((t) => ({ title: t.title, link: t.url, description: t.desc, pubDate: e(t.date) }));
+    return ((s = await Promise.all(s.map((e) => n(e)))), { title: a, link: o, item: s });
+}
+export { r as route };

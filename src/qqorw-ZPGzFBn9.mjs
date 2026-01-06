@@ -1,0 +1,85 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/:category?`,
+    categories: [`new-media`],
+    example: `/qqorw`,
+    parameters: { category: `分类，见下表，默认为首页` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`qqorw.cn/:category`, `qqorw.cn/`] }],
+    name: `每日早报`,
+    maintainers: [`nczitzk`],
+    handler: o,
+    description: `| 首页 | 每日早报 | 国际早报 | 生活冷知识 |
+| ---- | -------- | -------- | ---------- |
+|      | mrzb     | zbapp    | zbzzd      |`,
+};
+async function o(a) {
+    let { category: o = `` } = a.req.param(),
+        s = a.req.query(`limit`) ? Number.parseInt(a.req.query(`limit`), 10) : 10,
+        c = `https://qqorw.cn`,
+        l = new URL(o, c).href,
+        { data: u } = await n(l),
+        d = i(u),
+        f = d(`article.excerpt`)
+            .slice(0, s)
+            .toArray()
+            .map((e) => {
+                e = d(e);
+                let n = e.find(`h2 a`);
+                return {
+                    title: n.text(),
+                    link: n.prop(`href`),
+                    description: e.find(`span.note`).text(),
+                    category: e
+                        .find(`a.label`)
+                        .toArray()
+                        .map((e) => d(e).text()),
+                    pubDate: r(t(e.find(`p.auth-span span.muted`).first().text().trim()), 8),
+                    upvotes: e.find(`span.count`).text() ? Number.parseInt(e.find(`span.count`).text(), 10) : 0,
+                };
+            });
+    f = await Promise.all(
+        f.map((r) =>
+            e.tryGet(r.link, async () => {
+                let { data: e } = await n(r.link),
+                    a = i(e);
+                return (
+                    a(`div.contenttxt`).prev().nextAll().remove(),
+                    (r.title = a(`h1.article-title`).text()),
+                    (r.description = a(`article.article-content`).html()),
+                    (r.author = a(`i.fa-user`).parent().text().trim()),
+                    (r.category = a(`#mute-category`)
+                        .toArray()
+                        .map((e) => a(e).text().trim())),
+                    (r.pubDate = r.pubDate ?? t(a(`i.fa-clock-o`).parent().text().trim())),
+                    (r.upvotes = a(`#Addlike span.count`).text() ? Number.parseInt(a(`#Addlike span.count`).text(), 10) : r.upvotes),
+                    r
+                );
+            })
+        )
+    );
+    let p = `早报网`,
+        m = new URL(`favicon.ico`, c).href,
+        h = d(`header.archive-header h1 a`).last().text();
+    return {
+        item: f,
+        title: `${p}${h ? ` - ${h}` : ``}`,
+        link: l,
+        description: d(`meta[name="description"]`).prop(`content`),
+        language: `zh-cn`,
+        image: new URL(d(`h1.site-title a img`).prop(`src`), c).href,
+        icon: m,
+        logo: m,
+        subtitle: d(`meta[name="keywords"]`).prop(`content`),
+        author: p,
+    };
+}
+export { a as route };

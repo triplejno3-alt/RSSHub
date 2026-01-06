@@ -1,0 +1,40 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = `https://bio.pku.edu.cn/homes/Index/news/21/21.html`,
+    a = {
+        path: `/cls/announcement`,
+        categories: [`university`],
+        example: `/pku/cls/announcement`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`bio.pku.edu.cn/homes/Index/news/21/21.html`, `bio.pku.edu.cn/`] }],
+        name: `生命科学学院通知公告`,
+        maintainers: [`william-swl`],
+        handler: o,
+        url: `bio.pku.edu.cn/homes/Index/news/21/21.html`,
+    };
+async function o() {
+    let a = r((await n(i)).data),
+        o = a(`div.normal_list>ul a`)
+            .toArray()
+            .map((e) => ((e = a(e)), { title: a(e).find(`p`).text().trim(), pubDate: t(a(e).find(`span.date`).text()), link: `https://bio.pku.edu.cn` + a(e).attr(`href`) }));
+    return {
+        title: `北京大学生命科学学院通知公告`,
+        link: i,
+        item: await Promise.all(
+            o.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let { data: e } = await n(t.link);
+                    return ((t.description = r(e)(`div.page div.common_width div.col-md-9`).first().html()), t);
+                })
+            )
+        ),
+    };
+}
+export { a as route };

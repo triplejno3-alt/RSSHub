@@ -1,0 +1,130 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './types-Bl_lnefZ.mjs';
+import { load as a } from 'cheerio';
+const o = async (i) => {
+        let { id: o = `yw` } = i.req.param(),
+            s = Number.parseInt(i.req.query(`limit`) ?? `30`, 10),
+            c = `https://www.stcn.com`,
+            l = new URL(`article/list/${o}.html`, c).href,
+            u = a(await e(l)),
+            d = u(`html`).attr(`lang`) ?? `zh-CN`,
+            f = [];
+        return (
+            (f = u(`ul.infinite-list li`)
+                .slice(0, s)
+                .toArray()
+                .map((e) => {
+                    let t = u(e),
+                        i = t.find(`div.tt a`),
+                        a = i.text(),
+                        o = t.find(`div.text`).html(),
+                        s = t.find(`div.info span`).last().text().trim(),
+                        l = i.attr(`href`),
+                        f = t.find(`div.tags span`).toArray(),
+                        p = [...new Set(f.map((e) => u(e).text()).filter(Boolean))],
+                        m = t.find(`div.info span`).first().text(),
+                        h = t.find(`div.side a img`).attr(`src`),
+                        g = s;
+                    return {
+                        title: a,
+                        description: o,
+                        pubDate: s ? r(n(s, [`HH:mm`, `MM-DD HH:mm`, `YYYY-MM-DD HH:mm`]), 8) : void 0,
+                        link: l ? new URL(l, c).href : void 0,
+                        category: p,
+                        author: m,
+                        content: { html: o, text: o },
+                        image: h,
+                        banner: h,
+                        updated: g ? r(n(g, [`HH:mm`, `MM-DD HH:mm`, `YYYY-MM-DD HH:mm`]), 8) : void 0,
+                        language: d,
+                    };
+                })),
+            (f = (
+                await Promise.all(
+                    f.map((i) =>
+                        i.link
+                            ? t.tryGet(i.link, async () => {
+                                  let t = a(await e(i.link)),
+                                      o = t(`div.detail-title`).text(),
+                                      s = t(`div.detail-content`).html() ?? ``,
+                                      c = t(`div.detail-info span`).last().text().trim(),
+                                      l = t(`meta[name="keywords"]`).attr(`content`)?.split(/,/) ?? [],
+                                      u = t(`div.detail-info span`).first().text().split(/：/).pop(),
+                                      f = c,
+                                      p = { title: o, description: s, pubDate: c ? r(n(c), 8) : i.pubDate, category: l, author: u, content: { html: s, text: s }, updated: f ? r(n(f), 8) : i.updated, language: d };
+                                  return { ...i, ...p };
+                              })
+                            : i
+                    )
+                )
+            ).filter((e) => !0)),
+            {
+                title: u(`title`).text(),
+                description: u(`meta[name="description"]`).attr(`content`),
+                link: l,
+                item: f,
+                allowEmpty: !0,
+                image: u(`img.stcn-logo`).attr(`src`),
+                author: u(`meta[name="keywords"]`).attr(`content`)?.split(/,/)[0],
+                language: d,
+                id: l,
+            }
+        );
+    },
+    s = {
+        path: `/article/list/:id?`,
+        name: `列表`,
+        url: `www.stcn.com`,
+        maintainers: [`nczitzk`],
+        handler: o,
+        example: `/stcn/article/list/yw`,
+        parameters: {
+            category: {
+                description: '分类，默认为 `yw`，即要闻，可在对应分类页 URL 中找到',
+                options: [
+                    { label: `要闻`, value: `yw` },
+                    { label: `股市`, value: `gs` },
+                    { label: `公司`, value: `company` },
+                    { label: `基金`, value: `fund` },
+                    { label: `金融`, value: `finance` },
+                    { label: `评论`, value: `comment` },
+                    { label: `产经`, value: `cj` },
+                    { label: `科创板`, value: `kcb` },
+                    { label: `新三板`, value: `xsb` },
+                    { label: `ESG`, value: `zk` },
+                    { label: `滚动`, value: `gd` },
+                ],
+            },
+        },
+        description:
+            '::: tip\n若订阅 [要闻](https://www.stcn.com/article/list/yw.html)，网址为 `https://www.stcn.com/article/list/yw.html`，请截取 `https://www.stcn.com/article/list/` 到末尾 `.html` 的部分 `yw` 作为 `id` 参数填入，此时目标路由为 [`/stcn/article/list/yw`](https://rsshub.app/stcn/article/list/yw)。\n:::\n\n| 要闻 | 股市 | 公司    | 基金 | 金融    | 评论    |\n| ---- | ---- | ------- | ---- | ------- | ------- |\n| yw   | gs   | company | fund | finance | comment |\n\n| 产经 | 科创板 | 新三板 | ESG | 滚动 |\n| ---- | ------ | ------ | --- | ---- |\n| cj   | kcb    | xsb    | zk  | gd   |\n',
+        categories: [`finance`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            {
+                source: [`www.stcn.com/article/list.html`, `www.stcn.com/article/list/:id`],
+                target: (e, t) => {
+                    let n = new URL(t).searchParams.get(`type`) ?? e.id;
+                    return `/stcn/article/list${n ? `/${n}` : ``}`;
+                },
+            },
+            { title: `要闻`, source: [`www.stcn.com/article/list.html`, `www.stcn.com/article/list/yw.html`], target: `/article/list/yw` },
+            { title: `股市`, source: [`www.stcn.com/article/list.html`, `www.stcn.com/article/list/gs.html`], target: `/article/list/gs` },
+            { title: `公司`, source: [`www.stcn.com/article/list.html`, `www.stcn.com/article/list/company.html`], target: `/article/list/company` },
+            { title: `基金`, source: [`www.stcn.com/article/list.html`, `www.stcn.com/article/list/fund.html`], target: `/article/list/fund` },
+            { title: `金融`, source: [`www.stcn.com/article/list.html`, `www.stcn.com/article/list/finance.html`], target: `/article/list/finance` },
+            { title: `评论`, source: [`www.stcn.com/article/list.html`, `www.stcn.com/article/list/comment.html`], target: `/article/list/comment` },
+            { title: `产经`, source: [`www.stcn.com/article/list.html`, `www.stcn.com/article/list/cj.html`], target: `/article/list/cj` },
+            { title: `科创板`, source: [`www.stcn.com/article/list.html`, `www.stcn.com/article/list/kcb.html`], target: `/article/list/kcb` },
+            { title: `新三板`, source: [`www.stcn.com/article/list.html`, `www.stcn.com/article/list/xsb.html`], target: `/article/list/xsb` },
+            { title: `ESG`, source: [`www.stcn.com/article/list.html`, `www.stcn.com/article/list/zk.html`], target: `/article/list/zk` },
+            { title: `滚动`, source: [`www.stcn.com/article/list.html`, `www.stcn.com/article/list/gd.html`], target: `/article/list/gd` },
+        ],
+        view: i.Articles,
+    };
+export { o as handler, s as route };

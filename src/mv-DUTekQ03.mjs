@@ -1,0 +1,44 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './got-CKQ7C9HX.mjs';
+import { t as e } from './invalid-parameter-DGZgOgO2.mjs';
+import { n as t, t as n } from './util-DHp4k4sj.mjs';
+const r = {
+    path: `/mv/:number/:domain?`,
+    categories: [`multimedia`],
+    example: `/bt0/mv/35575567/2`,
+    parameters: { number: '影视详情id, 网页路径为`/mv/{id}.html`其中的id部分, 一般为8位纯数字', domain: `数字1-9, 比如1表示请求域名为 1bt0.com, 默认为 2` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !0, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`2bt0.com/mv/`] }],
+    name: `影视资源下载列表`,
+    maintainers: [`miemieYaho`],
+    handler: i,
+};
+async function i(r) {
+    let i = r.req.param(`domain`) ?? `2`,
+        o = r.req.param(`number`);
+    if (!/^[1-9]$/.test(i)) throw new e(`Invalid domain`);
+    if (!/^\d{6,}$/.test(o)) throw new e(`Invalid number`);
+    let s = `https://www.${i}bt0.com`,
+        c = (await n(0, s, `${s}/prod/core/system/getVideoDetail/${o}`)).data,
+        l = Object.values(c.ecca).flatMap((e) =>
+            e.map((e) => ({
+                title: e.zname,
+                guid: e.zname,
+                description: `${e.zname}[${e.zsize}]`,
+                link: `${s}/tr/${e.id}.html`,
+                pubDate: e.ezt,
+                enclosure_type: `application/x-bittorrent`,
+                enclosure_url: e.zlink,
+                enclosure_length: t(e.zsize),
+                category: a(e.zqxd, e.text_html, e.audio_html, e.new === 1 ? `新` : ``),
+            }))
+        );
+    return { title: c.title, link: `${s}/mv/${o}.html`, item: l };
+}
+function a(...e) {
+    return e.filter((e) => e !== ``).join(`,`);
+}
+export { r as route };

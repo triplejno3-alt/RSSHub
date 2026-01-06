@@ -1,0 +1,17 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+const t = { path: `/dynamic/:uid?`, categories: [`other`], example: `/afdian/dynamic/@afdian`, parameters: { uid: `用户id，用户动态页面url里可找到` }, name: `用户动态`, maintainers: [`sanmmm`], handler: n };
+async function n(t) {
+    let n = t.req.param(`uid`).replace(`@`, ``),
+        r = `https://afdian.com`,
+        { user_id: i, name: a, avatar: o } = (await e(`${r}/api/user/get-profile-by-slug`, { searchParams: { url_slug: n } })).data.data.user,
+        s = (await e(`${r}/api/post/get-list`, { searchParams: { type: `old`, user_id: i } })).data.data.list.map((e) => {
+            let { publish_time: t, title: n, content: i, pics: a = [], post_id: o } = e;
+            return { title: n, description: [i, a.map((e) => `<img src="${e}"/>`).join(``)].filter((e) => !!e).join(`<br/>`), link: `${r}/p/${o}`, pubDate: new Date(Number(t) * 1e3).toUTCString() };
+        });
+    return { title: `${a}的爱发电动态`, description: `${a}的爱发电动态`, image: o, link: `${r}/@${n}`, item: s };
+}
+export { t as route };

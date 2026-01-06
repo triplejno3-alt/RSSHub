@@ -1,0 +1,43 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/pm/:language?`,
+    categories: [`government`],
+    example: `/gc.ca/pm/en`,
+    parameters: { language: `Language (en or fr)` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`pm.gc.ca`, `pm.gc.ca/:language`, `pm.gc.ca/:language/news`, `pm.gc.ca/:language/nouvelles`], target: `/pm/:language` }],
+    name: `News`,
+    maintainers: [`elibroftw`],
+    handler: async (r) => {
+        let { language: i = `en` } = r.req.param(),
+            a = (
+                await e(i === `fr` ? `https://www.pm.gc.ca/fr/views/ajax` : `https://www.pm.gc.ca/views/ajax`, {
+                    method: `post`,
+                    body: new URLSearchParams({ view_name: `news`, view_display_id: `page_1`, view_args: ``, page: `0` }).toString(),
+                    headers: { 'Content-Type': `application/x-www-form-urlencoded` },
+                })
+            ).find((e) => e.method === `replaceWith`);
+        if (!a) throw Error(`failed to parse AJAX response`);
+        let o = n(a.data),
+            s = o(`.news-row`)
+                .toArray()
+                .map((e) => {
+                    let n = o(e),
+                        r = n.find(`.title a`),
+                        i = n.find(`.category`),
+                        a = n.find(`.location-date time`),
+                        s = r.text().trim(),
+                        c = r.attr(`href`),
+                        l = i.text().trim(),
+                        u = a.attr(`datetime`) || ``;
+                    return s && c ? { title: s, link: c, category: [l], pubDate: u ? t(u) : void 0 } : null;
+                })
+                .filter((e) => e !== null);
+        return { title: i === `fr` ? `Premier ministre du Canada | Nouvelles` : `Prime Minister of Canada | News`, link: `https://www.pm.gc.ca/${i}/news`, item: s };
+    },
+};
+export { r as route };

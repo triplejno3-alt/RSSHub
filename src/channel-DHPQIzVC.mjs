@@ -1,0 +1,77 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './rss-parser-CKuAfhVS.mjs';
+import { load as r } from 'cheerio';
+const i = (e, t, n) => {
+    let r = t(`h1`).text(),
+        i = t(`div.story-container`).eq(e);
+    (i.find(`div.story-image > figure`).each((e, n) => {
+        t(`<img src=${`https://thumbor.ftacademy.cn/unsafe/1340x754/${n.attribs[`data-url`]}`}>`).insertAfter(i.find(`div.story-lead`)[0]);
+    }),
+        i.find(`div#subscribe-now-container`).each((e, r) => {
+            (t(`<br/><p>此文章为付费文章，会员<a href='${n}'>请访问网站阅读</a>。</p>`).insertAfter(i.find(`div.story-body`)[0]), t(r).remove());
+        }));
+    let a = ``;
+    return (
+        i.find(`span.story-author > a`).each((e, n) => {
+            a += `${t(n).text()} `;
+        }),
+        (a = a.trim()),
+        i
+            .find(
+                `div.story-theme, h1.story-headline, div.story-byline, div.mpu-container-instory,script, div#story-action-placeholder, div.copyrightstatement-container, div.clearfloat, div.o-ads, h2.list-title, div.allcomments, div.logincomment, div.nologincomment`
+            )
+            .each((e, n) => {
+                t(n).remove();
+            }),
+        (i = i.html()),
+        { content: i, author: a, title: r }
+    );
+};
+var a = {
+    getData: async ({ site: a = `www`, channel: o }) => {
+        let s;
+        if (o) {
+            ((o = o.toLowerCase()), (o = o.split(`-`).join(`/`)));
+            try {
+                s = await n.parseURL(`https://${a}.ftchinese.com/rss/${o}`);
+            } catch {
+                return { title: `FT 中文网 ${o} 不存在`, description: `FT 中文网 ${o} 不存在` };
+            }
+        } else s = await n.parseURL(`https://${a}.ftchinese.com/rss/feed`);
+        let c = await Promise.all(
+            s.items.map(
+                (n) => (
+                    (n.link = n.link.replace(`http://`, `https://`)),
+                    e.tryGet(n.link, async () => {
+                        let e = r((await t.get(`${n.link}?full=y&archive`)).data),
+                            a = [];
+                        for (let t = 0; t < e(`div.story-container`).length; t++) a.push(i(t, e, n.link));
+                        return ((n.title = a[0].title), (n.description = a.map((e) => e.content).join(``)), (n.author = a[0].author), n);
+                    })
+                )
+            )
+        );
+        return { title: s.title, link: s.link, description: s.description, item: c };
+    },
+};
+const o = {
+    path: `/:language/:channel?`,
+    categories: [`traditional-media`],
+    example: `/ftchinese/simplified/hotstoryby7day`,
+    parameters: { language: '语言，简体 `simplified`，繁体 `traditional`', channel: `频道，缺省为每日更新` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `FT 中文网`,
+    maintainers: [`HenryQW`, `xyqfer`],
+    handler: s,
+    description:
+        '::: tip\n  -   不支持付费文章。\n:::\n\n  通过提取文章全文，以提供比官方源更佳的阅读体验。\n\n  支持所有频道，频道名称见 [官方频道 RSS](http://www.ftchinese.com/channel/rss.html).\n\n  -   频道为单一路径，如 `http://www.ftchinese.com/rss/news` 则为 `/ftchinese/simplified/news`.\n  -   频道包含多重路径，如 `http://www.ftchinese.com/rss/column/007000002` 则替换 `/` 为 `-` `/ftchinese/simplified/column-007000002`.',
+};
+async function s(e) {
+    return await a.getData({ site: e.req.param(`language`) === `simplified` ? `www` : `big5`, channel: e.req.param(`channel`), ctx: e });
+}
+export { o as route };

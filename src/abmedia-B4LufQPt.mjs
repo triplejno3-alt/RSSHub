@@ -1,0 +1,25 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+const n = `https://www.abmedia.io`,
+    r = `${n}/wp-json/wp/v2/posts`,
+    i = {
+        path: `/index`,
+        categories: [`new-media`],
+        example: `/abmedia/index`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`www.abmedia.io/`] }],
+        name: `首页最新新闻`,
+        maintainers: [],
+        handler: a,
+        url: `www.abmedia.io/`,
+    };
+async function a(i) {
+    let a = `${r}?per_page=${i.req.param(`limit`) ?? 10}`;
+    return { title: `ABMedia - 最新消息`, link: n, item: (await t.get(a)).data.map((t) => ({ title: t.title.rendered, link: t.link, description: t.content.rendered, pubDate: e(t.date) })) };
+}
+export { i as route };

@@ -1,0 +1,79 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = async (i) => {
+        let a = i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`), 10) : 10,
+            o = `http://chinacustoms.gmcmonline.com`,
+            { data: s } = await n(o),
+            c = r(s),
+            l = c(`p.copyright a`).text(),
+            u = c(`html`).prop(`lang`),
+            d = c(`ul.booklist li a`)
+                .toArray()
+                .slice(0, a)
+                .map((e) => {
+                    e = c(e);
+                    let n = e.find(`p.txt`).text(),
+                        r = new URL(e.find(`img`).prop(`src`), o).href;
+                    return { title: n, link: new URL(e.prop(`href`), o).href, pubDate: t(n, `YYYY年MM期`), author: l, image: r, banner: r, language: u };
+                });
+        d = await Promise.all(
+            d.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let { data: e } = await n(i.link),
+                        a = r(e);
+                    a(`ol.breadcrumb li a`).first().remove();
+                    let s = a(`ol.breadcrumb li a`).first().text(),
+                        d = t(a(`div.title`).text(), `YYYY年MM月DD日`),
+                        f = new URL(a(`div.coverline img`).prop(`src`), o).href;
+                    return a(`a.txt`)
+                        .toArray()
+                        .map((e) => {
+                            e = c(e);
+                            let t = e.prop(`href`).match(/c\/(\d+)\.shtml/)?.[1] ?? void 0;
+                            if (!t) return;
+                            let n = e.prop(`title`) || e.text(),
+                                r = `gmcmonline-chinacustoms-${t}`;
+                            return {
+                                title: n,
+                                pubDate: d,
+                                link: new URL(e.prop(`href`), i.link).href,
+                                category: [s, e.closest(`div.class-box`).find(`div.title-box span`).text().replaceAll(/【|】/g, ``) || void 0].filter(Boolean),
+                                author: l,
+                                guid: r,
+                                id: r,
+                                image: f,
+                                banner: f,
+                                language: u,
+                                enclosure_url: new URL(`front/article/${t}/pdf?magazineID=2`, `http://manager.gmcmonline.com`).href,
+                                enclosure_type: `application/pdf`,
+                                enclosure_title: n,
+                            };
+                        })
+                        .filter(Boolean);
+                })
+            )
+        );
+        let f = c(`title`).text(),
+            p = new URL(c(`div.img-box img`).prop(`src`), o).href;
+        return { title: f, description: f, link: o, item: d.flat(), allowEmpty: !0, image: p, author: f, language: u };
+    },
+    a = {
+        path: `/chinacustoms`,
+        name: `中国海关`,
+        url: `chinacustoms.gmcmonline.com`,
+        maintainers: [`nczitzk`],
+        handler: i,
+        example: `/gmcmonline/chinacustoms`,
+        parameters: void 0,
+        description: void 0,
+        categories: [`reading`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`chinacustoms.gmcmonline.com`], target: `/chinacustoms` }],
+    };
+export { i as handler, a as route };

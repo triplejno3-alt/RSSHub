@@ -1,0 +1,64 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import s from 'markdown-it';
+import { renderToString as c } from 'hono/jsx/dom/server';
+import { raw as l } from 'hono/html';
+const u = s({ html: !0 }),
+    d = { 1: 0, 2: 2, 3: 1 },
+    f = {
+        path: [`/exclusive/:locale?`, `/news/:locale?`, `/:locale?`, `/:type/:id/:locale?`],
+        categories: [`new-media`],
+        example: `/farmatters/exclusive`,
+        parameters: { locale: 'Locale, `zh-CN` or `en-US`, `zh-CN` by default' },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`farmatters.com/exclusive`], target: `/exclusive` }],
+        name: `Exclusive`,
+        maintainers: [`nczitzk`],
+        handler: p,
+        url: `farmatters.com/news`,
+    };
+async function p(s) {
+    let { type: f, id: p, locale: m = `zh-CN` } = s.req.param(),
+        h = s.req.query(`limit`) ? Number.parseInt(s.req.query(`limit`), 10) : 50,
+        g = { locale: m, page: 0, pagesize: h };
+    f === `wiki` && p ? (g.subCatalogId = p) : f && p && (g[f] = p);
+    let _ = `https://farmatters.com`,
+        v = new URL(`api/v1/doc/list`, _).href,
+        y = new URL(`${m === `zh-CN` ? `` : `en/`}${f ? (f === `wiki` ? `wiki` : `tag/${p}`) : `news`}`, _).href,
+        { data: b } = await t(v, { searchParams: g, https: { rejectUnauthorized: !1 } }),
+        x = b.data.list
+            .slice(0, h)
+            .map((t) => ({
+                title: t.title,
+                link: new URL(`doc/${t.id}`, _).href,
+                description: c(a(r, { children: [t.headImageUrl ? i(`figure`, { children: i(`img`, { src: t.headImageUrl, alt: t.title }) }) : null, t.content || t.summary ? l(u.render(t.content ?? t.summary)) : null] })),
+                author: t.author,
+                category: [t.catalogName, t.subCatalogName ?? void 0, ...(t.tags?.map((e) => e.tagName) ?? [])].filter(Boolean),
+                guid: `farmatters-${t.id}`,
+                pubDate: n(e(t.createdAt), 8),
+            })),
+        { data: S } = await t(y, { https: { rejectUnauthorized: !1 } }),
+        C = o(S),
+        w = `${C(`h4`).first().text()}${f === `wiki` ? ` - ${C(`div.css-6f6728 div.MuiBox-root`).eq(d[p]).text()}` : ``}`,
+        T = new URL(`favicon.ico`, _).href;
+    return {
+        item: x,
+        title: `${C(`title`).text().split(/-/)[0].trim()} - ${w}`,
+        link: y,
+        description: C(`meta[name="description"]`).prop(`content`),
+        language: C(`html`).prop(`lang`),
+        image: new URL(C(`img`).first().prop(`src`), _).href,
+        icon: T,
+        logo: T,
+        subtitle: w,
+        allowEmpty: !0,
+    };
+}
+export { f as route };

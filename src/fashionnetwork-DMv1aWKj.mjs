@@ -1,0 +1,114 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+import { raw as l } from 'hono/html';
+const u = ({ images: e, description: t }) => o(i, { children: [e?.map((e, t) => (e?.src ? a(`figure`, { children: a(`img`, { src: e.src, alt: e.alt }) }, `${e.src}-${t}`) : null)), t ? a(i, { children: l(t) }) : null] }),
+    d = (e) => c(a(u, { ...e })),
+    f = async (i) => {
+        let { id: a = `0` } = i.req.param(),
+            o = i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`), 10) : 20,
+            c = `https://fashionnetwork.cn`,
+            l = new URL(`lists/${a}`, c).href,
+            { data: u } = await n(l),
+            f = s(u),
+            p = f(`html`).prop(`lang`),
+            m = f(`div.home__item`)
+                .slice(0, o)
+                .toArray()
+                .map((e) => {
+                    e = f(e);
+                    let t = e.find(`h2.family-title`).text(),
+                        n = e.find(`img.item__img`).first().prop(`src`) ?? void 0,
+                        r = n ? new URL(n, c).href : void 0;
+                    return {
+                        title: t,
+                        description: d({ images: r ? [{ src: r, alt: t }] : void 0 }),
+                        link: new URL(e.find(`h2.family-title a`).prop(`href`), c).href,
+                        image: r,
+                        banner: r,
+                        language: p,
+                        enclosure_url: r,
+                        enclosure_type: r ? `image/${r.split(/\./).pop()}` : void 0,
+                        enclosure_title: t,
+                    };
+                });
+        m = await Promise.all(
+            m.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let { data: e } = await n(i.link),
+                        a = s(e),
+                        o = a(`h1.newsTitle`).text(),
+                        c = d({ description: a(`div.article-content`).html() });
+                    return (
+                        (i.title = o),
+                        (i.description = c),
+                        (i.pubDate = r(t(a(`span.time-ago`).first().text().trim()), 8)),
+                        (i.category = a(`div.newsTags`)
+                            .first()
+                            .find(`div.news-tag`)
+                            .toArray()
+                            .map((e) => a(e).text())),
+                        (i.author = a(`div.newsLeftCol span`).first().text()),
+                        (i.content = { html: c, text: a(`div.article-content`).text() }),
+                        (i.language = p),
+                        i
+                    );
+                })
+            )
+        );
+        let h = f(`label[for="news_categs_${a}"]`).text()?.split(/\(/)?.[0]?.trim() ?? ``,
+            g = new URL(f(`div.header__fnw-logo img`).prop(`src`), c).href;
+        return { title: `${h}${f(`title`).text()}`, description: f(`meta[name="description"]`).prop(`content`), link: l, item: m, allowEmpty: !0, image: g, author: f(`meta[name="author"]`).prop(`content`), language: p };
+    },
+    p = {
+        path: `/cn/lists/:id?`,
+        name: `FashionNetwork 中国`,
+        url: `fashionnetwork.cn`,
+        maintainers: [`nczitzk`],
+        handler: f,
+        example: `/fashionnetwork/cn/lists/0`,
+        parameters: { category: `分类，默认为 0，可在对应分类页 URL 中找到` },
+        description: `::: tip
+  若订阅 [独家新闻](https://fashionnetwork.cn)，网址为 \`https://fashionnetwork.cn/lists/13.html\`。截取 \`https://fashionnetwork.cn/\` 到末尾 \`.html\` 的部分 \`13\` 作为参数填入，此时路由为 [\`/fashionnetwork/cn/lists/13\`](https://rsshub.app/fashionnetwork/cn/lists/13)。
+:::
+
+| 分类                                           | ID                                                  |
+| ---------------------------------------------- | --------------------------------------------------- |
+| [独家](https://fashionnetwork.cn/lists/13)     | [13](https://rsshub.app/fashionnetwork/cn/lists/13) |
+| [商业](https://fashionnetwork.cn/lists/1)      | [1](https://rsshub.app/fashionnetwork/cn/lists/1)   |
+| [人物](https://fashionnetwork.cn/lists/8)      | [8](https://rsshub.app/fashionnetwork/cn/lists/8)   |
+| [设计](https://fashionnetwork.cn/lists/3)      | [3](https://rsshub.app/fashionnetwork/cn/lists/3)   |
+| [产业](https://fashionnetwork.cn/lists/5)      | [5](https://rsshub.app/fashionnetwork/cn/lists/5)   |
+| [创新研究](https://fashionnetwork.cn/lists/6)  | [6](https://rsshub.app/fashionnetwork/cn/lists/6)   |
+| [人事变动](https://fashionnetwork.cn/lists/12) | [12](https://rsshub.app/fashionnetwork/cn/lists/12) |
+| [新闻资讯](https://fashionnetwork.cn/lists/11) | [11](https://rsshub.app/fashionnetwork/cn/lists/11) |
+  `,
+        categories: [`new-media`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            {
+                source: [`fashionnetwork.cn/lists/:id`],
+                target: (e) => {
+                    let t = e.id;
+                    return `/fashionnetwork/cn/lists${t ? `/${t}` : ``}`;
+                },
+            },
+            { title: `独家`, source: [`fashionnetwork.cn/lists/13`], target: `/cn/lists/13` },
+            { title: `商业`, source: [`fashionnetwork.cn/lists/1`], target: `/cn/lists/1` },
+            { title: `人物`, source: [`fashionnetwork.cn/lists/8`], target: `/cn/lists/8` },
+            { title: `设计`, source: [`fashionnetwork.cn/lists/3`], target: `/cn/lists/3` },
+            { title: `产业`, source: [`fashionnetwork.cn/lists/5`], target: `/cn/lists/5` },
+            { title: `创新研究`, source: [`fashionnetwork.cn/lists/6`], target: `/cn/lists/6` },
+            { title: `人事变动`, source: [`fashionnetwork.cn/lists/12`], target: `/cn/lists/12` },
+            { title: `新闻资讯`, source: [`fashionnetwork.cn/lists/11`], target: `/cn/lists/11` },
+        ],
+    };
+export { f as handler, p as route };

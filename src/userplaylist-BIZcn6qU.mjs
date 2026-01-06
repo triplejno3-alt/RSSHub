@@ -1,0 +1,56 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { Fragment as t, jsx as n, jsxs as r } from 'hono/jsx/jsx-runtime';
+import { renderToString as i } from 'hono/jsx/dom/server';
+const a = (e, a, o) =>
+        i(r(t, { children: [e ? n(`img`, { src: e }) : null, a?.length ? n(`div`, { children: a.map((e) => n(`p`, { children: e })) }) : null, o ? n(`div`, { children: n(`a`, { href: o, children: `查看歌单` }) }) : null] })),
+    o = {
+        path: `/music/user/playlist/:uid`,
+        categories: [`multimedia`],
+        example: `/163/music/user/playlist/45441555`,
+        parameters: { uid: `用户 uid, 可在用户主页 URL 中找到` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `用户歌单`,
+        maintainers: [`DIYgod`],
+        handler: s,
+    };
+async function s(t) {
+    let n = t.req.param(`uid`),
+        r = await e.post(`https://music.163.com/api/user/playlist`, { headers: { Referer: `https://music.163.com/` }, form: { uid: n, limit: 1e3, offset: 0 } }),
+        i = r.data.playlist || [],
+        { nickname: o, signature: s, avatarUrl: c } = (i[0] || {}).creator;
+    return {
+        title: `${o} 的所有歌单`,
+        link: `https://music.163.com/user/home?id=${n}`,
+        subtitle: s,
+        description: s,
+        author: o,
+        updated: r.headers.date,
+        icon: c,
+        image: c,
+        item: i.map((e) => {
+            let t = `http://music.163.com/playlist/${e.id}`,
+                n = a(
+                    e.coverImgUrl,
+                    (e.description || ``).split(`
+`),
+                    t
+                );
+            return {
+                title: e.name,
+                link: t,
+                pubDate: new Date(e.createTime).toUTCString(),
+                published: new Date(e.createTime).toISOString(),
+                updated: new Date(e.updateTime).toISOString(),
+                author: e.creator.nickname,
+                description: n,
+                content: { html: n },
+                category: e.tags,
+            };
+        }),
+    };
+}
+export { o as route };

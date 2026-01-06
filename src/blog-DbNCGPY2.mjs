@@ -1,0 +1,156 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { load as i } from 'cheerio';
+const a = (e) => e?.replaceAll(`&`, `&amp;`)?.replaceAll(`<`, `&lt;`)?.replaceAll(`>`, `&gt;`)?.replaceAll(`'`, `&quot;`)?.replaceAll(`'`, `&#039;`) ?? e,
+    o = (e) => e.map((e) => a(e.text)).join(``),
+    s = (e) => {
+        let t = e.title ? ` title="${a(e.title)}"` : ``,
+            n = e.alt ? ` alt="${a(e.alt)}"` : ``,
+            r = e.size ? ` style="width:${e.size.width}px;height:${e.size.height}px;"` : ``;
+        return `<img src="${a(e.url)}"${t}${n}${r}>`;
+    },
+    c = (e) => `<li>${d(e.children)}</li>`,
+    l = (e) => {
+        let t = e.ordered ? `ol` : `ul`;
+        return `<${t}${e.ordered && e.start !== 1 ? ` start="${e.start}"` : ``}>${e.children.map((e) => c(e)).join(``)}</${t}>`;
+    },
+    u = (e) => e.map((e) => (e.text === void 0 ? (e.type === `image` ? s(e) : ``) : a(e.text))).join(``),
+    d = (e) =>
+        e
+            ?.map((e) => {
+                switch (e.type) {
+                    case `paragraph`:
+                        return `<p>${u(e.children)}</p>`;
+                    case `image`:
+                        return s(e);
+                    case `heading`:
+                        return `<h${e.depth}>${o(e.children)}</h${e.depth ?? ``}>`;
+                    case `code`:
+                        return `<pre><code${e.lang ? ` class="language-${e.lang}"` : ``}>${o(e.children)}</code></pre>`;
+                    case `list`:
+                        return l(e);
+                    case `blockquote`:
+                        return `<blockquote>${d(e.children)}</blockquote>`;
+                    default:
+                        return ``;
+                }
+            })
+            .join(``) ?? ``,
+    f = async (r) => {
+        let { category: a = `latest` } = r.req.param(),
+            o = Number.parseInt(r.req.query(`limit`) ?? `20`, 10),
+            s = `https://tidb.net`,
+            c = new URL(`blog${a === `latest` ? `` : `/c/${a}`}`, s).href,
+            l = await e(c),
+            u = l.match(/"buildId":"(.*?)"/)?.[1];
+        if (!u) throw Error(`Build ID not found.`);
+        let f = i(l),
+            p = f(`html`).attr(`lang`) ?? `zh`,
+            m = new URL(`_next/data/${u}/${p}/blog${a === `latest` ? `` : `/c/${a}`}.json`, s).href,
+            h = await e(m, { query: { latest: !0 } }),
+            g = [];
+        ((g = h.pageProps.blogs.content.slice(0, o).map((e) => {
+            let t = e.title,
+                r = e.summary,
+                i = e.publishedAt,
+                a = e.slug ? `blog/${e.slug}` : void 0,
+                o = [...new Set([e.category?.name, ...(e.tags ?? []).map((e) => e.name)].filter(Boolean))],
+                c = e.author?.username ? [{ name: e.author.username, url: new URL(`u/${e.author.username}`, s).href, avatar: e.author.avatarURL }] : void 0,
+                l = e.slug ?? ``,
+                u = e.lastModifiedAt ?? i;
+            return { title: t, description: r, pubDate: i ? n(i) : void 0, link: a ? new URL(a, s).href : void 0, category: o, author: c, guid: l, id: l, content: { html: r, text: r }, updated: u ? n(u) : void 0, language: p };
+        })),
+            (g = await Promise.all(
+                g.map((r) =>
+                    r.link
+                        ? t.tryGet(r.link, async () => {
+                              let t = new URL(`blog/api/posts/${r.guid}/detail`, s).href,
+                                  i = await e(t, { query: { visit: !0 } }),
+                                  a = i.title,
+                                  o = i.content ? d(JSON.parse(i.content)) : r.description,
+                                  c = i.publishedAt,
+                                  l = `blog/${i.slug}`,
+                                  u = [...new Set([i.category?.name, ...(i.tags ?? []).map((e) => e.name)].filter(Boolean))],
+                                  f = i.author?.username ? [{ name: i.author.username, url: new URL(`u/${i.author.username}`, s).href, avatar: i.author.avatarURL }] : void 0,
+                                  m = `tidb-blog-${i.slug}`,
+                                  h = i.lastModifiedAt ?? c,
+                                  g = { title: a, description: o, pubDate: c ? n(c) : void 0, link: new URL(l, s).href, category: u, author: f, guid: m, id: m, content: { html: o, text: o }, updated: h ? n(h) : void 0, language: p };
+                              return { ...r, ...g };
+                          })
+                        : r
+                )
+            )));
+        let _ = f(`title`).text();
+        return {
+            title: _,
+            description: f(`meta[property="og:description"]`).attr(`content`),
+            link: c,
+            item: g,
+            allowEmpty: !0,
+            image: f(`meta[property="og:image"]`).attr(`content`),
+            author: _.split(/\|/).pop()?.trim(),
+            language: p,
+            id: c,
+        };
+    },
+    p = {
+        path: `/blog/c/:category?`,
+        name: `专栏分类`,
+        url: `tidb.net`,
+        maintainers: [`nczitzk`],
+        handler: f,
+        example: `/tidb/blog/c/latest`,
+        parameters: {
+            category: {
+                description: '分类，默认为 `latest`，即全部文章，可在对应分类页 URL 中找到',
+                options: [
+                    { label: `全部文章`, value: `latest` },
+                    { label: `管理与运维`, value: `management-and-operation` },
+                    { label: `实践案例`, value: `practical-case` },
+                    { label: `架构选型`, value: `architecture-selection` },
+                    { label: `原理解读`, value: `principle-interpretation` },
+                    { label: `应用开发`, value: `application-development` },
+                    { label: `社区动态`, value: `community-feeds` },
+                ],
+            },
+        },
+        description: `::: tip
+订阅 [管理与运维](https://tidb.net/blog/c/management-and-operation)，其源网址为 \`https://tidb.net/blog/c/management-and-operation\`，请参考该 URL 指定部分构成参数，此时路由为 [\`/tidb/blog/c/management-and-operation\`](https://rsshub.app/tidb/blog/c/management-and-operation)。
+:::
+
+| 分类                                                           | ID                                                                                  |
+| -------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| [全部文章](https://tidb.net/blog)                              | [latest](https://rsshub.app/tidb/blog)                                              |
+| [管理与运维](https://tidb.net/blog/c/management-and-operation) | [management-and-operation](https://rsshub.app/tidb/blog/c/management-and-operation) |
+| [实践案例](https://tidb.net/blog/c/practical-case)             | [practical-case](https://rsshub.app/tidb/blog/c/practical-case)                     |
+| [架构选型](https://tidb.net/blog/c/architecture-selection)     | [architecture-selection](https://rsshub.app/tidb/blog/c/architecture-selection)     |
+| [原理解读](https://tidb.net/blog/c/principle-interpretation)   | [principle-interpretation](https://rsshub.app/tidb/blog/c/principle-interpretation) |
+| [应用开发](https://tidb.net/blog/c/application-development)    | [application-development](https://rsshub.app/tidb/blog/c/application-development)   |
+| [社区动态](https://tidb.net/blog/c/community-feeds)            | [community-feeds](https://rsshub.app/tidb/blog/c/community-feeds)                   |
+
+`,
+        categories: [`programming`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            {
+                source: [`tidb.net/blog`, `tidb.net/blog/c/:category`],
+                target: (e) => {
+                    let t = e.category;
+                    return `/tidb/blog/c${t ? `/${t}` : ``}`;
+                },
+            },
+            { title: `全部文章`, source: [`tidb.net/blog`], target: `/blog/c/latest` },
+            { title: `管理与运维`, source: [`tidb.net/blog/c/management-and-operation`], target: `/blog/c/management-and-operation` },
+            { title: `实践案例`, source: [`tidb.net/blog/c/practical-case`], target: `/blog/c/practical-case` },
+            { title: `架构选型`, source: [`tidb.net/blog/c/architecture-selection`], target: `/blog/c/architecture-selection` },
+            { title: `原理解读`, source: [`tidb.net/blog/c/principle-interpretation`], target: `/blog/c/principle-interpretation` },
+            { title: `应用开发`, source: [`tidb.net/blog/c/application-development`], target: `/blog/c/application-development` },
+            { title: `社区动态`, source: [`tidb.net/blog/c/community-feeds`], target: `/blog/c/community-feeds` },
+        ],
+        view: r.Articles,
+    };
+export { f as handler, p as route };

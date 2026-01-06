@@ -1,0 +1,28 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { t as e } from './common-hb1Jsf-n.mjs';
+const t = {
+    path: `/gfxy/:category?/:page?`,
+    categories: [`university`],
+    example: `/hunau/gfxy`,
+    parameters: { category: '页面分类，默认为 `tzgg`', page: '页码，默认为 `1`' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`xky.hunau.edu.cn/`, `xky.hunau.edu.cn/tzgg_8472`, `xky.hunau.edu.cn/:category`], target: `/:category` }],
+    name: `公共管理与法学学院`,
+    maintainers: [],
+    handler: n,
+    url: `xky.hunau.edu.cn/`,
+    description: `| 分类 | 通知公告 | 学院新闻 | 其他分类通知... |
+| ---- | -------- | -------- | --------------- |
+| 参数 | tzgg     | xyxw     | 对应 URL        |`,
+};
+async function n(t) {
+    await e(t, { baseHost: `https://gfxy.hunau.edu.cn`, baseCategory: `tzgg`, baseTitle: `公共管理与法学学院`, baseDescription: `湖南农业大学公共管理与法学学院`, baseDeparment: `gfxy` });
+}
+export { t as route };

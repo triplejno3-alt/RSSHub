@@ -1,0 +1,48 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { n, t as r } from './utils-DjJeD6qa.mjs';
+const i = {
+    path: `/category/:category`,
+    categories: [`new-media`],
+    example: `/aeon/category/philosophy`,
+    parameters: {
+        category: {
+            description: `Category`,
+            options: [
+                { value: `philosophy`, label: `Philosophy` },
+                { value: `science`, label: `Science` },
+                { value: `psychology`, label: `Psychology` },
+                { value: `society`, label: `Society` },
+                { value: `culture`, label: `Culture` },
+            ],
+        },
+    },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`aeon.co/:category`] }],
+    name: `Categories`,
+    maintainers: [`emdoe`],
+    handler: a,
+};
+async function a(i) {
+    let a = i.req.param(`category`).toLowerCase(),
+        o = `https://aeon.co/category/${a}`,
+        s = (await e(`https://aeon.co/_next/data/${await r()}/${a}.json`)).pageProps.section,
+        c = await n(
+            s.articles.edges.map(({ node: e }) => ({
+                title: e.title,
+                description: e.standfirstLong,
+                author: e.authors.map((e) => e.displayName).join(`, `),
+                link: `https://aeon.co/${e.type}s/${e.slug}`,
+                pubDate: t(e.createdAt),
+                category: [e.section.title, ...e.topics.map((e) => e.title)],
+                image: e.image.url,
+                type: e.type,
+                slug: e.slug,
+            }))
+        );
+    return { title: `AEON | ${s.title}`, link: o, description: s.metaDescription, item: c };
+}
+export { i as route };

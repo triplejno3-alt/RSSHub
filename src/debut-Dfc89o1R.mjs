@@ -1,0 +1,57 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './desc-BSROBqhL.mjs';
+import { load as i } from 'cheerio';
+const a = `https://chn.oversea.cnki.net`,
+    o = {
+        path: `/journals/debut/:name`,
+        categories: [`journal`],
+        example: `/cnki/journals/debut/LKGP`,
+        parameters: { name: `期刊缩写，可以在网址中得到` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`navi.cnki.net/knavi/journals/:name/detail`] }],
+        name: `网络首发`,
+        maintainers: [`Fatpandac`],
+        handler: s,
+    };
+async function s(o) {
+    let s = o.req.param(`name`),
+        c = `${a}/knavi/JournalDetail?pcode=CjFD&pykm=${s}`,
+        l = await n.get(c).then((e) => i(e.data)(`head > title`).text()),
+        u = i((await n({ method: `post`, url: `${a}/knavi/JournalDetail/GetnfAllOutline`, form: { pageIdx: `0`, type: `2`, pcode: `CJFD`, pykm: s } })).data),
+        d = u(`dd`)
+            .toArray()
+            .map((e) => ({
+                title: u(e).find(`span.name > a`).text().trim(),
+                link: `${a}/kcms/detail/${new URLSearchParams(new URL(`${a}/${u(e).find(`span.name > a`).attr(`href`)}`).search).get(`url`)}.html`,
+                pubDate: t(u(e).find(`span.company`).text(), `YYYY-MM-DD HH:mm:ss`),
+            })),
+        f = await Promise.all(
+            d.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = i((await n.get(t.link)).data);
+                    return (
+                        (t.description = r({
+                            author: e(`h3.author > span`)
+                                .toArray()
+                                .map((t) => e(t).text())
+                                .join(` `),
+                            company: e(`a.author`)
+                                .toArray()
+                                .map((t) => e(t).text())
+                                .join(` `),
+                            content: e(`div.row > span.abstract-text`).parent().text(),
+                        })),
+                        t
+                    );
+                })
+            )
+        );
+    return { title: `${l} - 全网首发`, link: `https://navi.cnki.net/knavi/journals/${s}/detail`, item: f };
+}
+export { o as route };

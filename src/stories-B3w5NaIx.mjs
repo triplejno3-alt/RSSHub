@@ -1,0 +1,67 @@
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import { t as e } from './not-found-C-Horq2w.mjs';
+import { a as t, i as n, t as r } from './client-Cwi66Y2q.mjs';
+import { n as i, t as a } from './channel-media-BV1_cZw2.mjs';
+import { n as o, t as s } from './channel-Ci_yvcvB.mjs';
+import { Api as c } from 'telegram';
+const l = {
+    path: `/stories/:username/:story?`,
+    categories: [`social-media`],
+    example: `/telegram/stories/telegram`,
+    parameters: { username: `entity name`, story: `story` },
+    features: {
+        requireConfig: [
+            { name: `TELEGRAM_SESSION`, optional: !1, description: `Telegram API Authentication` },
+            { name: `TELEGRAM_API_ID`, optional: !0, description: `Telegram API ID` },
+            { name: `TELEGRAM_API_HASH`, optional: !0, description: `Telegram API Hash` },
+            { name: `TELEGRAM_MAX_CONCURRENT_DOWNLOADS`, optional: !0, description: `Telegram Max Concurrent Downloads` },
+            { name: `TELEGRAM_PROXY_HOST`, optional: !0, description: `Telegram Proxy Host` },
+            { name: `TELEGRAM_PROXY_PORT`, optional: !0, description: `Telegram Proxy Port` },
+            { name: `TELEGRAM_PROXY_SECRET`, optional: !0, description: `Telegram Proxy Secret` },
+        ],
+        requirePuppeteer: !1,
+        antiCrawler: !1,
+        supportBT: !1,
+        supportPodcast: !1,
+        supportScihub: !1,
+    },
+    radar: [],
+    name: `Stories`,
+    maintainers: [`synchrone`],
+    handler: d,
+    description: ``,
+};
+function u(e) {
+    let t = ``;
+    for (let n of e ?? [])
+        n instanceof c.MediaAreaChannelPost ||
+            ((n instanceof c.MediaAreaGeoPoint || n instanceof c.MediaAreaVenue) && n.geo instanceof c.GeoPoint
+                ? (t += s(n.geo))
+                : n instanceof c.MediaAreaSuggestedReaction && (n.reaction instanceof c.ReactionEmoji ? (t += n.reaction.emoticon) : n.reaction instanceof c.ReactionCustomEmoji));
+    return t;
+}
+async function d(s) {
+    let l = await r(),
+        { username: d, story: f } = s.req.param();
+    if (!d) throw new e();
+    let p = await l.getInputEntity(d);
+    if (f) {
+        let e = await n(p, Number(f));
+        return (await a(s), await i(e.media, l, s));
+    }
+    let m = await l.invoke(new c.stories.GetPeerStories({ peer: p })),
+        h = [];
+    for (let e of m.stories.stories) {
+        if (!(e instanceof c.StoryItem)) continue;
+        let n = `${new URL(s.req.url).origin}/telegram/stories/${d}/${e.id}`,
+            r = new Date(e.date * 1e3).toUTCString(),
+            i = await t(e.media);
+        if (!i) continue;
+        let a = o(n, i) + u(e.mediaAreas);
+        h.push({ title: e.caption ?? r, description: a, pubDate: r, link: `https://t.me/${d}/s/${e.id}`, author: d });
+    }
+    return { title: `Stories of @${d}`, link: `https://t.me/${d}`, item: h, allowEmpty: s.req.param(`id`) === `allow_empty`, description: `Stories of @${d} on Telegram` };
+}
+export { d as default, l as route };

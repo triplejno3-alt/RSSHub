@@ -1,0 +1,93 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+const l = (e) =>
+        c(
+            o(i, {
+                children: [
+                    a(`img`, { src: e.pic, referrerpolicy: `no-referrer` }),
+                    e.label.map((e) => a(`p`, { children: e })),
+                    e.support?.length ? o(i, { children: [a(`p`, { children: `支持的MC版本: ` }), a(`ul`, { children: e.support.map((e) => o(`li`, { children: [a(`b`, { children: e.label }), e.versions] })) })] }) : null,
+                    a(`hr`, { style: `height: 2px; background-color: #e7e7e7; border: 0 none;` }),
+                ],
+            })
+        ),
+    u = {
+        path: `/:type`,
+        categories: [`game`],
+        example: `/mcmod/new`,
+        parameters: { type: `查询类型，详见下表` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `最新MOD`,
+        maintainers: [`hualiong`],
+        description: `\`:type\` 类型可选如下
+
+| 随机显示MOD | 最新收录MOD | 最近编辑MOD |
+| ------ | --- | ---- |
+| random | new | edit |`,
+        handler: async (i) => {
+            let a = i.req.param(`type`),
+                o = e.create({ baseURL: `https://www.mcmod.cn` }),
+                c = s(await o(`/`)),
+                u = c(`div.left > ul > li[i='${a}']`).attr(`title`),
+                d = c(`#indexNew_${a} > .block`)
+                    .toArray()
+                    .map((e) => {
+                        let t = c(e),
+                            i = t.find(`div .time`);
+                        return {
+                            title: t.find(`div > .name > a`).text(),
+                            image: t.find(`img`).attr(`src`)?.split(`@`)[0],
+                            link: t.children(`a`).attr(`href`),
+                            pubDate: i.attr(`title`) && r(n(i.attr(`title`).slice(6), `YYYY-MM-DD HH:mm:ss`), 8),
+                        };
+                    }),
+                f = await Promise.all(
+                    d.map((e) =>
+                        t.tryGet(e.link, async () => {
+                            let t = s(await o(e.link));
+                            e.author = t(`.author li`)
+                                .toArray()
+                                .map((e) => {
+                                    let n = t(e),
+                                        r = n.find(`.name a`);
+                                    return { name: r.text(), url: `https://www.mcmod.cn` + r.attr(`href`), avatar: n.find(`.avatar img`).attr(`src`)?.split(`?`)[0] };
+                                });
+                            let n = t(`.common-text[data-id="1"]`).html(),
+                                r = t(`.mcver > ul > ul`)
+                                    .toArray()
+                                    .map((e) => {
+                                        let n = t(e);
+                                        return {
+                                            label: n.children(`li:first-child`).text(),
+                                            versions: n
+                                                .children(`li:not(:first-child)`)
+                                                .toArray()
+                                                .map((e) => t(e).text())
+                                                .join(`，`),
+                                        };
+                                    });
+                            return (
+                                (e.description =
+                                    l({
+                                        pic: `https:` + e.image,
+                                        label: t(`.class-info  li.col-lg-4`)
+                                            .toArray()
+                                            .map((e) => t(e).text()),
+                                        support: r,
+                                    }) + n.replaceAll(/\ssrc=".+?"/g, ``).replaceAll(`data-src`, `src`)),
+                                e
+                            );
+                        })
+                    )
+                );
+            return { title: `${u} - MC百科`, description: c(`meta[name="description"]`).attr(`content`), link: `https://www.mcmod.cn`, item: f };
+        },
+    };
+export { u as route };

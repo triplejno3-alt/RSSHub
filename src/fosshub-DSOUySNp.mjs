@@ -1,0 +1,58 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { Fragment as n, jsx as r, jsxs as i } from 'hono/jsx/jsx-runtime';
+import { load as a } from 'cheerio';
+import { renderToString as o } from 'hono/jsx/dom/server';
+import { raw as s } from 'hono/html';
+const c = (e, t) =>
+        o(
+            i(n, {
+                children: [
+                    r(`table`, {
+                        children: r(`tbody`, {
+                            children: e?.map((e) => i(n, { children: [r(`tr`, { children: e.map((e) => r(`th`, { children: e.dt })) }), r(`tr`, { children: e.map((e) => r(`td`, { children: e.dd ? s(e.dd) : null })) })] })),
+                        }),
+                    }),
+                    t ? i(n, { children: [r(`br`, {}), s(t)] }) : null,
+                ],
+            })
+        ),
+    l = {
+        path: `/:id`,
+        categories: [`program-update`],
+        example: `/fosshub/qBittorrent`,
+        parameters: { id: `Software id, can be found in URL` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `Software Update`,
+        maintainers: [`nczitzk`],
+        handler: u,
+    };
+async function u(n) {
+    let r = `https://www.fosshub.com/${n.req.param(`id`) ?? ``}.html`,
+        i = a((await t({ method: `get`, url: r })).data),
+        o = i(`dd[itemprop="softwareVersion"]`).first().text(),
+        s = [
+            {
+                title: o,
+                link: `${r}#${o}`,
+                description: c(
+                    i(`.dwn-dl`)
+                        .toArray()
+                        .map((e) =>
+                            i(e)
+                                .find(`.w`)
+                                .toArray()
+                                .map((e) => ({ dt: i(e).find(`dt`).text(), dd: i(e).find(`dd`).html() }))
+                        ),
+                    i(`div[itemprop="releaseNotes"]`).html()
+                ),
+                pubDate: e(i(`.ma__upd .v`).text(), `MMM DD, YYYY`),
+            },
+        ];
+    return { title: `${i(`#fh-ssd__hl`).text()} - FossHub`, link: r, item: s };
+}
+export { l as route };

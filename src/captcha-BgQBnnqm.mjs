@@ -1,0 +1,4 @@
+var e = class extends Error {
+    name = `CaptchaError`;
+};
+export { e as t };

@@ -1,0 +1,245 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+const c = `https://kemono.cr`,
+    l = `${c}/api/v1`,
+    u = { m4a: `audio/mp4`, mp3: `audio/mpeg`, mp4: `video/mp4` },
+    d = { Accept: `text/css` },
+    f = {
+        path: `/:source?/:id?/:type?`,
+        categories: [`anime`],
+        example: `/kemono`,
+        parameters: { source: `Source, see below, Posts by default`, id: `User id, can be found in URL`, type: `Content type: announcements or fancards` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+        radar: [
+            { source: [`kemono.cr/`], target: `` },
+            { source: [`kemono.cr/:source/user/:id`], target: `/:source/:id` },
+            { source: [`kemono.cr/:source/user/:id/announcements`], target: `/:source/:id/announcements` },
+            { source: [`kemono.cr/:source/user/:id/fancards`], target: `/:source/:id/fancards` },
+            { source: [`kemono.cr/discord/server/:id`], target: `/discord/:id` },
+        ],
+        name: `Posts`,
+        maintainers: [`nczitzk`, `AiraNadih`],
+        handler: E,
+        description: `Sources
+
+| Posts | Patreon | Pixiv Fanbox | Gumroad | SubscribeStar | DLsite | Discord | Fantia |
+| ----- | ------- | ------------ | ------- | ------------- | ------ | ------- | ------ |
+| posts | patreon | fanbox       | gumroad | subscribestar | dlsite | discord | fantia |
+
+::: tip
+  When \`posts\` is selected as the value of the parameter **source**, the parameter **id** does not take effect.
+  There is an optinal parameter **limit** which controls the number of posts to fetch, default value is 25.
+
+  Support for announcements and fancards:
+  - Use \`/:source/:id/announcements\` to get announcements
+  - Use \`/:source/:id/fancards\` to get fancards
+:::`,
+    };
+function p(e) {
+    if (typeof e != `string`) return e;
+    try {
+        let t = JSON.parse(e);
+        return (typeof t == `string` && (t = JSON.parse(t)), t);
+    } catch {
+        return e;
+    }
+}
+function m(e, t, n) {
+    if (e === `posts`) return `${l}/posts`;
+    if (e === `discord` && t) return `${l}/discord/channel/lookup/${t}`;
+    if (!t) throw Error(`User ID is required for non-posts sources`);
+    let r = `${l}/${e}/user/${t}`;
+    return n ? `${r}/${n}` : `${r}/posts`;
+}
+function h(e, t, n) {
+    if (e === `posts`) return `${c}/posts`;
+    if (e === `discord` && t) return `${c}/${e}/server/${t}`;
+    if (!t) throw Error(`User ID is required for non-posts sources`);
+    let r = `${c}/${e}/user/${t}`;
+    return n ? `${r}/${n}` : r;
+}
+async function g(e, t) {
+    try {
+        return (await n({ method: `get`, url: `${l}/${e}/user/${t}/profile`, headers: d })).data.name || `Unknown User`;
+    } catch {
+        return `Unknown User`;
+    }
+}
+function _(e) {
+    let t = [];
+    if (e.file) {
+        let n = p(e.file);
+        n && typeof n == `object` && `path` in n && t.push({ name: n.name || `Unnamed File`, path: n.path, extension: v(n.path) });
+    }
+    if (Array.isArray(e.attachments))
+        for (let n of e.attachments) {
+            let e = p(n);
+            e && typeof e == `object` && `path` in e && t.push({ name: e.name || `Unnamed Attachment`, path: e.path, extension: v(e.path) });
+        }
+    return t;
+}
+function v(e) {
+    return e.replace(/.*\./, ``).toLowerCase();
+}
+function y(e) {
+    let t = o(e),
+        n = {};
+    return (
+        t(`audio source, video source`).each(function () {
+            let e = t(this).attr(`src`);
+            if (!e) return;
+            let r = u[v(e)];
+            if (r) return ((n = { enclosure_url: new URL(e, c).toString(), enclosure_type: r }), !1);
+        }),
+        n
+    );
+}
+const b = (e) =>
+        s(
+            a(r, {
+                children: [
+                    e.content ? i(`p`, { children: e.content }) : null,
+                    e.attachments?.map((e) => i(`img`, { src: `https://img.kemono.cr/thumbnail/data${e.path}` })),
+                    e.embeds?.map((e) =>
+                        e.type === `image`
+                            ? i(`img`, { src: e.thumbnail.proxy_url })
+                            : e.type === `link`
+                              ? a(r, {
+                                    children: [
+                                        e.thumbnail ? i(`a`, { href: e.thumbnail.url, children: i(`img`, { src: e.thumbnail.proxy_url }) }) : null,
+                                        i(`a`, { href: e.url, children: e.title }),
+                                        e.description ? i(`p`, { children: e.description }) : null,
+                                    ],
+                                })
+                              : null
+                    ),
+                ],
+            })
+        ),
+    x = (e) =>
+        s(
+            a(r, {
+                children: [
+                    e.files?.map((e) => {
+                        let t = e.extension,
+                            n = e.extention ?? ``;
+                        return [`jpg`, `png`, `webp`, `jpeg`, `jfif`].includes(t)
+                            ? i(`img`, { src: e.path })
+                            : [`m4a`, `mp3`, `ogg`].includes(t)
+                              ? i(`audio`, { controls: !0, children: i(`source`, { src: e.path, type: `audio/${n}` }) })
+                              : [`mp4`, `webm`].includes(t)
+                                ? i(`video`, { controls: !0, children: i(`source`, { src: e.path, type: `video/${n}` }) })
+                                : i(`a`, { href: e.path, children: e.name });
+                    }),
+                    e.embed
+                        ? e.embed.type === `image`
+                            ? i(`img`, { src: e.embed.thumbnail.proxy_url })
+                            : e.embed.type === `link`
+                              ? a(r, {
+                                    children: [
+                                        e.embed.thumbnail ? i(`a`, { href: e.embed.thumbnail.url, children: i(`img`, { src: e.embed.thumbnail.proxy_url }) }) : null,
+                                        i(`a`, { href: e.embed.url, children: e.embed.title }),
+                                        e.embed.description ? i(`p`, { children: e.embed.description }) : null,
+                                    ],
+                                })
+                              : null
+                        : null,
+                ],
+            })
+        );
+async function S(r, i) {
+    return (
+        await Promise.all(
+            r.map((r) =>
+                e.tryGet(`discord_${r.id}`, async () =>
+                    (await n({ method: `get`, url: `${c}/api/v1/discord/channel/${r.id}?o=0`, headers: d })).data
+                        .filter((e) => e.content || e.attachments)
+                        .toSorted((e, t) => t.id.localeCompare(e.id))
+                        .slice(0, i)
+                        .map((e) => ({
+                            title: e.content || `Discord Message`,
+                            description: b(e),
+                            author: `${e.author.username}#${e.author.discriminator}`,
+                            pubDate: t(e.published),
+                            category: r.name,
+                            guid: `kemono:discord:${e.server}:${e.channel}:${e.id}`,
+                            link: `https://discord.com/channels/${e.server}/${e.channel}/${e.id}`,
+                        }))
+                )
+            )
+        )
+    ).flat();
+}
+function C(e, n, r, i, a) {
+    return e.slice(0, a).map((e) => {
+        let a = t(e.published || e.added);
+        return { title: `Announcement from ${a.toDateString()}`, description: `<div>${e.content || ``}</div>`, author: n, pubDate: a, guid: `kemono:${r}:${i}:announcement:${e.hash}`, link: `${c}/${r}/user/${i}/announcements` };
+    });
+}
+function w(e, n, r, i, a) {
+    return e.slice(0, a).map((e) => {
+        let a = `${e.server}${e.path}`;
+        return { title: `Fancard ${e.id}`, description: `<img src="${a}" alt="Fancard ${e.id}" />`, author: n, pubDate: t(e.added), guid: `kemono:${r}:${i}:fancard:${e.id}`, link: a, enclosure_url: a, enclosure_type: e.mime };
+    });
+}
+function T(e, n, r) {
+    return e
+        .filter((e) => e.content || e.attachments)
+        .slice(0, r)
+        .map((e) => {
+            let r = _(e),
+                i = x({ ...e, files: r }),
+                a = e.content ? `<div>${e.content}</div>` : ``,
+                s = o(a),
+                l = o(i)(`img, a, audio, video`)
+                    .toArray()
+                    .map((e) => s(e).prop(`outerHTML`)),
+                u = 0,
+                d = /downloads\.fanbox\.cc/;
+            (s(`a`).each(function () {
+                let e = s(this).attr(`href`);
+                e && d.test(e) && (s(this).replaceWith(l[u] || ``), u++);
+            }),
+                (a = (l[0] || ``) + s.html()));
+            for (let e of l.slice(u + 1)) a += e;
+            return { title: e.title || `Untitled Post`, description: a, author: n, pubDate: t(e.published), guid: `kemono:${e.service}:${e.user}:post:${e.id}`, link: `${c}/${e.service}/user/${e.user}/post/${e.id}`, ...y(a) };
+        });
+}
+async function E(e) {
+    let t = e.req.query(`limit`) ? Number.parseInt(e.req.query(`limit`)) : 25,
+        r = e.req.param(`source`) || `posts`,
+        i = e.req.param(`id`),
+        a = e.req.param(`type`),
+        o = r === `posts`,
+        s = r === `discord`;
+    try {
+        let e = m(r, i, a),
+            l = h(r, i, a),
+            u = await n({ method: `get`, url: e, headers: d }),
+            f = o || s || !i ? `` : await g(r, i),
+            p = o || s ? `${c}/favicon.ico` : `https://img.kemono.cr/icons/${r}/${i}`,
+            _,
+            v;
+        return (
+            s
+                ? ((v = `Posts of ${i} from Discord | Kemono`), (_ = await S(u.data, t)))
+                : a === `announcements`
+                  ? ((v = `Announcements of ${f} from ${r} | Kemono`), (_ = C(u.data, f, r, i, t)))
+                  : a === `fancards`
+                    ? ((v = `Fancards of ${f} from ${r} | Kemono`), (_ = w(u.data, f, r, i, t)))
+                    : ((v = o ? `Kemono Posts` : `Posts of ${f} from ${r} | Kemono`), (_ = T(o ? u.data.posts : u.data, f, t))),
+            { title: v, image: p, link: l, item: _ }
+        );
+    } catch (e) {
+        throw Error(`Failed to fetch data from Kemono: ${e instanceof Error ? e.message : `Unknown error`}`);
+    }
+}
+export { f as route };

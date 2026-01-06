@@ -1,0 +1,49 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { load as t } from 'cheerio';
+const n = { want: `想买`, preorder: `预定`, buy: `已入`, care: `关注`, resell: `有过` },
+    r = {
+        path: `/user/:user_id/:caty`,
+        categories: [`anime`],
+        example: `/hpoi/user/116297/buy`,
+        parameters: {
+            user_id: { description: `用户ID` },
+            caty: {
+                description: `类别`,
+                options: [
+                    { value: `want`, label: `想买` },
+                    { value: `preorder`, label: `预定` },
+                    { value: `buy`, label: `已入` },
+                    { value: `care`, label: `关注` },
+                    { value: `resell`, label: `有过` },
+                ],
+                default: `buy`,
+            },
+        },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `用户动态`,
+        maintainers: [`DIYgod`, `luyuhuang`],
+        handler: i,
+    };
+async function i(r) {
+    let { user_id: i, caty: a } = r.req.param(),
+        o = `https://www.hpoi.net/user/${i}/hobby?order=actionDate&view=2&favState=${a}`,
+        s = t((await e({ method: `get`, url: o })).data),
+        c = s(`.collect-hobby-list-small`)
+            .toArray()
+            .map(
+                (e) => (
+                    (e = s(e)),
+                    {
+                        title: n[a] + `: ` + e.find(`.name`).text(),
+                        link: `https://www.hpoi.net/` + e.find(`.name`).attr(`href`),
+                        description: `<img src="${e.find(`img`).attr(`src`).replace(`/s/`, `/n/`)}"><br>${e.find(`.pay`).text()}<br>${e.find(`.score`).text()}`,
+                    }
+                )
+            );
+    return { title: s(`.hpoi-collect-head .info p`).eq(0).text() + `的手办 - ` + n[a], link: o, item: c, allowEmpty: !0 };
+}
+export { r as route };

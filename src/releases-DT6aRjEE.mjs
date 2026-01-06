@@ -1,0 +1,26 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { load as t } from 'cheerio';
+const n = { path: `/releases/:brand/:model`, radar: [{ source: [`openwrt.org/toh/:band/:model`], target: `/releases/:model` }], name: `Unknown`, maintainers: [], handler: r };
+async function r(n) {
+    let r = `https://openwrt.org/toh/${n.req.param(`brand`)}/${n.req.param(`model`)}`,
+        i = t((await e(r)).data),
+        a = i(`#installation`).next();
+    return {
+        title: i(`h1`).text() + ` - OpenWrt Releases`,
+        link: r,
+        description: i(`.dw-content div.level1`).text(),
+        language: `en-US`,
+        item: [
+            {
+                title: a.find(`.supported_current_rel`).text(),
+                link: r,
+                description: `Firmware OpenWrt Install: ${a.find(`.firmware_openwrt_install_url`).html()}<br><br>Firmware OpenWrt Upgrade: ${i(`.firmware_openwrt_upgrade_url`).html()}'`,
+            },
+        ],
+    };
+}
+export { n as route };

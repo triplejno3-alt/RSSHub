@@ -1,0 +1,64 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import { t } from './not-found-C-Horq2w.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './embed-resource-CgLuG091.mjs';
+import { load as a } from 'cheerio';
+const o = `https://www.nwnu.edu.cn/_upload/tpl/02/d9/729/template729/favicon.ico`,
+    s = `https://jwc.nwnu.edu.cn/`,
+    c = { tzgg: { title: `通知公告`, description: `西北师范大学教务处通知公告` }, jwkx: { title: `教务快讯`, description: `西北师范大学教务快讯` } },
+    l = {
+        path: `/department/academic-affairs/:column`,
+        name: `教务处`,
+        maintainers: [`PrinOrange`],
+        handler: async (l) => {
+            let u = l.req.param(`column`);
+            if (c[u] === void 0) throw new t(`The column ${u} does not exist`);
+            let d = c[u].title,
+                f = c[u].description,
+                p = `https://jwc.nwnu.edu.cn/${u}/list.htm`,
+                { data: m } = await r(p),
+                h = a(m),
+                g = h(`div.list_index > ul > li`)
+                    .toArray()
+                    .map((e) => {
+                        let t = h(e).find(`span.f > a`).text(),
+                            r = n(h(e).find(`span.r`).text()),
+                            i = h(e).find(`span.f > a`).attr(`href`);
+                        return { title: t, date: r, link: new URL(i, s).href };
+                    });
+            return {
+                title: d,
+                description: f,
+                link: p,
+                image: o,
+                item: await Promise.all(
+                    g.map((t) =>
+                        e.tryGet(t.link, async () => {
+                            let { data: e } = await r(t.link),
+                                n = i(s, a(e)(`div.wp_articlecontent`).html() || ``);
+                            return { title: t.title, pubDate: t.date, link: t.link, description: n, category: [`university`], guid: t.link, id: t.link, image: o, content: n, updated: t.date, language: `zh-CN` };
+                        })
+                    )
+                ),
+                allowEmpty: !0,
+                language: `zh-CN`,
+                feedLink: `https://rsshub.app/nwnu/department/academic-affairs/${u}`,
+                id: `https://rsshub.app/nwnu/department/academic-affairs/${u}`,
+            };
+        },
+        categories: [`university`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportRadar: !0, supportPodcast: !1, supportScihub: !1 },
+        example: `/department/academic-affairs/tzgg`,
+        radar: [{ source: [`jwc.nwnu.edu.cn/:column/list.htm`], target: `/department/academic-affairs/:column` }],
+        description: `
+| column | 标题     | 描述                     |
+| ------ | -------- | ------------------------ |
+| tzgg   | 通知公告 | 西北师范大学教务通知公告 |
+| jwkx   | 教务快讯 | 西北师范大学教务快讯     |`,
+    };
+export { l as route };

@@ -1,0 +1,89 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+import { t as r } from './not-found-C-Horq2w.mjs';
+import { t as i } from './puppeteer-BbZGb8cd.mjs';
+import { t as a } from './user-DdB4eDEC.mjs';
+import { load as o } from 'cheerio';
+const s = {
+    path: `/profile/:id/:type?/:functionalFlag?`,
+    categories: [`social-media`],
+    example: `/picuki/profile/linustech`,
+    parameters: {
+        id: `Tiktok user id (without @)`,
+        type: {
+            description: `Type of profile page`,
+            options: [
+                { value: `profile`, label: `Profile Page` },
+                { value: `story`, label: `Story Page` },
+            ],
+            default: `profile`,
+        },
+        functionalFlag: {
+            description: `Functional flag for video embedding`,
+            options: [
+                { value: `0`, label: `Off, only show video poster as an image` },
+                { value: `1`, label: `On` },
+            ],
+            default: `1`,
+        },
+    },
+    features: { requireConfig: !1, requirePuppeteer: !0, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [
+        { source: [`www.picuki.com/profile/:id`], target: `/profile/:id` },
+        { source: [`www.picuki.com/story/:id`], target: `/profile/:id/story` },
+    ],
+    name: `User Profile - Picuki`,
+    maintainers: [`hoilc`, `Rongronggg9`, `devinmugen`, `NekoAria`],
+    handler: c,
+};
+async function c(s) {
+    let c = s.req.param(`id`),
+        l = s.req.param(`type`) ?? `profile`,
+        u = (s.req.param(`functionalFlag`) ?? `1`) !== `0`,
+        d = `https://www.picuki.com`,
+        f = `${d}/${l === `story` ? `story` : `profile`}/${c}`,
+        p = await n.tryGet(`picuki:${l}:${c}`, async () => {
+            let n;
+            try {
+                n = await e(f, { headers: { 'User-Agent': t.trueUA } });
+            } catch (e) {
+                if (e.status === 403) {
+                    let { page: e, destory: t } = await i(f, {
+                        onBeforeLoad: async (e) => {
+                            let t = new Set([`document`, `script`, `xhr`, `fetch`]);
+                            (await e.setRequestInterception(!0),
+                                e.on(`request`, (e) => {
+                                    t.has(e.resourceType()) ? e.continue() : e.abort();
+                                }));
+                        },
+                    });
+                    (await e.waitForSelector(`.content`), (n = await e.content()), await t());
+                } else throw new r(e.message);
+            }
+            let a = o(n);
+            if (a(`.posts-empty`).length) throw Error(a(`.posts-empty`).text().trim() || `No posts found`);
+            if (a(`.error-p`).length) throw Error(a(`.error-p span`).text().trim() || `Profile not found`);
+            let s = a(`.profile-info .username`).text().trim(),
+                l = a(`.posts-video .posts__video-item`)
+                    .toArray()
+                    .map((e) => {
+                        let t = a(e),
+                            n = t.attr(`href`)?.split(`/`).pop(),
+                            r = t.find(`img`);
+                        return {
+                            title: r.attr(`alt`) || ``,
+                            author: s,
+                            renderData: { poster: r.attr(`src`), source: t.find(`.popup-open`).data(`source`), id: n },
+                            link: `${d}/media/${n}`,
+                            guid: `https://www.tiktok.com/@${c}/video/${n}`,
+                        };
+                    });
+            return { title: a(`head title`).text(), description: a(`.posts-current`).text().trim(), image: a(`.profile-image`).attr(`src`), items: l };
+        }),
+        m = p.items.map((e) => ({ ...e, description: a({ poster: e.renderData.poster, source: e.renderData.source, useIframe: u, id: e.renderData.id }) }));
+    return { title: p.title, link: f, image: p.image, description: p.description, item: m };
+}
+export { s as route };

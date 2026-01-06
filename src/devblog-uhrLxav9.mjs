@@ -1,0 +1,51 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/devblog`,
+    categories: [`game`],
+    example: `/worldofwarships/devblog`,
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`blog.worldofwarships.com`], target: `/devblog` }],
+    name: `Development Blog`,
+    maintainers: [`SinCerely023`],
+    handler: o,
+};
+async function o() {
+    let a = `https://blog.worldofwarships.com/`,
+        { data: o } = await n(a),
+        s = i(o),
+        c = s(`[rel=apple-touch-icon]`).last(),
+        l = s(`article`)
+            .toArray()
+            .map((e) => {
+                e = s(e);
+                let n = e.find(`div`).first().find(`time`).first(),
+                    i = e.find(`div`).first().find(`ul`).first().find(`li`).first(),
+                    a = e.find(`h2`).first().find(`a`).first(),
+                    o = e.find(`h2`).first().next();
+                return { title: a.attr(`title`), link: a.attr(`href`), pubDate: r(t(n.attr(`data-timestamp`) * 1e3), 0), category: i.text(), author: `Wargaming`, description: o.html() };
+            });
+    return {
+        title: `World of Warships - Development Blog`,
+        link: a,
+        item: await Promise.all(
+            l.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let { data: e } = await n(t.link);
+                    return ((t.description = i(e)(`.article__content`).first().html()), t);
+                })
+            )
+        ),
+        image: `https:` + c.attr(`href`),
+        language: `en`,
+        author: `Wargaming`,
+    };
+}
+export { a as route };

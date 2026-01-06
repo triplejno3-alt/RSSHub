@@ -1,0 +1,32 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { t as r } from './utils-DrEAKorY.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/home`,
+    categories: [`social-media`],
+    view: n.Articles,
+    example: `/jianshu/home`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.jianshu.com/`] }],
+    name: `首页`,
+    maintainers: [`DIYgod`, `HenryQW`, `JimenezLi`],
+    handler: o,
+    url: `www.jianshu.com/`,
+};
+async function o() {
+    let n = (await t({ method: `get`, url: `https://www.jianshu.com`, headers: { Referer: `https://www.jianshu.com` } })).data,
+        a = i(n),
+        o = a(`.note-list li`).toArray(),
+        s = await r.ProcessFeed(o, e);
+    return { title: `简书首页`, link: `https://www.jianshu.com`, description: a(`meta[name="description"]`).attr(`content`), item: s };
+}
+export { a as route };

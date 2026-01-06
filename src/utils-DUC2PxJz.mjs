@@ -1,0 +1,64 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import r from 'node:crypto';
+import * as i from 'cheerio';
+const a = (e) => Uint8Array.from(Buffer.from(e, `base64`)),
+    o = (e) => Buffer.from(e, `base64`).toString(`hex`),
+    s = (e, t) => {
+        let n = r.createHash(`sha256`);
+        return (n.update(e), n.update(t), n.digest(`hex`));
+    },
+    c = (e) => {
+        let t = JSON.parse(Buffer.from(e, `base64`).toString()),
+            n = a(t.v.a),
+            r = o(t.v.c);
+        for (let e = 0; e < 1e6; e++)
+            if (s(n, e.toString()) === r) {
+                t.d = Buffer.from(e.toString()).toString(`base64`);
+                break;
+            }
+        return Buffer.from(JSON.stringify(t)).toString(`base64`);
+    },
+    l = async (t) => {
+        let n = await e(t),
+            r = i.load(n);
+        if (r(`script`).text().includes(`_wafchallengeid`)) {
+            let a = r(`script:contains("_wafchallengeid")`)
+                .text()
+                .match(/cs="(.*?)",c/)?.[1];
+            ((n = await e(t, { headers: { cookie: `_wafchallengeid=${c(a)};` } })), (r = i.load(n)));
+        }
+        return r(`.article-viewer`).html();
+    },
+    u = (e) =>
+        e.map((e) => {
+            let t = !!e.article_info;
+            if (e.msg_Info) {
+                let t = e.msg_Info,
+                    r = t.content.match(/\[(.*?)\]\s+(.*)/);
+                return {
+                    title: r?.[1],
+                    description: r?.[2]?.trim(),
+                    pubDate: n(t.ctime, `X`),
+                    author: e.author_user_info.user_name,
+                    link: `https://juejin.cn/pin/7548882523352186915${e.msg_id}`,
+                    category: [e.topic.title],
+                    isShortMsg: !0,
+                };
+            }
+            return {
+                title: t ? e.article_info.title : e.content_info.title,
+                description: (t ? e.article_info.brief_content : e.content_info.brief) || `无描述`,
+                pubDate: n(t ? e.article_info.ctime : e.content_info.ctime, `X`),
+                author: e.author_user_info.user_name,
+                link: `https://juejin.cn${t ? `/post/${e.article_id}` : `/news/${e.content_id}`}`,
+                category: [...new Set([e.category.category_name, ...e.tags.map((e) => e.tag_name)])],
+            };
+        }),
+    d = (e) => Promise.all(e.map((e) => t.tryGet(e.link, async () => ((e.description = e.isShortMsg ? e.description : (await l(e.link)) || e.description), e)))),
+    f = () => t.tryGet(`juejin:categoryBriefs`, async () => (await e(`https://api.juejin.cn/tag_api/v1/query_category_briefs`)).data),
+    p = (n) => t.tryGet(`juejin:collectionId:${n}`, async () => (await e(`https://api.juejin.cn/interact_api/v1/collectionSet/get`, { query: { tag_id: n, cursor: 0 } })).data),
+    m = (n) => t.tryGet(`juejin:tag:${n}`, async () => (await e(`https://api.juejin.cn/tag_api/v1/query_tag_detail`, { method: `POST`, body: { key_word: n } })).data),
+    h = () => t.tryGet(`juejin:tagList`, async () => (await e(`https://api.juejin.cn/tag_api/v1/query_tag_list`, { method: `POST`, body: { key_word: ``, status: [0], id_type: 1101, sort_type: 0, cursor: `0`, limit: 100 } })).data);
+export { h as a, m as i, f as n, u as o, p as r, d as t };

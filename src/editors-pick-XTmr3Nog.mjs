@@ -1,0 +1,19 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { n as e, r as t, s as n, t as r } from './common-CeVXaBVy.mjs';
+const i = {
+    ...t,
+    name: `Editor's Pick Posts`,
+    path: `/editors-pick/:category?`,
+    radar: [{ source: [`www.voronoiapp.com/posts/editors-pick`], target: `/editors-pick` }],
+    example: `/voronoiapp/editors-pick`,
+    parameters: { category: r },
+    handler: async (t) => {
+        let { category: r = `` } = t.req.param(),
+            i = await n({ swimlane: `CURATED`, category: r === `` ? void 0 : r });
+        return { ...e, title: `Voronoi Editor's Pick Posts${r ? ` - ${r}` : ``}`, link: `https://www.voronoiapp.com/editors-pick`, item: i };
+    },
+};
+export { i as route };

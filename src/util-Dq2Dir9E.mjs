@@ -1,0 +1,71 @@
+import { t as e } from './cache-DLkCV5c7.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = `mydrivers.com`,
+    o = `https://m.${a}`,
+    s = `https://rss.${a}`,
+    c = new URL(`m/newsvote.ashx`, o).href,
+    l = `快科技`,
+    u = { new: `最新`, hot: `热门`, zhibo: `直播` },
+    d = (e) => {
+        let t = e.split(`/`),
+            n = [];
+        for (let e = 0; e < t.length; e += 2) {
+            let r = t[e],
+                i = t[e + 1];
+            r !== void 0 && i !== void 0 && n.push(`${r}=${i}`);
+        }
+        return `?${n.join(`&`)}`;
+    },
+    f = (t, r) =>
+        e.tryGet(t, async () => {
+            let { data: e } = await n(t),
+                a = i(e),
+                s = new URL(a(`link[rel="apple-touch-icon-precomposed"]`).prop(`href`), o).href,
+                c = `https:${a(`div.logo a img`).prop(`src`)}`,
+                u = a(`div.hottime a`)
+                    .toArray()
+                    .map((e) => a(e).text());
+            return {
+                title: `${l} - ${r !== void 0 && u ? u[r] : a(`a[data-id="${t.split(/=/).pop()}"]`).text() || a(`#newsEventSwitch a.cur`).text()}`,
+                link: t,
+                description: a(`meta[name="description"]`).prop(`content`),
+                language: `zh-cn`,
+                image: c,
+                icon: s,
+                logo: s,
+                subtitle: a(`meta[name="keywords"]`).prop(`content`),
+                author: l,
+                allowEmpty: !0,
+            };
+        }),
+    p = async (s) =>
+        await Promise.all(
+            s.map((s) =>
+                e.tryGet(`${a}#${s.guid}`, async () => {
+                    let { data: e } = await n(`${o}/newsview/${s.guid}.html`),
+                        { data: l } = await n.post(c, { json: { Tid: s.guid } }),
+                        u = i(e);
+                    return (
+                        (s.title = u(`div.news_t`).text() || s.title),
+                        (s.description = u(`#content`).html() ?? s.description),
+                        (s.author = u(`li.writer`).text() || s.author),
+                        (s.category = [
+                            ...(s.category ?? []),
+                            ...u(`div.bqian1 a`)
+                                .toArray()
+                                .map((e) => u(e).contents().last().text().trim()),
+                        ].filter(Boolean)),
+                        (s.guid = `${a}#${s.guid}`),
+                        (s.pubDate = s.pubDate ?? r(t(u(`li.writer`).next().text().trim(), `YYYY年MM月DD日 HH:mm`), 8)),
+                        (s.upvotes = l.NewsSupport ? Number.parseInt(l.NewsSupport, 10) : 0),
+                        (s.downvotes = l.NewsOppose ? Number.parseInt(l.NewsOppose, 10) : 0),
+                        (s.comments = u(`#tpinglun`).text() ? Number.parseInt(u(`#tpinglun`).text(), 10) : 0),
+                        s
+                    );
+                })
+            )
+        );
+export { s as a, p as i, d as n, o, f as r, l as s, u as t };

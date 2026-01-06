@@ -1,0 +1,61 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { renderToString as o } from 'hono/jsx/dom/server';
+const s = (e, t) => o(i(c, { vod: e, link: t })),
+    c = ({ vod: e, link: t }) =>
+        a(r, {
+            children: [
+                i(`a`, { href: t, title: `进入官网查看`, children: i(`img`, { src: e.vod_pic, alt: e.vod_name }) }),
+                a(`h1`, { children: [e.vod_name, ` `, i(`span`, { style: `font-size: 0.6em; color: darkred;`, children: e.vod_remarks })] }),
+                a(`p`, { children: [i(`b`, { children: `别名：` }), e.vod_sub] }),
+                a(`p`, { children: [i(`b`, { children: `导演：` }), e.vod_director] }),
+                a(`p`, { children: [i(`b`, { children: `主演：` }), e.vod_actor] }),
+                a(`p`, { children: [i(`b`, { children: `类型：` }), e.vod_class] }),
+                a(`p`, { children: [i(`b`, { children: `年份：` }), e.vod_year] }),
+                a(`p`, { children: [i(`b`, { children: `地区：` }), e.vod_area] }),
+                a(`p`, { children: [i(`b`, { children: `开播时间：` }), e.vod_pubdate] }),
+                a(`p`, { children: [i(`b`, { children: `更新时间：` }), e.vod_time] }),
+                a(`p`, { children: [i(`b`, { children: `资源主页：` }), i(`a`, { href: t, children: t })] }),
+                i(`h3`, { children: `剧情介绍` }),
+            ],
+        }),
+    l = {
+        path: `/:domain/:type?/:size?`,
+        categories: [`multimedia`],
+        example: `/maccms/moduzy.net/2`,
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        parameters: { domain: `采集站域名，可选值如下表`, type: `类别ID，不同采集站点有不同的类别规则和ID，默认为 0，代表全部类别`, size: `每次获取的数据条数，上限 100 条，默认 30 条` },
+        name: `最新资源`,
+        maintainers: [`hualiong`],
+        description: `
+::: tip
+每个采集站提供的影视类别ID是不同的，即参数中的 \`type\` 是不同的。**可以先访问一次站点提供的采集接口，然后从返回结果中的 \`class\` 字段中的 \`type_id\`获取相应的类别ID**
+:::
+
+| 站名                | 域名                                             | 站名             | 域名                                               | 站名           | 域名                                            |
+| ------------------- | ------------------------------------------------ | ---------------- | -------------------------------------------------- | -------------- | ----------------------------------------------- |
+| 魔都资源网          | [moduzy.net](https://moduzy.net)                 | 华为吧影视资源站 | [hw8.live](https://hw8.live)                       | 360 资源站     | [360zy.com](https://360zy.com)                  |
+| jkun 爱坤联盟资源网 | [ikunzyapi.com](https://ikunzyapi.com)           | 奥斯卡资源站     | [aosikazy.com](https://aosikazy.com)               | 飞速资源采集网 | [www.feisuzyapi.com](http://www.feisuzyapi.com) |
+| 森林资源网          | [slapibf.com](https://slapibf.com)               | 天空资源采集网   | [api.tiankongapi.com](https://api.tiankongapi.com) | 百度云资源     | [api.apibdzy.com](https://api.apibdzy.com)      |
+| 红牛资源站          | [www.hongniuzy2.com](https://www.hongniuzy2.com) | 乐视资源网       | [leshiapi.com](https://leshiapi.com)               | 暴风资源       | [bfzyapi.com](https://bfzyapi.com)              |`,
+        handler: async (r) => {
+            let { domain: i, type: a = `0`, size: o = `30` } = r.req.param();
+            if (!u.has(i)) throw Error(`非法域名！`);
+            let c = (await e(`https://${i}/api.php/provide/vod`, { parseResponse: JSON.parse, query: { ac: `detail`, t: a, pagesize: Number.parseInt(o) > 100 ? 100 : o } })).list.map((e) => ({
+                title: e.vod_name,
+                image: e.vod_pic,
+                link: `https://${i}/vod/${e.vod_id}/`,
+                guid: e.vod_play_url?.match(/https:\/\/.+?\.m3u8/g)?.at(-1),
+                pubDate: n(t(e.vod_time, `YYYY-MM-DD HH:mm:ss`), 8),
+                category: [e.type_name, ...e.vod_class.split(`,`)],
+                description: s(e, `https://${i}/vod/${e.vod_id}/`) + e.vod_content,
+            }));
+            return { title: `最新${a !== `0` && c.length ? c[0].category[0] : `资源`} - ${i}`, link: `https://${i}`, allowEmpty: !0, item: c };
+        },
+    },
+    u = new Set([`moduzy.net`, `hw8.live`, `360zy.com`, `ikunzyapi.com`, `aosikazy.com`, `www.feisuzyapi.com`, `slapibf.com`, `api.tiankongapi.com`, `api.apibdzy.com`, `www.hongniuzy2.com`, `leshiapi.com`, `bfzyapi.com`]);
+export { l as route };

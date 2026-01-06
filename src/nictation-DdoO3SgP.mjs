@@ -1,0 +1,34 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+const n = {
+    path: `/nictation`,
+    categories: [`new-media`],
+    example: `/tmtpost/word`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: { source: [`www.tmtpost.com`] },
+    name: `快报`,
+    maintainers: [`defp`],
+    handler: r,
+    url: `www.tmtpost.com/nictation`,
+};
+async function r() {
+    let n = Math.floor(Date.now() / 1e3);
+    return {
+        title: `钛媒体 - 快报`,
+        link: `https://www.tmtpost.com/nictation`,
+        item: (
+            await t({
+                method: `get`,
+                url: `https://api.tmtpost.com/v1/word/list`,
+                searchParams: { time_start: n - 3600, time_end: n, limit: 40, fields: [`share_description`, `share_image`, `word_comments`, `stock_list`, `is_important`, `duration`, `word_classify`, `share_link`].join(`;`) },
+                headers: { 'app-version': `web1.0` },
+            })
+        ).data.data.map((t) => ({ title: t.title, description: t.detail, pubDate: e(t.time_published, `X`), link: t.share_link || `https://www.tmtpost.com/nictation/${t.guid}.html`, author: t.author_name })),
+    };
+}
+export { n as route };

@@ -1,0 +1,24 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { t as e } from './utils-M0JWlqMr.mjs';
+const t = `https://ai.gxmzu.edu.cn/index/tzgg.htm`,
+    n = {
+        path: `/aitzgg`,
+        categories: [`university`],
+        example: `/gxmzu/aitzgg`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`ai.gxmzu.edu.cn/index/tzgg.htm`, `ai.gxmzu.edu.cn/`] }],
+        name: `人工智能学院通知公告`,
+        maintainers: [`real-jiakai`],
+        handler: r,
+        url: `ai.gxmzu.edu.cn/index/tzgg.htm`,
+    };
+async function r(n) {
+    return { title: `广西民族大学人工智能学院 -- 通知公告`, link: t, item: await e(n, t, `https://ai.gxmzu.edu.cn`, `a`, `.timestyle55267`, { title: `.titlestyle55269`, content: `#vsb_newscontent`, date: `.timestyle55269` }) };
+}
+export { n as route };

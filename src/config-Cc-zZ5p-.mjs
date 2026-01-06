@@ -1,0 +1,219 @@
+import 'dotenv/config';
+import { ofetch as e } from 'ofetch';
+let t = process.env;
+const n = {},
+    r = `RSSHub/1.0 (+http://github.com/DIYgod/RSSHub; like FeedFetcher-Google)`,
+    i = (e, t) => (e === void 0 ? t : e === `` || e === `0` || e === `false` ? !1 : !!e),
+    a = (e, t) => (e === void 0 ? t : Number.parseInt(e)),
+    o = () => {
+        let e = {},
+            o = {},
+            s = {},
+            c = {},
+            l = {};
+        for (let n in t)
+            if (n.startsWith(`BILIBILI_COOKIE_`)) {
+                let r = n.slice(16);
+                e[r] = t[n];
+            } else if (n.startsWith(`EMAIL_CONFIG_`)) {
+                let e = n.slice(13);
+                o[e] = t[n];
+            } else if (n.startsWith(`DISCUZ_COOKIE_`)) {
+                let e = n.slice(14);
+                s[e] = t[n];
+            } else if (n.startsWith(`MEDIUM_COOKIE_`)) {
+                let e = n.slice(14).toLowerCase();
+                c[e] = t[n];
+            } else if (n.startsWith(`DISCOURSE_CONFIG_`)) {
+                let e = n.slice(17);
+                l[e] = JSON.parse(t[n] || `{}`);
+            }
+        let u = {
+            disallowRobot: i(t.DISALLOW_ROBOT, !1),
+            enableCluster: i(t.ENABLE_CLUSTER, !1),
+            isPackage: !!t.IS_PACKAGE,
+            nodeName: t.NODE_NAME,
+            puppeteerRealBrowserService: t.PUPPETEER_REAL_BROWSER_SERVICE,
+            puppeteerWSEndpoint: t.PUPPETEER_WS_ENDPOINT,
+            chromiumExecutablePath: t.CHROMIUM_EXECUTABLE_PATH,
+            connect: { port: a(t.PORT, 1200) },
+            listenInaddrAny: i(t.LISTEN_INADDR_ANY, !0),
+            requestRetry: a(t.REQUEST_RETRY, 2),
+            requestTimeout: a(t.REQUEST_TIMEOUT, 3e4),
+            ua: t.UA ?? (i(t.NO_RANDOM_UA, !1) ? r : `Mozilla/5.0 (Macintosh; Intel Mac OS X 15_6_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36`),
+            trueUA: r,
+            allowOrigin: t.ALLOW_ORIGIN,
+            cache: { type: t.CACHE_TYPE || (t.CACHE_TYPE === `` ? `` : `memory`), requestTimeout: a(t.CACHE_REQUEST_TIMEOUT, 60), routeExpire: a(t.CACHE_EXPIRE, 300), contentExpire: a(t.CACHE_CONTENT_EXPIRE, 3600) },
+            memory: { max: a(t.MEMORY_MAX, 2 ** 8) },
+            redis: { url: t.REDIS_URL || `redis://localhost:6379/` },
+            proxyUri: t.PROXY_URI,
+            proxyUris: t.PROXY_URIS
+                ? t.PROXY_URIS.split(`,`)
+                      .map((e) => e.trim())
+                      .filter(Boolean)
+                : void 0,
+            proxy: {
+                protocol: t.PROXY_PROTOCOL,
+                host: t.PROXY_HOST,
+                port: t.PROXY_PORT,
+                auth: t.PROXY_AUTH,
+                url_regex: t.PROXY_URL_REGEX || `.*`,
+                strategy: t.PROXY_STRATEGY || `all`,
+                failoverTimeout: a(t.PROXY_FAILOVER_TIMEOUT, 5e3),
+                healthCheckInterval: a(t.PROXY_HEALTH_CHECK_INTERVAL, 6e4),
+            },
+            pacUri: t.PAC_URI,
+            pacScript: t.PAC_SCRIPT,
+            accessKey: t.ACCESS_KEY,
+            debugInfo: t.DEBUG_INFO || `true`,
+            loggerLevel: t.LOGGER_LEVEL || `info`,
+            noLogfiles: i(t.NO_LOGFILES, !1),
+            otel: { seconds_bucket: t.OTEL_SECONDS_BUCKET || `0.01,0.1,1,2,5,15,30,60`, milliseconds_bucket: t.OTEL_MILLISECONDS_BUCKET || `10,20,50,100,250,500,1000,5000,15000` },
+            showLoggerTimestamp: i(t.SHOW_LOGGER_TIMESTAMP, !1),
+            sentry: { dsn: t.SENTRY, routeTimeout: a(t.SENTRY_ROUTE_TIMEOUT, 3e4) },
+            enableRemoteDebugging: i(t.ENABLE_REMOTE_DEBUGGING, !1),
+            hotlink: { template: t.HOTLINK_TEMPLATE, includePaths: t.HOTLINK_INCLUDE_PATHS ? t.HOTLINK_INCLUDE_PATHS.split(`,`) : void 0, excludePaths: t.HOTLINK_EXCLUDE_PATHS ? t.HOTLINK_EXCLUDE_PATHS.split(`,`) : void 0 },
+            feature: {
+                allow_user_hotlink_template: i(t.ALLOW_USER_HOTLINK_TEMPLATE, !1),
+                filter_regex_engine: t.FILTER_REGEX_ENGINE || `re2`,
+                allow_user_supply_unsafe_domain: i(t.ALLOW_USER_SUPPLY_UNSAFE_DOMAIN, !1),
+                disable_nsfw: i(t.DISABLE_NSFW, !1),
+            },
+            suffix: t.SUFFIX,
+            titleLengthLimit: a(t.TITLE_LENGTH_LIMIT, 150),
+            openai: {
+                apiKey: t.OPENAI_API_KEY,
+                model: t.OPENAI_MODEL || `gpt-3.5-turbo-16k`,
+                temperature: a(t.OPENAI_TEMPERATURE, 0.2),
+                maxTokens: a(t.OPENAI_MAX_TOKENS, 0) || void 0,
+                endpoint: t.OPENAI_API_ENDPOINT || `https://api.openai.com/v1`,
+                inputOption: t.OPENAI_INPUT_OPTION || `description`,
+                promptDescription: t.OPENAI_PROMPT || `Please summarize the following article and reply with markdown format.`,
+                promptTitle: t.OPENAI_PROMPT_TITLE || `Please translate the following title into Simplified Chinese and reply only translated text.`,
+            },
+            follow: { ownerUserId: t.FOLLOW_OWNER_USER_ID, description: t.FOLLOW_DESCRIPTION, price: a(t.FOLLOW_PRICE), userLimit: a(t.FOLLOW_USER_LIMIT) },
+            bilibili: { cookies: e, dmImgList: t.BILIBILI_DM_IMG_LIST, dmImgInter: t.BILIBILI_DM_IMG_INTER, excludeSubtitles: i(t.BILIBILI_EXCLUDE_SUBTITLES, !1) },
+            bitbucket: { username: t.BITBUCKET_USERNAME, password: t.BITBUCKET_PASSWORD },
+            btbyr: { host: t.BTBYR_HOST, cookies: t.BTBYR_COOKIE },
+            bupt: { portal_cookie: t.BUPT_PORTAL_COOKIE },
+            caixin: { cookie: t.CAIXIN_COOKIE },
+            civitai: { cookie: t.CIVITAI_COOKIE },
+            dianping: { cookie: t.DIANPING_COOKIE },
+            dida365: { username: t.DIDA365_USERNAME, password: t.DIDA365_PASSWORD },
+            discord: { authorization: t.DISCORD_AUTHORIZATION },
+            discourse: { config: l },
+            discuz: { cookies: s },
+            disqus: { api_key: t.DISQUS_API_KEY },
+            douban: { cookie: t.DOUBAN_COOKIE },
+            ehentai: { ipb_member_id: t.EH_IPB_MEMBER_ID, ipb_pass_hash: t.EH_IPB_PASS_HASH, sk: t.EH_SK, igneous: t.EH_IGNEOUS, star: t.EH_STAR, img_proxy: t.EH_IMG_PROXY },
+            email: { config: o },
+            fanbox: { session: t.FANBOX_SESSION_ID },
+            fanfou: { consumer_key: t.FANFOU_CONSUMER_KEY, consumer_secret: t.FANFOU_CONSUMER_SECRET, username: t.FANFOU_USERNAME, password: t.FANFOU_PASSWORD },
+            fantia: { cookies: t.FANTIA_COOKIE },
+            game4399: { cookie: t.GAME_4399 },
+            gelbooru: { apiKey: t.GELBOORU_API_KEY, userId: t.GELBOORU_USER_ID },
+            github: { access_token: t.GITHUB_ACCESS_TOKEN },
+            gitee: { access_token: t.GITEE_ACCESS_TOKEN },
+            google: { fontsApiKey: t.GOOGLE_FONTS_API_KEY },
+            guozaoke: { cookies: t.GUOZAOKE_COOKIES },
+            hefeng: { key: t.HEFENG_KEY, apiHost: t.HEFENG_API_HOST },
+            infzm: { cookie: t.INFZM_COOKIE },
+            initium: { username: t.INITIUM_USERNAME, password: t.INITIUM_PASSWORD, bearertoken: t.INITIUM_BEARER_TOKEN },
+            instagram: { username: t.IG_USERNAME, password: t.IG_PASSWORD, proxy: t.IG_PROXY, cookie: t.IG_COOKIE },
+            iwara: { username: t.IWARA_USERNAME, password: t.IWARA_PASSWORD },
+            javdb: { session: t.JAVDB_SESSION },
+            jumeili: { cookie: t.JUMEILI_COOKIE },
+            keylol: { cookie: t.KEYLOL_COOKIE },
+            lastfm: { api_key: t.LASTFM_API_KEY },
+            lightnovel: { cookie: t.SECURITY_KEY },
+            lofter: { cookies: t.LOFTER_COOKIE },
+            lorientlejour: { token: t.LORIENTLEJOUR_TOKEN, username: t.LORIENTLEJOUR_USERNAME, password: t.LORIENTLEJOUR_PASSWORD },
+            malaysiakini: { email: t.MALAYSIAKINI_EMAIL, password: t.MALAYSIAKINI_PASSWORD, refreshToken: t.MALAYSIAKINI_REFRESHTOKEN },
+            mangadex: { username: t.MANGADEX_USERNAME, password: t.MANGADEX_PASSWORD, clientId: t.MANGADEX_CLIENT_ID, clientSecret: t.MANGADEX_CLIENT_SECRET, refreshToken: t.MANGADEX_REFRESH_TOKEN },
+            manhuagui: { cookie: t.MHGUI_COOKIE },
+            mastodon: { apiHost: t.MASTODON_API_HOST, accessToken: t.MASTODON_API_ACCESS_TOKEN, acctDomain: t.MASTODON_API_ACCT_DOMAIN },
+            medium: { cookies: c, articleCookie: t.MEDIUM_ARTICLE_COOKIE || `` },
+            mihoyo: { cookie: t.MIHOYO_COOKIE },
+            miniflux: { instance: t.MINIFLUX_INSTANCE || `https://reader.miniflux.app`, token: t.MINIFLUX_TOKEN || `` },
+            misskey: { accessToken: t.MISSKEY_ACCESS_TOKEN },
+            mixi2: { authToken: t.MIXI2_AUTH_TOKEN, authKey: t.MIXI2_AUTH_KEY },
+            mox: { cookie: t.MOX_COOKIE },
+            ncm: { cookies: t.NCM_COOKIES || `` },
+            newrank: { cookie: t.NEWRANK_COOKIE },
+            nga: { uid: t.NGA_PASSPORT_UID, cid: t.NGA_PASSPORT_CID },
+            nhentai: { username: t.NHENTAI_USERNAME, password: t.NHENTAI_PASSWORD },
+            notion: { key: t.NOTION_TOKEN },
+            patreon: { sessionId: t.PATREON_SESSION_ID },
+            pianyuan: { cookie: t.PIANYUAN_COOKIE },
+            pixabay: { key: t.PIXABAY_KEY },
+            pixiv: {
+                refreshToken: t.PIXIV_REFRESHTOKEN,
+                bypassCdn: i(t.PIXIV_BYPASS_CDN, !1),
+                bypassCdnHostname: t.PIXIV_BYPASS_HOSTNAME || `public-api.secure.pixiv.net`,
+                bypassCdnDoh: t.PIXIV_BYPASS_DOH || `https://1.1.1.1/dns-query`,
+                imgProxy: t.PIXIV_IMG_PROXY || `https://i.pixiv.re`,
+            },
+            pkubbs: { cookie: t.PKUBBS_COOKIE },
+            qingting: { id: t.QINGTING_ID },
+            readwise: { accessToken: t.READWISE_ACCESS_TOKEN },
+            saraba1st: { cookie: t.SARABA1ST_COOKIE, host: t.SARABA1ST_HOST || `https://stage1st.com` },
+            sehuatang: { cookie: t.SEHUATANG_COOKIE },
+            scboy: { token: t.SCBOY_BBS_TOKEN },
+            scihub: { host: t.SCIHUB_HOST || `https://sci-hub.se/` },
+            sdo: { ff14risingstones: t.SDO_FF14RISINGSTONES, ua: t.SDO_UA },
+            sis001: { baseUrl: t.SIS001_BASE_URL || `https://sis001.com` },
+            skeb: { bearerToken: t.SKEB_BEARER_TOKEN },
+            sorrycc: { cookie: t.SORRYCC_COOKIES },
+            spotify: { clientId: t.SPOTIFY_CLIENT_ID, clientSecret: t.SPOTIFY_CLIENT_SECRET, refreshToken: t.SPOTIFY_REFRESHTOKEN },
+            sspai: { bearertoken: t.SSPAI_BEARERTOKEN },
+            telegram: {
+                token: t.TELEGRAM_TOKEN,
+                session: t.TELEGRAM_SESSION,
+                apiId: t.TELEGRAM_API_ID,
+                apiHash: t.TELEGRAM_API_HASH,
+                maxConcurrentDownloads: t.TELEGRAM_MAX_CONCURRENT_DOWNLOADS,
+                proxy: { host: t.TELEGRAM_PROXY_HOST, port: t.TELEGRAM_PROXY_PORT, secret: t.TELEGRAM_PROXY_SECRET },
+            },
+            tophub: { cookie: t.TOPHUB_COOKIE },
+            tsdm39: { cookie: t.TSDM39_COOKIES },
+            tumblr: { clientId: t.TUMBLR_CLIENT_ID, clientSecret: t.TUMBLR_CLIENT_SECRET, refreshToken: t.TUMBLR_REFRESH_TOKEN },
+            twitter: {
+                username: t.TWITTER_USERNAME?.split(`,`),
+                password: t.TWITTER_PASSWORD?.split(`,`),
+                authenticationSecret: t.TWITTER_AUTHENTICATION_SECRET?.split(`,`),
+                phoneOrEmail: t.TWITTER_PHONE_OR_EMAIL?.split(`,`),
+                authToken: t.TWITTER_AUTH_TOKEN?.split(`,`),
+                thirdPartyApi: t.TWITTER_THIRD_PARTY_API,
+            },
+            uestc: { bbsCookie: t.UESTC_BBS_COOKIE, bbsAuthStr: t.UESTC_BBS_AUTH_STR },
+            weibo: { app_key: t.WEIBO_APP_KEY, app_secret: t.WEIBO_APP_SECRET, cookies: t.WEIBO_COOKIES, redirect_url: t.WEIBO_REDIRECT_URL },
+            wenku8: { cookie: t.WENKU8_COOKIE },
+            wordpress: { cdnUrl: t.WORDPRESS_CDN },
+            xiaoyuzhou: { device_id: t.XIAOYUZHOU_ID, refresh_token: t.XIAOYUZHOU_TOKEN },
+            xiaohongshu: { cookie: t.XIAOHONGSHU_COOKIE },
+            ximalaya: { token: t.XIMALAYA_TOKEN },
+            xsijishe: { cookie: t.XSIJISHE_COOKIE, user_agent: t.XSIJISHE_USER_AGENT },
+            xueqiu: { cookies: t.XUEQIU_COOKIES },
+            yamibo: { salt: t.YAMIBO_SALT, auth: t.YAMIBO_AUTH },
+            youtube: { key: t.YOUTUBE_KEY, clientId: t.YOUTUBE_CLIENT_ID, clientSecret: t.YOUTUBE_CLIENT_SECRET, refreshToken: t.YOUTUBE_REFRESH_TOKEN },
+            zhihu: { cookies: t.ZHIHU_COOKIES },
+            zodgame: { cookie: t.ZODGAME_COOKIE },
+            zsxq: { accessToken: t.ZSXQ_ACCESS_TOKEN },
+            smzdm: { cookie: t.SMZDM_COOKIE },
+        };
+        for (let e in u) n[e] = u[e];
+    };
+(o(),
+    (async () => {
+        if (t.REMOTE_CONFIG) {
+            let { default: n } = await import(`./logger-CNSJk4lm.mjs`);
+            try {
+                let r = await e(t.REMOTE_CONFIG, { headers: { Authorization: `Basic ${t.REMOTE_CONFIG_AUTH}` } });
+                r ? ((t = Object.assign(t, r)), o(), n.info(`Remote config loaded.`)) : n.error(`Remote config load failed.`);
+            } catch (e) {
+                n.error(`Remote config load failed.`, e);
+            }
+        }
+    })());
+const s = n;
+export { s as t };

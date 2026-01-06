@@ -1,0 +1,37 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { load as t } from 'cheerio';
+const n = {
+    path: `/xiaoshan`,
+    categories: [`forecast`],
+    example: `/tingshuitz/xiaoshan`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.xswater.com/gongshui/channels/227.html`, `www.xswater.com/`] }],
+    name: `萧山区`,
+    maintainers: [`znhocn`],
+    handler: r,
+    url: `www.xswater.com/gongshui/channels/227.html`,
+};
+async function r() {
+    let n = (await e({ method: `get`, url: `https://www.xswater.com/gongshui/channels/227.html` })).data,
+        r = t(n),
+        i = r(`.ul-list li`);
+    return {
+        title: r(`title`).text(),
+        link: `https://www.xswater.com/gongshui/channels/227.html`,
+        description: r(`meta[name="description"]`).attr(`content`) || r(`title`).text(),
+        item: i
+            .toArray()
+            .map(
+                (e) => (
+                    (e = r(e)),
+                    { title: e.find(`a`).text(), description: `萧山区停水通知：${e.find(`a`).text()}`, pubDate: new Date(e.find(`span`).text().slice(1, 11)).toUTCString(), link: `https://www.xswater.com${e.find(`a`).attr(`href`)}` }
+                )
+            ),
+    };
+}
+export { n as route };

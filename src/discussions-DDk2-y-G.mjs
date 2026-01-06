@@ -1,0 +1,46 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/discussions/:modelId`,
+    categories: [`program-update`],
+    example: `/civitai/discussions/4384`,
+    parameters: { modelId: `N` },
+    features: { requireConfig: [{ name: `CIVITAI_COOKIE`, description: `` }], requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+    radar: [{ source: [`civitai.com/models/:modelId`] }],
+    name: `Model discussions`,
+    maintainers: [`DIYgod`],
+    handler: a,
+    description: `::: warning
+Need to configure \`CIVITAI_COOKIE\` to obtain image information of NSFW models.
+:::`,
+};
+async function a(i) {
+    let a = i.req.param(),
+        o = Number.parseInt(a.modelId),
+        { data: s } = await n(
+            `https://civitai.com/api/trpc/review.getAll,comment.getAll?batch=1&input=${encodeURIComponent(`{"0":{"json":{"modelId":${o},"limit":12,"sort":"newest","cursor":null},"meta":{"values":{"cursor":["undefined"]}}},"1":{"json":{"modelId":${o},"limit":12,"sort":"newest","cursor":null},"meta":{"values":{"cursor":["undefined"]}}}}`)}`,
+            { headers: { Referer: `https://civitai.com/${o}`, cookie: e.civitai.cookie } }
+        ),
+        c = [...s[0].result.data.json.reviews, ...s[1].result.data.json.comments]
+            .map((e) =>
+                e.images?.length || e.content
+                    ? {
+                          title: e.content ? r(e.content).text() : `Image`,
+                          link: `https://civitai.com/models/${a.modelId}`,
+                          description: `${(e.images || []).map((e) => `<image src="https://imagecache.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/${e.url}/width=${e.width}/${e.id}">`).join(`
+`)}${e.content}`,
+                          pubDate: t(e.createdAt),
+                          author: e.user?.username,
+                          guid: e.id,
+                      }
+                    : null
+            )
+            .filter(Boolean);
+    return { title: `Civitai model ${a.modelId} discussions`, link: `https://civitai.com/`, item: c };
+}
+export { i as route };

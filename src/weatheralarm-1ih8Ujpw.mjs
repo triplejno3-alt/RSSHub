@@ -1,0 +1,49 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import * as i from 'cheerio';
+const a = {
+    path: `/weatheralarm/:province?`,
+    categories: [`forecast`],
+    example: `/nmc/weatheralarm/广东省`,
+    parameters: { province: `省份` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`nmc.cn/publish/alarm.html`, `nmc.cn/`], target: `/weatheralarm` }],
+    name: `全国气象预警`,
+    maintainers: [`ylc395`],
+    handler: o,
+    url: `nmc.cn/publish/alarm.html`,
+};
+async function o(a) {
+    let { province: o = `` } = a.req.param(),
+        { data: s } = await n(`http://www.nmc.cn/rest/findAlarm`, { searchParams: { pageNo: 1, pageSize: 20, signaltype: ``, signallevel: ``, province: o } }),
+        c = s.data.page.list.map((e) => ({ title: e.title, link: `http://www.nmc.cn${e.url}`, pubDate: r(t(e.issuetime), 8) }));
+    return {
+        title: `中央气象台全国气象预警`,
+        link: `http://www.nmc.cn/publish/alarm.html`,
+        allowEmpty: !0,
+        item: await Promise.all(
+            c.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let { data: e } = await n(t.link),
+                        r = i.load(e);
+                    return (
+                        (t.description =
+                            r(`#icon`).html() +
+                            r(`#alarmtext`)
+                                .toArray()
+                                .map((e) => r(e).html())
+                                .join(``)),
+                        t
+                    );
+                })
+            )
+        ),
+    };
+}
+export { a as route };

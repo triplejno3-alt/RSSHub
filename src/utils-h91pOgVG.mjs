@@ -1,0 +1,60 @@
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+async function r(t, i = 0) {
+    let { succeeded: a, code: o, resp_data: s } = (await n(`https://api.zsxq.com/v2` + t, { headers: { cookie: `zsxq_access_token=${e.zsxq.accessToken};` } })).data;
+    if (a) return s;
+    if (o === 1059 && i < 3) return r(t, ++i);
+    throw Error(`something wrong`);
+}
+function i(e = ``, t = []) {
+    let n = e.replaceAll(
+        `
+`,
+        `<br>`
+    );
+    return (
+        (n = n.replaceAll(/<e type="web" href="(.*?)" title="(.*?)" style="(.*?)" \/>/g, (e, t, n) => `<a href=${decodeURIComponent(t)}>${decodeURIComponent(n)}</a>`)),
+        (n = n.replaceAll(/<e type="hashtag".*?title="(.*?)" \/>/g, (e, t) => `<span>${decodeURIComponent(t)}</span>`)),
+        (n += t.map((e) => `<img src="${e.original?.url ?? e.large?.url ?? e.thumbnail?.url}">`).join(`<br>`)),
+        n
+    );
+}
+function a(e) {
+    return e.map((e) => {
+        let n,
+            r = ``,
+            a = `https://wx.zsxq.com/topic/${e.topic_id}`;
+        switch (e.type) {
+            case `talk`:
+                ((r =
+                    e.talk?.text?.split(`
+`)[0] ?? `文章`),
+                    (n = i(e.talk?.text, e.talk?.images)));
+                break;
+            case `q&a`:
+                ((r =
+                    e.question?.text?.split(`
+`)[0] ?? `问答`),
+                    (n = i(e.question?.text, e.question?.images)),
+                    (n = `<blockquote>${String(e.question?.owner?.name ?? `匿名用户`)} 提问：${n}</blockquote>`),
+                    e.answered && ((n += `<br>` + e.answer?.owner.name + ` 回答：<br><br>`), (n += i(e.answer?.text, e.answer?.images))));
+                break;
+            case `task`:
+                ((r =
+                    e.task?.text?.split(`
+`)[0] ?? `作业`),
+                    (n = i(e.task?.text, e.task?.images)));
+                break;
+            case `solution`:
+                ((r =
+                    e.solution?.text?.split(`
+`)[0] ?? `写作业`),
+                    (n = i(e.solution?.text, e.solution?.images)));
+                break;
+            default:
+        }
+        return { title: e.title ?? r, description: n, pubDate: t(e.create_time), link: a };
+    });
+}
+export { a as n, r as t };

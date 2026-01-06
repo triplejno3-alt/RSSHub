@@ -1,0 +1,58 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './types-Bl_lnefZ.mjs';
+import './puppeteer-BbZGb8cd.mjs';
+import { n as a, t as o } from './readable-social--hCfpJhv.mjs';
+import { t as s } from './utils-CU9nJ7uH.mjs';
+import c from 'node:querystring';
+const l = {
+    path: `/keyword/:keyword/:routeParams?`,
+    categories: [`social-media`],
+    view: i.SocialMedia,
+    example: `/weibo/keyword/RSSHub`,
+    parameters: { keyword: `你想订阅的微博关键词`, routeParams: `额外参数；请参阅上面的说明和表格` },
+    features: { requireConfig: [{ name: `WEIBO_COOKIES`, optional: !0, description: `` }], requirePuppeteer: !0, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `关键词`,
+    maintainers: [`DIYgod`, `Rongronggg9`],
+    handler: u,
+};
+async function u(i) {
+    let l = i.req.param(`keyword`),
+        u = await s.tryWithCookies((r, i) =>
+            t.tryGet(
+                `weibo:keyword:${l}`,
+                async () => {
+                    let e = await n({
+                        method: `get`,
+                        url: `https://m.weibo.cn/api/container/getIndex?containerid=100103type%3D61%26q%3D${encodeURIComponent(l)}%26t%3D0`,
+                        headers: { Referer: `https://m.weibo.cn/p/searchall?containerid=100103type%3D1%26q%3D${encodeURIComponent(l)}`, Cookie: r, ...s.apiHeaders },
+                    });
+                    return (i(e), e.data.data.cards);
+                },
+                e.cache.routeExpire,
+                !1
+            )
+        ),
+        d = c.parse(i.req.param(`routeParams`));
+    return s.sinaimgTvax({
+        title: `又有人在微博提到${l}了`,
+        link: `http://s.weibo.com/weibo/${encodeURIComponent(l)}&b=1&nodup=1`,
+        description: `又有人在微博提到${l}了`,
+        item: u
+            .filter((e) => e.mblog)
+            .map(
+                (e) => (
+                    (e.mblog.created_at = r(e.mblog.created_at, 8)),
+                    e.mblog.retweeted_status && e.mblog.retweeted_status.created_at && (e.mblog.retweeted_status.created_at = r(e.mblog.retweeted_status.created_at, 8)),
+                    s.formatExtended(i, e.mblog, void 0, { showAuthorInTitle: o(void 0, a(d.showAuthorInTitle), !0), showAuthorInDesc: o(void 0, a(d.showAuthorInDesc), !0) })
+                )
+            ),
+    });
+}
+export { l as route };

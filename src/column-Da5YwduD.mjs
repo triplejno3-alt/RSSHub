@@ -1,0 +1,26 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { o as t, t as n } from './utils-DUC2PxJz.mjs';
+const r = {
+    path: `/column/:id`,
+    categories: [`programming`],
+    example: `/juejin/column/6960559453037199391`,
+    parameters: { id: `专栏 id, 可在专栏页 URL 中找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`juejin.cn/column/:id`] }],
+    name: `专栏`,
+    maintainers: [`xiangzy1`],
+    handler: i,
+};
+async function i(r) {
+    let i = r.req.param(`id`),
+        a = await e(`https://api.juejin.cn/content_api/v1/column/detail?column_id=${i}`),
+        o = await e(`https://api.juejin.cn/content_api/v1/column/articles_cursor`, { method: `POST`, body: { column_id: i, cursor: `0`, limit: 20, sort: 0 } }),
+        s = a.data,
+        c = await n(t(o.data));
+    return { title: `${s.column_version.title} - ${s.author.user_name}的专栏 - 掘金`, link: `https://juejin.cn/column/${i}`, description: s.column_version.description, image: a.data.column_version.cover, item: c };
+}
+export { r as route };

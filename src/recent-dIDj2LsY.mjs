@@ -1,0 +1,40 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { load as t } from 'cheerio';
+const n = `https://pkmer.cn`,
+    r = {
+        path: `/recent`,
+        categories: [`bbs`],
+        example: `/pkmer/recent`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`pkmer.cn/page/*`] }],
+        name: `最近更新`,
+        maintainers: [`Gnoyong`],
+        handler: i,
+        url: `pkmer.cn/page/*`,
+    };
+async function i() {
+    let { data: r } = await e(`${n}/page/1/`);
+    return { title: `PKMer`, icon: `https://cdn.pkmer.cn/covers/logo.png!nomark`, logo: `https://cdn.pkmer.cn/covers/logo.png!nomark`, link: n, allowEmpty: !0, item: a(t(r)) };
+}
+function a(e) {
+    return e(`#pages > div.grid > .relative`)
+        .toArray()
+        .map((t) => {
+            t = e(t);
+            let r = t.find(`h3`);
+            return {
+                title: r.text().trim(),
+                link: n + r.parent().attr(`href`),
+                description: t.find(`.leading-relaxed`).prop(`outerHTML`) + t.find(`.post-content`).prop(`outerHTML`),
+                pubDate: t.find(`time`).attr(`datetime`),
+                author: t.find(`h4`).text().trim(),
+                itunes_item_image: t.find(`img`).attr(`src`),
+            };
+        });
+}
+export { r as route };

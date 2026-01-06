@@ -1,0 +1,57 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './invalid-parameter-DGZgOgO2.mjs';
+import { Fragment as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+import { raw as c } from 'hono/html';
+const l = { jxrb: `嘉兴日报`, nhwb: `南湖晚报` },
+    u = { path: `/:category?/:id?`, name: `Unknown`, maintainers: [], handler: d };
+async function d(u) {
+    let d = u.req.param(`category`) ?? `jxrb`,
+        f = u.req.param(`id`);
+    if (!Object.keys(l).includes(d)) throw new r(`Invalid category`);
+    let p = `${`https://${d}.cnjxol.com`}/${d}Paper/pc/layout`,
+        m = o((await n({ method: `get`, url: p })).data),
+        h = m(`a`)
+            .first()
+            .attr(`href`)
+            .match(/\d{6}\/\d{2}/)[0],
+        g = [];
+    return (
+        f
+            ? ((m = o((await n({ method: `get`, url: `${p}/${h}/node_${f}.html` })).data)),
+              (g = m(`#articlelist .clearfix a`)
+                  .toArray()
+                  .map((e) => `${p}/${m(e).attr(`href`)}`.replaceAll(`layout/../../../`, ``))))
+            : await Promise.all(
+                  m(`#list li a`)
+                      .toArray()
+                      .map(async (e) => {
+                          let t = o((await n({ method: `get`, url: `${p}/${m(e).attr(`href`)}` })).data);
+                          g.push(
+                              ...t(`#articlelist .clearfix a`)
+                                  .toArray()
+                                  .map((e) => `${p}/${t(e).attr(`href`)}`.replaceAll(`layout/../../../`, ``))
+                          );
+                      })
+              ),
+        (g = await Promise.all(
+            g.map((r) =>
+                e.tryGet(r, async () => {
+                    let e = o((await n({ method: `get`, url: r })).data),
+                        l = e(`.attachment`).html(),
+                        u = e(`founder-content`).html();
+                    return { link: r, title: e(`#Title`).text(), pubDate: t(e(`date`).text()), description: s(a(i, { children: [l ? c(l) : null, u ? c(u) : null] })) };
+                })
+            )
+        )),
+        { title: `${l[d]}${f ? ` - ${m(`#layout`).text()}` : ``}`, link: p, item: g }
+    );
+}
+export { u as route };

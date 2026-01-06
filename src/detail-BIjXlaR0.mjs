@@ -1,0 +1,61 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { i as t, n, r, t as i } from './utils-1RHCymsN.mjs';
+import { load as a } from 'cheerio';
+function o(e, n) {
+    return e(`.down-list li`)
+        .toArray()
+        .map((r) => {
+            r = e(r);
+            let a = r.find(`a`).attr(`title`),
+                o = r.find(`a`).attr(`href`),
+                s = t(o);
+            return { enclosure_url: s === `magnet` ? i(o) : o, enclosure_length: ``, enclosure_type: `application/x-bittorrent`, title: a, link: n, guid: `${a}-${s}` };
+        });
+}
+function s(e, r, a) {
+    let s = e(`.article script[type]`)
+        .text()
+        .match(/return p}\('(.*)',(\d+),(\d+),'(.*)'.split\(/);
+    if (!s) return o(e, r);
+    let c = JSON.parse(
+            n(s[1], s[2], s[3], s[4].split(`|`), 0, {})
+                .match(/var down_urls=\\'(.*)\\'/)[1]
+                .replaceAll(String.raw`\\"`, `"`)
+                .replaceAll(/\\{3}/g, ``)
+        ),
+        { downurls: l } = a && c.Data.length > 1 ? c.Data[1] : c.Data[0];
+    return l.map((e) => {
+        let [n, a] = e.split(`$`),
+            o = t(a);
+        return { enclosure_url: o === `magnet` ? i(a) : a, enclosure_length: ``, enclosure_type: `application/x-bittorrent`, title: n, link: r, guid: `${n}-${o}` };
+    });
+}
+function c(e) {
+    return { title: e(`.article-header .text p`).first().find(`span`).text(), cover: e(`.article-header .pic img`).attr(`src`), description: e(`.article-related.info p`).text() };
+}
+const l = {
+    path: `/detail/:id`,
+    categories: [`multimedia`],
+    example: `/domp4/detail/LBTANI22222I`,
+    parameters: { id: '从剧集详情页 URL 处获取，如：`https://www.xlmp4.com/html/LBTANI22222I.html`，取 `.html` 前面部分' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !0, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.xlmp4.com/detail/:id`] }],
+    name: `剧集订阅`,
+    maintainers: [`savokiss`, `pseudoyu`],
+    handler: u,
+    description:
+        '::: tip\n由于大部分详情页是 `/html/xxx.html`，还有部分是 `/detail/123.html`，所以此处做了兼容，id 取 `xxx` 或者 `123` 都可以。\n\n新增 `second` 参数，用于选择下载地址二（地址二不可用或者不填都默认地址一），用法: `/domp4/detail/LBTANI22222I?second=1`。\n\n域名频繁更换，目前使用 www.xlmp4.com\n:::',
+};
+async function u(t) {
+    let n = t.req.param(`id`),
+        { domain: i, second: o } = t.req.query(),
+        l = n,
+        u = `html`;
+    (n.endsWith(`.html`) && (l = n.replace(`.html`, ``)), /^\d+$/.test(l) && (u = `detail`));
+    let d = `${r(t, i)}/${u}/${l}.html`,
+        f = a(await e(d)),
+        p = s(f, d, o),
+        m = c(f);
+    return { link: d, title: m.title || `domp4电影 - 详情`, image: m.cover, description: m.description, item: p };
+}
+export { l as n, s as t };

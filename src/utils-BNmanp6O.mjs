@@ -1,0 +1,15 @@
+import { t as e } from './cache-DLkCV5c7.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+const n = `https://www.cde.org.cn`;
+var r = {
+    title: `国家药品监督管理局药品审评中心`,
+    rootUrl: n,
+    getCookie: () =>
+        e.tryGet(`cde:cookie`, async () =>
+            (await t(n)).headers[`set-cookie`]
+                .join(`,`)
+                .match(/FSSBBIl1UgzbN7N80.*?;/g)
+                .join(``)
+        ),
+};
+export { r as t };

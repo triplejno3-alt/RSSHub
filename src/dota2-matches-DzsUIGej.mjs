@@ -1,0 +1,42 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/dota2/matches/:id`,
+    categories: [`game`],
+    example: `/liquipedia/dota2/matches/Team_Aster`,
+    parameters: { id: `战队名称，可在url中找到。例如:https://liquipedia.net/dota2/Team_Aster` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`liquipedia.net/dota2/:id`] }],
+    name: `Dota2 战队最近比赛结果`,
+    maintainers: [`wzekin`],
+    handler: i,
+};
+async function i(r) {
+    let i = r.req.param(`id`),
+        a = `https://liquipedia.net/dota2/${i}`,
+        o = (await t({ method: `get`, url: a })).data,
+        s = n(o),
+        c = s(`div.recent-matches > table > tbody > tr[style]`);
+    return {
+        title: `Liquipedia Dota2 ${i} Matches`,
+        link: a,
+        item: c?.toArray().map((t) => {
+            t = s(t);
+            let n = ``;
+            n = t.attr(`style`) === `background:rgb(240, 255, 240)` ? `胜` : t.attr(`style`) === `background:rgb(249, 240, 242)` ? `败` : `平`;
+            let r = t.find(`td:nth-child(1)`).text(),
+                o = t.find(`td:nth-child(2)`).text(),
+                c = t.find(`td:nth-child(6) > a`).text(),
+                l = e(r + ` ` + o),
+                u = t.find(`td:nth-child(7)`).text(),
+                d = t.find(`td:nth-child(8) > span > span.team-template-text > a`).text();
+            return { title: `[${n}] ${u} ${d}`, description: `At ${c},  ${i} ${u} ${d}`, pubDate: l, link: a, guid: a + l };
+        }),
+    };
+}
+export { r as route };

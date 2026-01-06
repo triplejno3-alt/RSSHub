@@ -1,0 +1,80 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { load as r } from 'cheerio';
+const i = async (n) => {
+        let { category: i } = n.req.param(),
+            a = Number.parseInt(n.req.query(`limit`) ?? `100`, 10),
+            o = `wp-json/wp/v2`,
+            s = `https://60s.aa1.cn`,
+            c = new URL(`${o}/posts`, s).href,
+            l = new URL(`${o}/categories`, s).href,
+            u = (await e(l, { query: { search: i } })).find((e) => e.slug === i || e.name === i),
+            d = u?.id ?? void 0,
+            f = u?.slug ?? void 0,
+            p = await e(c, { query: { _embed: `true`, per_page: a, categories: d } }),
+            m = new URL(f ? `category/${f}` : ``, s).href,
+            h = r(await e(m)),
+            g = h(`html`).attr(`lang`) ?? `zh`,
+            _ = [];
+        _ = p.slice(0, a).map((e) => {
+            let n = e.title?.rendered ?? e.title,
+                r = e.content.rendered,
+                i = e.date_gmt,
+                a = e.link,
+                o = e._embedded?.[`wp:term`]?.flat().map((e) => e.name) ?? [],
+                s = e._embedded?.author.map((e) => ({ name: e.name, url: e.link, avatar: e.avatar_urls?.[`96`] ?? e.avatar_urls?.[`48`] ?? e.avatar_urls?.[`24`] ?? void 0 })) ?? [],
+                c = e.guid?.rendered ?? e.guid,
+                l = e._embedded?.[`wp:featuredmedia`]?.[0].source_url ?? void 0,
+                u = e.modified_gmt ?? i;
+            return { title: n, description: r, pubDate: i ? t(i) : void 0, link: a ?? c, category: o, author: s, guid: c, id: c, content: { html: r, text: r }, image: l, banner: l, updated: u ? t(u) : void 0, language: g };
+        });
+        let v = h(`title`).text();
+        return { title: v, description: h(`meta[name="description"]`).attr(`content`), link: m, item: _, allowEmpty: !0, image: h(`header#header-div img`).attr(`src`), author: v.split(/-/).pop(), language: g, id: m };
+    },
+    a = {
+        path: `/60s/:category?`,
+        name: `每日新闻`,
+        url: `60s.aa1.cn`,
+        maintainers: [`nczitzk`],
+        handler: i,
+        example: `/aa1/60s/news`,
+        parameters: {
+            category: {
+                description: `分类，默认为全部，可在对应分类页 URL 中找到`,
+                options: [
+                    { label: `全部`, value: `` },
+                    { label: `新闻词文章数据`, value: `freenewsdata` },
+                    { label: `最新`, value: `new` },
+                    { label: `本平台同款自动发文章插件`, value: `1` },
+                    { label: `每天60秒读懂世界`, value: `news` },
+                ],
+            },
+        },
+        description: `::: tip
+订阅 [每天60秒读懂世界](https://60s.aa1.cn/category/news)，其源网址为 \`https://60s.aa1.cn/category/news\`，请参考该 URL 指定部分构成参数，此时路由为 [\`/aa1/60s/news\`](https://rsshub.app/aa1/60s/news) 或 [\`/aa1/60s/每天60秒读懂世界\`](https://rsshub.app/aa1/60s/每天60秒读懂世界)。
+:::
+
+| 分类                                                       | ID                                                      |
+| ---------------------------------------------------------- | ------------------------------------------------------- |
+| [全部](https://60s.aa1.cn)                                 | [<空>](https://rsshub.app/aa1/60s)                      |
+| [新闻词文章数据](https://60s.aa1.cn/category/freenewsdata) | [freenewsdata](https://rsshub.app/aa1/60s/freenewsdata) |
+| [最新](https://60s.aa1.cn/category/new)                    | [new](https://rsshub.app/aa1/60s/new)                   |
+| [本平台同款自动发文章插件](https://60s.aa1.cn/category/1)  | [1](https://rsshub.app/aa1/60s/1)                       |
+| [每天 60 秒读懂世界](https://60s.aa1.cn/category/news)     | [news](https://rsshub.app/aa1/60s/news)                 |
+`,
+        categories: [`new-media`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            { source: [`60s.aa1.cn`, `60s.aa1.cn/category/:category`], target: `/60s/:category` },
+            { title: `全部`, source: [`60s.aa1.cn`], target: `/60s` },
+            { title: `新闻词文章数据`, source: [`60s.aa1.cn/category/freenewsdata`], target: `/60s/freenewsdata` },
+            { title: `最新`, source: [`60s.aa1.cn/category/new`], target: `/60s/new` },
+            { title: `本平台同款自动发文章插件`, source: [`60s.aa1.cn/category/1`], target: `/60s/1` },
+            { title: `每天60秒读懂世界`, source: [`60s.aa1.cn/category/news`], target: `/60s/news` },
+        ],
+        view: n.Articles,
+    };
+export { i as handler, a as route };

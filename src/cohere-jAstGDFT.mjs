@@ -1,0 +1,25 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+const n = {
+    path: [`/blog`],
+    name: `Blog`,
+    url: `cohere.com/blog`,
+    maintainers: [`Loongphy`],
+    handler: r,
+    example: `/cohere/blog`,
+    description: `Cohere is a platform for building AI applications.`,
+    categories: [`blog`],
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`cohere.com`] }],
+};
+async function r() {
+    let { posts: n } = await e(`https://cohere-ai.ghost.io/ghost/api/content/posts`, { query: { key: `572d288a9364f8e4186af1d60a`, limit: `all`, include: [`authors`, `tags`], filter: `tag:-hash-hidden+tag:-llmu` } });
+    return {
+        title: `The Cohere Blog`,
+        link: `https://cohere.com/blog`,
+        item: n.map((e) => ({ title: e.title, link: `https://cohere.com/blog/` + e.slug, description: e.excerpt, pubDate: t(e.published_at), author: e.authors.map((e) => e.name).join(`, `), category: e.tags.map((e) => e.name) })),
+    };
+}
+export { n as route };

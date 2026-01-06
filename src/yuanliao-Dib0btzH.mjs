@@ -1,0 +1,104 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { load as r } from 'cheerio';
+const i = async (n) => {
+        let { tag: i } = n.req.param(),
+            a = Number.parseInt(n.req.query(`limit`) ?? `30`, 10),
+            o = `https://yuanliao.info`,
+            s = new URL(`api/discussions`, o).href,
+            c = new URL(i ? `t/${i}` : ``, o).href,
+            l = r(await e(c)),
+            u = l(`html`).attr(`lang`) ?? `zh`,
+            d = await e(s, { query: { include: `user,firstPost,tags`, 'filter[q]': i ? `tag:${i}` : ``, sort: ``, 'page[offset]': `` } }),
+            f = new Map();
+        for (let e of d.included) f.set(`${e.type}-${e.id}`, e);
+        let p = d.data.slice(0, a).map((e) => {
+            let n = e.attributes,
+                r = e.relationships,
+                i = n.title,
+                a = r?.firstPost?.data,
+                s = a?.type && a?.id ? f.get(`${a.type}-${a.id}`)?.attributes?.contentHtml : void 0,
+                c = n.createdAt,
+                l = e.id ? `d/${e.id}` : void 0,
+                d = [...new Set(r?.tags?.data?.map((e) => `${e.type}-${e.id}`)?.map((e) => f.get(e)?.attributes?.name))].filter(Boolean),
+                p = r?.user?.data,
+                m = p && p.type && p.id ? f.get(`${p.type}-${p.id}`)?.attributes : void 0,
+                h = m ? [{ name: m.displayName, url: m.username ? new URL(`u/${m.username}`, o).href : void 0, avatar: m.avatarUrl }] : void 0,
+                g = `yuanliao-${e.id}`,
+                _ = n.lastPostedAt ?? c;
+            return { title: i, description: s, pubDate: c ? t(c) : void 0, link: l ? new URL(l, o).href : void 0, category: d, author: h, guid: g, id: g, content: { html: s, text: s }, updated: _ ? t(_) : void 0, language: u };
+        });
+        return {
+            title: l(`title`).text(),
+            description: l(`meta[name="description"]`).attr(`content`),
+            link: c,
+            item: p,
+            allowEmpty: !0,
+            image: l(`img.Header-logo`).attr(`src`),
+            author: l(`img.Header-logo`).attr(`alt`),
+            language: u,
+            id: c,
+        };
+    },
+    a = {
+        path: `/:tag?`,
+        name: `主题`,
+        url: `yuanliao.info`,
+        maintainers: [`nczitzk`],
+        handler: i,
+        example: `/yuanliao`,
+        parameters: {
+            tag: {
+                description: `标签，默认为全部，可在对应标签页 URL 中找到`,
+                options: [
+                    { label: `问题反馈`, value: `bug-report` },
+                    { label: `Windows`, value: `windows` },
+                    { label: `macOS`, value: `macos` },
+                    { label: `Linux`, value: `linux` },
+                    { label: `意见建议`, value: `suggestions` },
+                    { label: `插件发布`, value: `plugins` },
+                    { label: `插件需求`, value: `plugin-needs` },
+                    { label: `开发者`, value: `developers` },
+                ],
+            },
+        },
+        description: `::: tip
+订阅 [问题反馈](https://yuanliao.info/t/bug-report)，其源网址为 \`https://yuanliao.info/t/bug-report\`，请参考该 URL 指定部分构成参数，此时路由为 [\`/yuanliao/bug-report\`](https://rsshub.app/yuanliao/bug-report)。
+:::
+
+| 标签                                             | id                                                       |
+| ------------------------------------------------ | -------------------------------------------------------- |
+| [问题反馈](https://yuanliao.info/t/bug-report)   | [bug-report](https://rsshub.app/yuanliao/bug-report)     |
+| [Windows](https://yuanliao.info/t/windows)       | [windows](https://rsshub.app/yuanliao/windows)           |
+| [macOS](https://yuanliao.info/t/macos)           | [macos](https://rsshub.app/yuanliao/macos)               |
+| [Linux](https://yuanliao.info/t/linux)           | [linux](https://rsshub.app/yuanliao/linux)               |
+| [意见建议](https://yuanliao.info/t/suggestions)  | [suggestions](https://rsshub.app/yuanliao/suggestions)   |
+| [插件发布](https://yuanliao.info/t/plugins)      | [plugins](https://rsshub.app/yuanliao/plugins)           |
+| [插件需求](https://yuanliao.info/t/plugin-needs) | [plugin-needs](https://rsshub.app/yuanliao/plugin-needs) |
+| [开发者](https://yuanliao.info/t/developers)     | [developers](https://rsshub.app/yuanliao/developers)     |
+`,
+        categories: [`bbs`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            {
+                source: [`yuanliao.info`, `yuanliao.info/t/:tag`],
+                target: (e) => {
+                    let t = e.tag;
+                    return `/yuanliao${t ? `/${t}` : ``}`;
+                },
+            },
+            { title: `问题反馈`, source: [`yuanliao.info/t/bug-report`], target: `/bug-report` },
+            { title: `Windows`, source: [`yuanliao.info/t/windows`], target: `/windows` },
+            { title: `macOS`, source: [`yuanliao.info/t/macos`], target: `/macos` },
+            { title: `Linux`, source: [`yuanliao.info/t/linux`], target: `/linux` },
+            { title: `意见建议`, source: [`yuanliao.info/t/suggestions`], target: `/suggestions` },
+            { title: `插件发布`, source: [`yuanliao.info/t/plugins`], target: `/plugins` },
+            { title: `插件需求`, source: [`yuanliao.info/t/plugin-needs`], target: `/plugin-needs` },
+            { title: `开发者`, source: [`yuanliao.info/t/developers`], target: `/developers` },
+        ],
+        view: n.Articles,
+    };
+export { i as handler, a as route };

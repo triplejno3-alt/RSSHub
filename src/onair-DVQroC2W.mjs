@@ -1,0 +1,39 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { Fragment as n, jsx as r, jsxs as i } from 'hono/jsx/jsx-runtime';
+import { renderToString as a } from 'hono/jsx/dom/server';
+const o = {
+    path: `/onair/:lang?`,
+    categories: [`anime`],
+    example: `/bgmlist/onair/zh-Hans`,
+    parameters: { lang: `语言` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `开播提醒`,
+    maintainers: [`x2cf`],
+    handler: s,
+};
+async function s(o) {
+    let s = o.req.param(`lang`),
+        { data: c } = await t(`https://bgmlist.com/api/v1/bangumi/site`),
+        { data: l } = await t(`https://bgmlist.com/api/v1/bangumi/onair`);
+    return {
+        title: `番组放送 开播提醒`,
+        link: `https://bgmlist.com/`,
+        item: l.items.map((t) => {
+            t.sites.push({ site: `dmhy`, id: t.titleTranslate[`zh-Hans`]?.[0] ?? t.title });
+            let o = t.sites.map((e) => ({ title: c[e.site].title, url: c[e.site].urlTemplate.replaceAll(`{{id}}`, e.id), begin: e.begin }));
+            return {
+                title: t.titleTranslate[s]?.[0] ?? t.title,
+                link: t.officialSite,
+                description: a(r(n, { children: o.map((e) => i(n, { children: [r(`a`, { href: e.url, children: e.title }), e.begin ? i(n, { children: [`（开播时间：`, e.begin, `）`] }) : null, r(`br`, {})] })) })),
+                pubDate: e(t.begin),
+                guid: t.id,
+            };
+        }),
+    };
+}
+export { o as route };

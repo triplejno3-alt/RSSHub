@@ -1,0 +1,45 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/jwc`,
+    categories: [`university`],
+    example: `/ncu/jwc`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`jwc.ncu.edu.cn/`, `jwc.ncu.edu.cn/jwtz/index.htm`] }],
+    name: `教务通知`,
+    maintainers: [`ywh555hhh`],
+    handler: i,
+    url: `jwc.ncu.edu.cn/`,
+};
+async function i() {
+    let r = `https://jwc.ncu.edu.cn`,
+        i = n((await t(r)).body),
+        a = new Date(),
+        o = a.getFullYear(),
+        s = a.getMonth() + 1,
+        c = i(`.box3 .inner ul.img-list li`);
+    return {
+        title: `南昌大学教务处`,
+        link: r,
+        description: `南昌大学教务处`,
+        item:
+            c &&
+            c.toArray().map((t) => {
+                let n = i(t),
+                    a = n.find(`a`),
+                    c = n.text().split(`】`)[0].replace(`【`, ``).trim(),
+                    l = a.attr(`title`),
+                    u = `${r}/${a.attr(`href`)}`,
+                    d = e(c, `MM-DD`),
+                    f = d.getMonth() + 1 > s ? o - 1 : o;
+                return (d.setFullYear(f), { title: l, link: u, pubDate: d });
+            }),
+    };
+}
+export { r as route };

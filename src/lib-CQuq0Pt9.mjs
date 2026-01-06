@@ -1,0 +1,24 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { t as e } from './utils-COtSPE8M.mjs';
+const t = `https://lib.njxzc.edu.cn/pxyhd/list.htm`,
+    n = {
+        path: `/libtzgg`,
+        categories: [`university`],
+        example: `/njxzc/libtzgg`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`lib.njxzc.edu.cn/pxyhd/list.htm`, `lib.njxzc.edu.cn/`] }],
+        name: `图书馆通知公告`,
+        maintainers: [`real-jiakai`],
+        handler: r,
+        url: `lib.njxzc.edu.cn/pxyhd/list.htm`,
+    };
+async function r(n) {
+    return { title: `南京晓庄学院 -- 图书馆通知公告`, link: t, item: await e(n, t, `https://lib.njxzc.edu.cn`, `a`, `.news_meta`, { title: `.arti_title`, content: `.wp_articlecontent`, date: `.arti_update` }, `.news`) };
+}
+export { n as route };

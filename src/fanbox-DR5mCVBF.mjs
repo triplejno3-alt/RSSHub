@@ -1,0 +1,160 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+import { t as r } from './parse-date-DjdQS_Nt.mjs';
+import { t as i } from './invalid-parameter-DGZgOgO2.mjs';
+import { t as a } from './valid-host-Bsy2BS2p.mjs';
+import { jsx as o, jsxs as s } from 'hono/jsx/jsx-runtime';
+import { renderToString as c } from 'hono/jsx/dom/server';
+function l() {
+    let e = t.fanbox.session;
+    return { origin: `https://fanbox.cc`, cookie: e ? `FANBOXSESSID=${e}` : `` };
+}
+function u(e) {
+    switch (e.type) {
+        case `html`:
+            return e.html;
+        case `fanbox.post`:
+            return c(
+                s(`a`, {
+                    href: `https://${e.postInfo.creatorId}.fanbox.cc/posts/${e.postInfo.id}`,
+                    children: [o(`h1`, { children: e.postInfo.title }), o(`span`, { style: `margin-right:1.6em`, children: e.postInfo.user.name }), o(`br`, {}), o(`br`, {}), o(`span`, { children: e.postInfo.excerpt })],
+                })
+            );
+        default:
+            return ``;
+    }
+}
+function d(e) {
+    let t = [...e.text];
+    return (
+        e.styles &&
+            e.styles.map((e) => {
+                switch (e.type) {
+                    case `bold`:
+                        ((t[e.offset] = `<b>` + t[e.offset]), (t[e.offset + e.length - 1] += `</b>`));
+                        break;
+                    default:
+                }
+                return e;
+            }),
+        e.links && e.links.map((e) => ((t[e.offset] = `<a href="${e.url}">` + t[e.offset]), (t[e.offset + e.length - 1] += `</a>`), e)),
+        t.join(``)
+    );
+}
+function f(e) {
+    return e.text || ``;
+}
+function p(e) {
+    let t = e.text || ``;
+    for (let n of e.images) t += `<hr><img src="${n.originalUrl}">`;
+    return t;
+}
+function m(e) {
+    let t = e.text || ``;
+    for (let n of e.files) t += `<br><a href="${n.url}" download="${n.name}.${n.extension}">${n.name}.${n.extension}</a>`;
+    return t;
+}
+async function h(e) {
+    let t = ``;
+    switch (e.video.serviceProvider) {
+        case `soundcloud`:
+            t += await y(e.video.videoId);
+            break;
+        case `youtube`:
+            t += `<iframe src="https://www.youtube-nocookie.com/embed/${e.video.videoId}" frameborder="0" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+            break;
+        case `vimeo`:
+            t += `<iframe src="https://player.vimeo.com/video/${e.video.videoId}" frameborder="0"></iframe>`;
+            break;
+        default:
+    }
+    return ((t += `<br>${e.text}`), t);
+}
+async function g(e) {
+    let t = [];
+    for (let n of e.blocks)
+        switch ((t.push(`<p>`), n.type)) {
+            case `p`:
+                t.push(d(n));
+                break;
+            case `header`:
+                t.push(`<h2>${n.text}</h2>`);
+                break;
+            case `image`: {
+                let r = e.imageMap[n.imageId];
+                t.push(`<img src="${r.originalUrl}">`);
+                break;
+            }
+            case `file`: {
+                let r = e.fileMap[n.fileId];
+                t.push(`<a href="${r.url}" download="${r.name}.${r.extension}">${r.name}.${r.extension}</a>`);
+                break;
+            }
+            case `url_embed`:
+                t.push(u(e.urlEmbedMap[n.urlEmbedId]));
+                break;
+            default:
+        }
+    return ((t = await Promise.all(t)), t.join(``));
+}
+async function _(e) {
+    let t = ``;
+    if ((e.feeRequired !== 0 && (t += `Fee Required: <b>${e.feeRequired} JPY/month</b><hr>`), e.coverImageUrl && (t += `<img src="${e.coverImageUrl}"><hr>`), !e.body)) return ((t += e.excerpt), t);
+    switch (e.type) {
+        case `text`:
+            t += f(e.body);
+            break;
+        case `file`:
+            t += m(e.body);
+            break;
+        case `image`:
+            t += p(e.body);
+            break;
+        case `video`:
+            t += await h(e.body);
+            break;
+        case `article`:
+            t += await g(e.body);
+            break;
+        default:
+            t += `<b>Unsupported content (RSSHub)</b>`;
+    }
+    return t;
+}
+function v(i) {
+    return n.tryGet(`fanbox-${i.id}-${i.updatedDatetime}`, async () => {
+        let n = await e(`https://api.fanbox.cc/post.info?postId=${i.id}`, { headers: { ...l(), 'User-Agent': t.trueUA } });
+        return { title: i.title || `No title`, description: await _(n.body), pubDate: r(i.updatedDatetime), link: `https://${i.creatorId}.fanbox.cc/posts/${i.id}`, category: i.tags };
+    });
+}
+async function y(t) {
+    let n = `https://soundcloud.com/${t}`;
+    return (await e(`https://soundcloud.com/oembed?url=${encodeURIComponent(n)}&format=json&maxheight=400&format=json`)).html;
+}
+const b = {
+    path: `/:creator`,
+    categories: [`social-media`],
+    example: `/fanbox/official`,
+    parameters: { creator: `fanbox user name` },
+    maintainers: [`KarasuShin`],
+    name: `Creator`,
+    handler: x,
+    features: { requireConfig: [{ name: `FANBOX_SESSION_ID`, description: `Required for private posts. Can be found in browser DevTools -> Application -> Cookies -> https://www.fanbox.cc -> FANBOXSESSID`, optional: !0 }], nsfw: !0 },
+};
+async function x(t) {
+    let n = t.req.param(`creator`);
+    if (!a(n)) throw new i(`Invalid user name`);
+    let r = `Fanbox - ${n}`,
+        o,
+        s;
+    try {
+        let t = await e(`https://api.fanbox.cc/creator.get?creatorId=${n}`, { headers: l() });
+        ((r = `Fanbox - ${t.body.user.name}`), (o = t.body.description), (s = t.body.user.iconUrl));
+    } catch {}
+    let c = await e(`https://api.fanbox.cc/post.listCreator?creatorId=${n}&limit=20`, { headers: l() }),
+        u = await Promise.all(c.body.map((e) => v(e)));
+    return { title: r, link: `https://${n}.fanbox.cc`, description: o, image: s, item: u };
+}
+export { b as route };

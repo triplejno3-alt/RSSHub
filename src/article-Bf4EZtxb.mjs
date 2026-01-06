@@ -1,0 +1,52 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = { path: `/mofcom/article/:suffix{.+}`, name: `Unknown`, maintainers: [], handler: o };
+async function o(a) {
+    let o = `http://www.mofcom.gov.cn/article/${a.req.param(`suffix`)}/`,
+        { data: s } = await n(o),
+        c = i(s);
+    c(`.listline`).remove();
+    let l = c(`.txtList_01 li`)
+        .toArray()
+        .map((e) => {
+            e = c(e);
+            let n =
+                e.find(`span`).length === 0
+                    ? e
+                          .find(`a`)
+                          .attr(`title`)
+                          .match(/(\d{4}年\d{1,2}月\d{1,2})/)[1]
+                    : e
+                          .find(`span`)
+                          .text()
+                          .match(/((\d{4}-\d{2}-\d{2})(\s\d{2}:\d{2}:\d{2})?)/)[1];
+            return { title: e.find(`a`).attr(`title`), link: `http://www.mofcom.gov.cn` + e.find(`a`).attr(`href`), pubDate: r(t(n, [`YYYY-MM-DD HH:mm:ss`, `YYYY-MM-DD`, `YYYY年M月D`]), 8) };
+        });
+    return (
+        await Promise.all(
+            l.map((a) =>
+                e.tryGet(a.link, async () => {
+                    let e = await n(a.link),
+                        o = e.data.match(/_cofing1={href:"(.*)",type/) || e.data.match(/window\.location\.href='(.*)'/);
+                    o && (e = await n(o[1], { headers: { Referer: a.link } }));
+                    let s = i(e.data),
+                        c = s(`.art-con iframe`).attr(`src`);
+                    if (s(`.art-con iframe`).attr(`src`)) {
+                        let { data: e } = await n(c);
+                        a.description = i(e)(`tbody`).html();
+                    } else a.description = s(`.art-con`).html() || s(`.textlive`).html();
+                    return ((a.pubDate = s(`meta[name="PubDate"]`).length ? r(t(s(`meta[name="PubDate"]`).attr(`content`), `YYYY-MM-DD HH:mm`), 8) : a.pubDate), a);
+                })
+            )
+        ),
+        { title: c(`head > title`).text(), description: c(`meta[name=description]`).attr(`content`), link: o, item: l }
+    );
+}
+export { a as route };

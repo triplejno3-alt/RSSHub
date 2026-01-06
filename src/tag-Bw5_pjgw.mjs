@@ -1,0 +1,29 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { t } from './utils-Cm43XTNz.mjs';
+const n = `https://byteclicks.com`,
+    r = {
+        path: `/tag/:tag`,
+        categories: [`new-media`],
+        example: `/byteclicks/tag/人工智能`,
+        parameters: { tag: `标签，可在URL中找到` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`byteclicks.com/tag/:tag`] }],
+        name: `标签`,
+        maintainers: [`TonyRL`],
+        handler: i,
+        url: `byteclicks.com/`,
+    };
+async function i(r) {
+    let i = r.req.param(`tag`),
+        { data: a } = await e(`${n}/wp-json/wp/v2/tags`, { searchParams: { search: i, per_page: 100 } }),
+        o = a.find((e) => e.name === i),
+        { data: s } = await e(`${n}/wp-json/wp/v2/posts`, { searchParams: { per_page: r.req.query(`limit`) ? Number.parseInt(r.req.query(`limit`)) : 100, tags: o.id } }),
+        c = t(s);
+    return { title: `${o.name} - 字节点击`, image: `https://byteclicks.com/wp-content/themes/RK-Blogger/images/wbolt.ico`, link: o.link, item: c };
+}
+export { r as route };

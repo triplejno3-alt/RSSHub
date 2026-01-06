@@ -1,0 +1,48 @@
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { load as r } from 'cheerio';
+const i = `https://www.chinamine-safety.gov.cn`,
+    a = async (i, a) =>
+        await Promise.all(
+            i.map((i) =>
+                a(i.link, async () => {
+                    if (!i.link.endsWith(`html`)) return i;
+                    let { data: a } = await t(i.link),
+                        o = r(a);
+                    return (
+                        (i.title = i.title || o(`title`).text()),
+                        (i.description = o(`div.TRS_Editor, div.TRS_UEDITOR, div.content`).html()),
+                        (i.author = o(`meta[name="ContentSource"]`).prop(`content`)),
+                        (i.category = [
+                            ...new Set(
+                                [
+                                    ...(o(`meta[name="keywords"]`).prop(`content`)?.split(/,/) ?? []),
+                                    o(`meta[name="ColumnName"]`).prop(`content`),
+                                    ...(o(`meta[name="ColumnKeywords"]`).prop(`content`)?.split(/,/) ?? []),
+                                    o(`meta[name="ColumnType"]`).prop(`content`),
+                                ].filter(Boolean)
+                            ),
+                        ]),
+                        (i.pubDate = n(e(o(`meta[name="PubDate"]`).prop(`content`)), 8)),
+                        i
+                    );
+                })
+            )
+        ),
+    o = (e, t) => {
+        let n = new URL(`zfxxgk/images/P020210105557462473306.png`, i).href,
+            r = new URL(e(`link[rel="shortcut icon"]`).prop(`href`), t).href;
+        return {
+            title: e(`title`).text(),
+            link: t,
+            description: e(`meta[name="ColumnDescription"]`).prop(`content`) || e(`meta[name="Description"]`).prop(`content`),
+            language: `zh`,
+            image: n,
+            icon: r,
+            logo: r,
+            subtitle: e(`meta[name="ColumnName"]`).prop(`content`),
+            author: e(`meta[name="SiteName"]`).prop(`content`),
+        };
+    };
+export { a as n, i as r, o as t };

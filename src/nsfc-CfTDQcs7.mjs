@@ -1,0 +1,82 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { r as n } from './common-utils-uYpL50sT.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { load as i } from 'cheerio';
+var a = {
+    jjyw: `/publish/portal0/tab440/`,
+    tzgg: `/publish/portal0/tab442/`,
+    bmdt: `/publish/portal0/tab445/`,
+    kpkx: `/publish/portal0/tab446/`,
+    zzcg: `/publish/portal0/tab448/`,
+    'zcfg-jjtl': `/publish/portal0/tab471/`,
+    'zcfg-fzgh': `/publish/portal0/tab473/`,
+    'zcfg-gzzd': `/publish/portal0/tab475/`,
+    'zcfg-flfg': `/publish/portal0/tab609/`,
+    'glkxb-gzdt': `/publish/portal0/tab1210/`,
+    'glkxb-tzgg': `/publish/portal0/tab1212/`,
+    'glkxb-zzcg': `/publish/portal0/tab1213/`,
+    'gjhzj-xmzn': `/publish/portal0/tab1356/`,
+    'gjhzj-csjg': `/publish/portal0/tab1361/`,
+    'gjhzj-pztz': `/publish/portal0/tab1362/`,
+    'gjhzj-jcjb': `/publish/portal0/tab1366/`,
+    'gjhzj-xxgk': `/publish/portal0/tab1386/`,
+};
+const o = { path: `/nsfc/*`, name: `Unknown`, maintainers: [], handler: s };
+async function s(o) {
+    let s = n(o).replace(/^\/nsfc/, ``),
+        c = o.req.query(`limit`) ? Number.parseInt(o.req.query(`limit`), 10) : 30,
+        l = s.match(/(\/news)?\/([\w-]+)/);
+    if (l) {
+        let e = l[2];
+        Object.hasOwn(a, e) && (s = a[e]);
+    }
+    let u = `https://www.nsfc.gov.cn`,
+        d = new URL((/\/more$/.test(s) ? `${s}.htm` : s) || `publish/portal0/tab442/`, u).href,
+        { data: f } = await r(d, { https: { rejectUnauthorized: !1 } }),
+        p = i(f),
+        m = p(`span.fl a, ul.dp_lia li a`)
+            .slice(0, c)
+            .toArray()
+            .map((e) => ((e = p(e)), { title: e.prop(`title`) ?? e.text(), link: new URL(e.prop(`href`), u).href, guid: `nsfc-${e.prop(`id`)}`, pubDate: t(e.next().text().replace(/\[]/g, ``, [`YYYY-MM-DD`, `YY-MM-DD`])) }));
+    return (
+        (m = await Promise.all(
+            m.map((n) =>
+                e.tryGet(n.link, async () => {
+                    let { data: e } = await r(n.link, { https: { rejectUnauthorized: !1 } }),
+                        a = i(e);
+                    return (
+                        (n.title = a(`div.title_xilan`).text()),
+                        (n.description = a(`#zoom`).html()),
+                        (n.author = a(`meta[name="docauthor"]`).prop(`content`)),
+                        (n.category = [a(`meta[name="channel"]`).prop(`content`), a(`meta[name="docsource"]`).prop(`content`)]),
+                        (n.pubDate = t(
+                            a(`div.line_xilan`)
+                                .text()
+                                .match(/日期 (\d{4}-\d{2}-\d{2})/)[1]
+                        )),
+                        n
+                    );
+                })
+            )
+        )),
+        {
+            item: m,
+            title: `国家自然科学基金委员会 - ${p(`#ess_essBREADCRUMB_lblBreadCrumb a.break`)
+                .toArray()
+                .slice(1)
+                .map((e) => p(e).text())
+                .join(` - `)}`,
+            link: d,
+            description: p(`meta[name="DESCRIPTION"]`).prop(`content`),
+            language: `zh-cn`,
+            subtitle: p(`meta[name="KEYWORDS"]`).prop(`content`),
+            author: p(`meta[name="AUTHOR"]`).prop(`content`),
+        }
+    );
+}
+export { o as route };

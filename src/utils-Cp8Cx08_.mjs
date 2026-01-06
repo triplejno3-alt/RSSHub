@@ -1,0 +1,16 @@
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { load as t } from 'cheerio';
+import n from 'crypto-js';
+const r = `https://www.36kr.com`,
+    i = (r, i) =>
+        i(r.link, async () => {
+            let i = await e({ method: `get`, url: r.link }),
+                a = i.data.match(/{"state":"(.*)","isEncrypt":true}/) ?? [];
+            if (a.length === 0) r.description = t(i.body)(`div.articleDetailContent`).html();
+            else {
+                let e = n.enc.Utf8.parse(`efabccee-b754-4c`);
+                r.description = JSON.parse(n.AES.decrypt(a[1], e, { mode: n.mode.ECB, padding: n.pad.Pkcs7 }).toString(n.enc.Utf8).toString()).articleDetail.articleDetailData.data.widgetContent;
+            }
+            return r;
+        });
+export { r as n, i as t };

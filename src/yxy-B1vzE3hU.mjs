@@ -1,0 +1,40 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = `https://yxy.zcmu.edu.cn/`,
+    i = new Map([
+        [0, { title: `药学院 -- 通知公告`, id: `index/tzgg` }],
+        [1, { title: `药学院 -- 评优评奖`, id: `xsgz/pypj` }],
+        [2, { title: `药学院 -- 文明规范`, id: `xsgz/wmgf` }],
+        [3, { title: `药学院 -- 创新创业`, id: `xsgz/cxcy` }],
+        [4, { title: `药学院 -- 校园文化`, id: `xsgz/xywh` }],
+        [5, { title: `药学院 -- 心理驿站`, id: `xsgz/xlyz` }],
+        [6, { title: `药学院 -- 日常通知`, id: `xsgz/rctz` }],
+    ]),
+    a = {
+        path: `/yxy/:type?`,
+        categories: [`university`],
+        example: `/zcmu/yxy/0`,
+        parameters: { type: `模块id` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `药学院`,
+        maintainers: [`CCraftY`],
+        handler: o,
+        description: `| 通知公告 | 评优评奖 | 文明规范 | 创新创业 | 校园文化 | 心理驿站 | 日常通知 |
+| -------- | -------- | -------- | -------- | -------- | -------- | -------- |
+| 0        | 1        | 2        | 3        | 4        | 5        | 6        |`,
+    };
+async function o(a) {
+    let o = Number.parseInt(a.req.param(`type`)),
+        s = i.get(o).id,
+        c = n((await t({ method: `get`, url: `${r}/${s}.htm` })).data),
+        l = c(`.lm_list li`)
+            .toArray()
+            .map((t) => ((t = c(t)), { title: t.find(`a`).text(), link: `https://yxy.zcmu.edu.cn/${t.find(`a`).attr(`href`)}`, pubDate: e(t.find(`span`).text().trim()) }));
+    return { title: i.get(o).title, link: `${r}${s}`, item: l };
+}
+export { a as route };

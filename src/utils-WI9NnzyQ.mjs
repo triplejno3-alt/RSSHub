@@ -1,0 +1,2 @@
+const e = `https://www.gitpod.io`;
+export { e as t };

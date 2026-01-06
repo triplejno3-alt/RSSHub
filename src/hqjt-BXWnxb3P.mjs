@@ -1,0 +1,41 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/hqjt`,
+    categories: [`university`],
+    example: `/nju/hqjt`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`webplus.nju.edu.cn/_s25/main.psp`] }],
+    name: `后勤集团`,
+    maintainers: [`ret-1`],
+    handler: a,
+    url: `webplus.nju.edu.cn/_s25/main.psp`,
+};
+async function a() {
+    let i = { zbcg: `招标采购` };
+    return {
+        title: `后勤集团-招标采购`,
+        link: `https://webplus.nju.edu.cn/_s25/zbcg/list.psp`,
+        item: [
+            ...(
+                await Promise.all(
+                    Object.keys(i).map(async () => {
+                        let a = (await t(`https://webplus.nju.edu.cn/_s25/zbcg/list.psp`)).data,
+                            o = r(a);
+                        return o(`li.news`).map(
+                            (t, r) => ((r = o(r)), { title: r.find(`a`).attr(`title`), link: `https://webplus.nju.edu.cn` + r.find(`a`).attr(`href`), pubDate: n(e(r.find(`span`).last().text(), `YYYY-MM-DD`), 8), category: i[0] })
+                        );
+                    })
+                )
+            )[0],
+        ],
+    };
+}
+export { i as route };

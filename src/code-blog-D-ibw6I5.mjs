@@ -1,0 +1,34 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { t as r } from './rss-parser-CKuAfhVS.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/code/blog`,
+    categories: [`programming`],
+    example: `/visualstudio/code/blog`,
+    url: `code.visualstudio.com`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`code.visualstudio.com/`], target: `/code/blog` }],
+    name: `Code Blog`,
+    maintainers: [`cscnk52`],
+    handler: o,
+    description: `Provides a better reading experience (full articles) over the official ones.`,
+    view: n.Notifications,
+};
+async function o() {
+    let n = await r.parseURL(`https://code.visualstudio.com/feed.xml`),
+        a = await Promise.all(
+            n.items.map((n) =>
+                t.tryGet(n.link, async () => {
+                    let t = i(await e(n.link));
+                    return (t(`main h1`).first().remove(), t(`main p`).first().remove(), (n.content = t(`main`).html()), { title: n.title, link: n.link, description: n.content, pubDate: n.pubDate, author: n.creator });
+                })
+            )
+        );
+    return { title: n.title, link: n.link, description: n.description, item: a, language: `en` };
+}
+export { a as route };

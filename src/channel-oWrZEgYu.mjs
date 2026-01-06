@@ -1,0 +1,51 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './description-CIM84RRv.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/channel/:channel`,
+    categories: [`social-media`],
+    example: `/vimeo/channel/bestoftheyear`,
+    parameters: { channel: 'channel name can get from url like `bestoftheyear` in  [https://vimeo.com/channels/bestoftheyear/videos](https://vimeo.com/channels/bestoftheyear/videos) .' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`vimeo.com/channels/:channel`, `vimeo.com/channels/:channel/videos`, `vimeo.com/channels/:channel/videos/:sort/:format`] }],
+    name: `Channel`,
+    maintainers: [`MisteryMonster`],
+    handler: o,
+};
+async function o(a) {
+    let o = a.req.param(`channel`),
+        s = `https://vimeo.com/channels/${o}/videos`,
+        c = await n({ method: `get`, url: `${s}/page:1/sort:date/format:detail`, headers: { 'X-Requested-With': `XMLHttpRequest` } }),
+        l = o === `bestoftheyear` ? await n({ method: `get`, url: `${s}/page:2/sort:date/format:detail`, headers: { 'X-Requested-With': `XMLHttpRequest` } }) : ``,
+        u = i([...c.data, ...l.data]),
+        d = u(`ol li.clearfix`),
+        f = await Promise.all(
+            d.toArray().map((t) => {
+                t = u(t);
+                let r = t.find(`.more`).attr(`href`);
+                return e.tryGet(r, async () => {
+                    let e = (await n({ method: `get`, url: `https://vimeo.com${r}/description?breeze=1`, headers: { 'X-Requested-With': `XMLHttpRequest`, 'User-Agent': `Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X)  ` } }))
+                            .data,
+                        t = i(e);
+                    return (t(`span`).remove(), t.html());
+                });
+            })
+        );
+    return {
+        title: `${o} | Vimeo channel`,
+        link: s,
+        item: d.toArray().map((e, n) => {
+            e = u(e);
+            let i = e.find(`.title a`).text(),
+                a = e.find(`.meta a`).text();
+            return { title: i, description: r({ videoUrl: e.find(`.more`).attr(`href`), vdescription: f[n] || `` }), pubDate: t(e.find(`time`).attr(`datetime`)), link: `https://vimeo.com${e.find(`.more`).attr(`href`)}`, author: a };
+        }),
+    };
+}
+export { a as route };

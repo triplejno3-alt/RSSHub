@@ -1,0 +1,57 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = `https://cs.zjut.edu.cn/jsp/newsclass.jsp?wcId=`,
+    o = `cs.zjut.edu.cn`,
+    s = {
+        path: `/cs/:type`,
+        categories: [`university`],
+        example: `/zjut/cs/54`,
+        parameters: { type: `分类，见下表` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `浙江工业大学计算机科学与技术学院、软件学院`,
+        maintainers: [`zhullyb`],
+        url: `cs.zjut.edu.cn`,
+        handler: c,
+        radar: [{ source: [`cs.zjut.edu.cn/jsp/newsclass.jsp`], target: `/cs/:type` }],
+        description: `| 新闻资讯 | 学术动态 | 通知公告 |
+| ------- | ------- | ------- |
+| 54      | 55      | 53      |`,
+    };
+async function c(s) {
+    let c = Number.parseInt(s.req.param(`type`)),
+        l = i(await e(a + c)),
+        u = l(`dl.news`)
+            .toArray()
+            .map((e) => {
+                let t = l(e),
+                    i = t.find(`a`);
+                try {
+                    let e = i.text() || ``,
+                        a = i.attr(`href`);
+                    a ? a.startsWith(`http`) || (a = `https://` + o + `/jsp/` + a) : (a = ``);
+                    let s = r(n(t.find(`.datetime`).text().slice(1, -1)), 8);
+                    return { title: e, link: a, pubDate: s };
+                } catch {
+                    return { title: ``, link: ``, pubDate: Date.now() };
+                }
+            })
+            .filter((e) => e.title && e.link),
+        d = await Promise.all(
+            u.map((n) =>
+                t.tryGet(n.link, async () => {
+                    let t = { ...n, description: `` };
+                    return (
+                        o === new URL(n.link).hostname ? (new URL(n.link).pathname.startsWith(`/upload`) ? (t.description = n.link) : (t.description = i(await e(n.link))(`div.news1content`).html() || ``)) : (t.description = n.link),
+                        t
+                    );
+                })
+            )
+        );
+    return { title: l(`li#classname`).text() + ` - 浙江工业大学计算机科学与技术学院、软件学院`, link: a + c, item: d };
+}
+export { s as route };

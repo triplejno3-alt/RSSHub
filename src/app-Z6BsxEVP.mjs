@@ -1,0 +1,36 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+const t = { android: `安卓版`, iphone: `iPhone 版`, ipad: `iPad HD 版`, win: `UWP 版`, android_tv_yst: `TV 版` },
+    n = {
+        path: `/app/:id?`,
+        categories: [`program-update`],
+        example: `/bilibili/app/android`,
+        parameters: { id: `客户端 id，见下表，默认为安卓版` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `更新情报`,
+        maintainers: [`nczitzk`],
+        handler: r,
+        description: `| 安卓版  | iPhone 版 | iPad HD 版 | UWP 版 | TV 版            |
+| ------- | --------- | ---------- | ------ | ---------------- |
+| android | iphone    | ipad       | win    | android_tv_yst |`,
+    };
+async function r(n) {
+    let r = n.req.param(`id`) || `android`,
+        i = `https://app.bilibili.com`,
+        a = (await e({ method: `get`, url: `${i}/x/v2/version?mobi_app=${r}` })).data.data.map((e) => ({
+            link: i,
+            title: e.version,
+            pubDate: new Date(e.ptime * 1e3).toUTCString(),
+            description: `<li>${e.desc
+                .split(
+                    `
+-`
+                )
+                .join(`</li><li>-`)}</li>`,
+        }));
+    return { title: `哔哩哔哩更新情报 - ${t[r]}`, link: i, item: a };
+}
+export { n as route };

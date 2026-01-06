@@ -1,0 +1,33 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { n as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/forum/:id`,
+    categories: [`reading`],
+    example: `/qidian/forum/1010400217`,
+    parameters: { id: `小说 id, 可在对应小说页 URL 中找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`book.qidian.com/info/:id`] }],
+    name: `讨论区`,
+    maintainers: [`fuzy112`],
+    handler: i,
+};
+async function i(r) {
+    let i = r.req.param(`id`),
+        a = `https://forum.qidian.com/NewForum/List.aspx?BookId=${i}`,
+        o = n((await t(a, { headers: { Referer: `https://book.qidian.com/info/${i}` } })).data),
+        s = o(`.main-header>h1`).text(),
+        c = o(`img.forum_book`).attr(`src`),
+        l = o(`li.post-wrap>.post`),
+        u = [];
+    for (let t of l) {
+        let n = o(t).children().eq(1).find(`a`);
+        u.push({ title: n.text(), link: `https:${n.attr(`href`)}`, description: o(t).text(), pubDate: e(o(t).find(`.post-info>span`).text()) });
+    }
+    return { title: `起点 《${s}》讨论区`, link: a, image: c, item: u };
+}
+export { r as route };

@@ -1,0 +1,35 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { load as t } from 'cheerio';
+const n = {
+    path: `/download/:val/:id`,
+    categories: [`program-update`],
+    example: `/ifi-audio/download/1503007035/44472`,
+    parameters: { val: `product val`, id: `product id` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `Download Hub`,
+    maintainers: [`EthanWng97`],
+    handler: r,
+    description: `::: warning
+1.  Open [https://ifi-audio.com/download-hub](https://ifi-audio.com/download-hub) and the Network panel
+2.  Select the device and the corresponding serial number in the website and click Search
+3.  Find the last request named \`https://ifi-audio.com/wp-admin/admin-ajax.php\` in the Network panel, find out the val and id in the Payload panel, and fill in the url
+:::`,
+};
+async function r(n) {
+    let { val: r, id: i } = n.req.param(),
+        a = (
+            await e({ method: `post`, url: `https://ifi-audio.com/wp-admin/admin-ajax.php`, headers: { 'content-type': `application/x-www-form-urlencoded; charset=UTF-8` }, body: `action=ifi-ff-get-firmware&val=` + r + `&id=` + i })
+        ).data.data.markup,
+        o = t(a);
+    return {
+        title: `iFi audio Download Hub`,
+        link: `https://ifi-audio.com/download-hub/`,
+        description: `iFi audio Download Hub`,
+        item: [{ title: o(`li[data-category=firmware]:first h4`).text(), description: a, link: o(`li[data-category=firmware]:first a`).attr(`href`) }],
+    };
+}
+export { n as route };

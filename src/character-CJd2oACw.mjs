@@ -1,0 +1,26 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { t } from './utils-K7A_pWlU.mjs';
+const n = {
+    path: `/notes/character/:characterId`,
+    categories: [`social-media`],
+    example: `/crossbell/notes/character/10`,
+    parameters: { characterId: `N` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`crossbell.io/*`], target: `/notes` }],
+    name: `Notes of character`,
+    maintainers: [`DIYgod`],
+    handler: r,
+    url: `crossbell.io/*`,
+};
+async function r(n) {
+    let r = n.req.param(`characterId`),
+        i = await e(`https://indexer.crossbell.io/v1/notes`, { searchParams: { characterId: r, includeCharacter: !0 } }),
+        a = i.data?.list?.[0]?.character?.metadata?.content?.name || i.data?.list?.[0]?.character?.handle || r,
+        o = i.data?.list?.[0]?.character?.handle;
+    return { title: `Crossbell Notes from ` + a, link: `https://xchar.app/` + o, item: i.data?.list?.map((e) => t(e)) };
+}
+export { n as route };

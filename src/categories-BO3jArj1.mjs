@@ -1,0 +1,31 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { i as n, n as r, r as i, t as a } from './utils-CLvymA-f.mjs';
+const o = {
+    path: `/categories/:category`,
+    categories: [`multimedia`],
+    example: `/javtrailers/categories/50001755`,
+    parameters: { category: `Category name, can be found in the URL of the category page` },
+    radar: [{ source: [`javtrailers.com/categories/:category`] }],
+    name: `Categories`,
+    maintainers: [`TonyRL`],
+    url: `javtrailers.com/categories`,
+    handler: s,
+    features: { nsfw: !0 },
+};
+async function s(o) {
+    let { category: s } = o.req.param(),
+        c = await e(`${a}/api/categories/${s}?page=0`, { headers: i }),
+        l = n(c.videos),
+        u = await Promise.all(l.map((e) => t.tryGet(e.link, () => r(e))));
+    return {
+        title: `Watch ${c.category.name} Jav Online | Japanese Adult Video - JavTrailers.com`,
+        description: `Watch ${c.category.name} Jav video’s free, we have the largest Jav collections with high definition`,
+        link: `${a}/categories/${s}`,
+        item: u,
+    };
+}
+export { o as route };

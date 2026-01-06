@@ -1,0 +1,18 @@
+import { Fragment as e, jsx as t, jsxs as n } from 'hono/jsx/jsx-runtime';
+import { renderToString as r } from 'hono/jsx/dom/server';
+import { raw as i } from 'hono/html';
+const a = ({ images: r, videos: a, intro: o, description: s }) => {
+        let c = r?.[0]?.src;
+        return n(e, {
+            children: [
+                r?.map((e, n) => (e?.src ? t(`figure`, { children: t(`img`, { src: e.src, alt: e.alt }) }, `${e.src}-${n}`) : null)),
+                a?.map((e, r) =>
+                    e?.src ? n(`video`, { poster: e.poster ?? c, controls: !0, children: [t(`source`, { src: e.src, type: e.type }), t(`object`, { data: e.src, children: t(`embed`, { src: e.src }) })] }, `${e.src}-${r}`) : null
+                ),
+                o ? t(`blockquote`, { children: o }) : null,
+                s ? t(e, { children: i(s) }) : null,
+            ],
+        });
+    },
+    o = (e) => r(t(a, { ...e }));
+export { o as t };

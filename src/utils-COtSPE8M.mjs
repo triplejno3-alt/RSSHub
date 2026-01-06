@@ -1,0 +1,37 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+async function a(a, o, s, c, l, u, d) {
+    let f = await e(o);
+    if (!f) return [];
+    let p = i(f),
+        m = p(d)
+            .toArray()
+            .map((e) => ((e = p(e)), { title: e.find(c).attr(`title`), link: s + e.find(c).attr(`href`), pubDate: r(n(e.find(l).text(), `YYYY-MM-DD`), 8) }));
+    return await Promise.all(
+        m.map((a) =>
+            t.tryGet(a.link, async () => {
+                let t = await e(a.link);
+                if (!t || (t.status >= 300 && t.status < 400)) return { ...a, description: `该通知无法直接预览，请点击原文链接↑查看` };
+                let o = i(t);
+                if (o(`.wp_error_msg`).length > 0) a.description = `您当前ip并非校内地址，该信息仅允许校内地址访问`;
+                else if (o(`.wp_pdf_player`).length > 0) a.description = `该通知无法直接预览，请点击原文链接↑查看`;
+                else {
+                    let e = i(o(u.content).html());
+                    (e(`a`).each(function () {
+                        let e = o(this),
+                            t = e.attr(`href`);
+                        t && !t.startsWith(`http`) && e.attr(`href`, new URL(t, s).href);
+                    }),
+                        (a.description = e.html()),
+                        (a.title = o(u.title).text()),
+                        (a.pubDate = r(n(o(u.date).text().replace(`编辑：`, ``).replace(`发布日期：`, ``).replace(`发布时间：`, ``), `YYYY-MM-DD`), 8)));
+                }
+                return a;
+            })
+        )
+    );
+}
+export { a as t };

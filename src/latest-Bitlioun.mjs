@@ -1,0 +1,49 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/chinatax/latest`,
+    categories: [`government`],
+    example: `/gov/chinatax/latest`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.chinatax.gov.cn/*`] }],
+    name: `最新文件`,
+    maintainers: [`nczitzk`, `fuzy112`],
+    handler: i,
+    url: `www.chinatax.gov.cn/*`,
+};
+async function i() {
+    let r = `http://www.chinatax.gov.cn/chinatax/n810341/n810755/index.html`,
+        i = n((await t({ method: `get`, url: r })).data),
+        a = i(`ul.list.whlist li`)
+            .slice(0, 10)
+            .toArray()
+            .map((e) => {
+                e = i(e);
+                let t = e.find(`a`);
+                return { title: t.text(), link: new URL(t.attr(`href`), `http://www.chinatax.gov.cn`).toString() };
+            });
+    return {
+        title: `国家税务总局 - 最新文件`,
+        link: r,
+        item: await Promise.all(
+            a.map((r) =>
+                e.tryGet(r.link, async () => {
+                    try {
+                        let e = n((await t({ method: `get`, url: r.link })).data);
+                        return ((r.pubDate = e(`meta[name="PubDate"]`).attr(`content`)), (r.description = e(`#fontzoom`).html()), r);
+                    } catch (e) {
+                        if (e.name === `HTTPError` || e.name === `FetchError`) return ((r.description = e.message), r);
+                        throw e;
+                    }
+                })
+            )
+        ),
+    };
+}
+export { r as route };

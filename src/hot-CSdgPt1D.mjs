@@ -1,0 +1,69 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { t } from './utils-Nfz9OT6p.mjs';
+const n = (e, t) => {
+        let n = `https://api.coolapk.com/v6/page/dataList?url=`,
+            r,
+            i = {},
+            a = {
+                jrrm: {
+                    title: `今日热门`,
+                    url: n + `%2Ffeed%2FstatList%3FcacheExpires%3D300%26statType%3Dday%26sortField%3Ddetailnum%26title%3D%E4%BB%8A%E6%97%A5%E7%83%AD%E9%97%A8&title=%E4%BB%8A%E6%97%A5%E7%83%AD%E9%97%A8&subTitle=&page=1`,
+                },
+                dzb: { title: `点赞榜`, sortField: `likenum` },
+                scb: { title: `收藏榜`, sortField: `favnum` },
+                plb: { title: `评论榜`, sortField: `replynum` },
+                ktb: { title: `酷图榜`, sortField: `likenum` },
+            },
+            o = { daily: { description: `日榜`, statType: `day` }, weekly: { description: `周榜`, statType: `7days` } };
+        if (e === `jrrm`) return ((i.link = a.jrrm.url), (i.title = a.jrrm.title), i);
+        if (e === `ktb`) {
+            let e = { daily: { description: `周榜`, statDays: `7days` }, weekly: { description: `月榜`, statDays: `30days` } };
+            ((r = `#/feed/coolPictureList?statDays=` + e[t].statDays + `&listType=statFavNum&buildCard=1&title=` + e[t].description + `&page=1`), (i.title = `酷图榜-` + e[t].description));
+        } else ((r = `#/feed/statList?statType=` + o[t].statType + `&sortField=` + a[e].sortField + `&title=` + o[t].description + `&page=1`), (i.title = a[e].title + `-` + o[t].description));
+        return ((i.link = n + encodeURIComponent(r)), i);
+    },
+    r = {
+        path: `/hot/:type?/:period?`,
+        categories: [`social-media`],
+        example: `/coolapk/hot`,
+        parameters: { type: '默认为`jrrm`', period: '默认为`daily`' },
+        features: {
+            requireConfig: [{ name: `ALLOW_USER_HOTLINK_TEMPLATE`, optional: !0, description: '设置为`true`并添加`image_hotlink_template`参数来代理图片' }],
+            requirePuppeteer: !1,
+            antiCrawler: !1,
+            supportBT: !1,
+            supportPodcast: !1,
+            supportScihub: !1,
+        },
+        name: `热榜`,
+        maintainers: [`xizeyoupan`],
+        handler: i,
+        description: `| 参数名称 | 今日热门 | 点赞榜 | 评论榜 | 收藏榜 | 酷图榜 |
+| -------- | -------- | ------ | ------ | ------ | ------ |
+| type     | jrrm     | dzb    | plb    | scb    | ktb    |
+
+| 参数名称 | 日榜  | 周榜   |
+| -------- | ----- | ------ |
+| period   | daily | weekly |
+
+::: tip
+  今日热门没有周榜，酷图榜日榜的参数会变成周榜，周榜的参数会变成月榜。
+:::`,
+    };
+async function i(r) {
+    let { link: i, title: a } = n(r.req.param(`type`) || `jrrm`, r.req.param(`period`) || `daily`),
+        o = (await e(i, { headers: t.getHeaders() })).data.data,
+        s = [];
+    for (let e of o)
+        if (e.entityType === `card`) for (let t of e.entities) s.push(t);
+        else s.push(e);
+    let c = await Promise.all(s.map((e) => t.parseDynamic(e)));
+    return ((c = c.filter(Boolean)), { title: a, link: `https://www.coolapk.com/`, description: `热榜-` + a, item: c });
+}
+export { r as route };

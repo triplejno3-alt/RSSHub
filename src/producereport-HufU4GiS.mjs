@@ -1,0 +1,92 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+import { raw as l } from 'hono/html';
+const u = ({ images: e, intro: t, description: n }) =>
+        c(o(i, { children: [e?.map((e) => (e?.src ? a(`figure`, { children: a(`img`, { src: e.src, alt: e.alt ?? void 0 }) }) : null)), t ? a(`blockquote`, { children: t }) : null, n ? a(i, { children: l(n) }) : null] })),
+    d = async (r) => {
+        let { category: i = `produce/fresh-fruits/apples` } = r.req.param(),
+            a = Number.parseInt(r.req.query(`limit`) ?? `10`, 10),
+            o = `https://www.producereport.com`,
+            c = new URL(i, o).href,
+            l = s(await e(c)),
+            d = l(`html`).attr(`lang`) ?? `en`,
+            f = [];
+        return (
+            (f = l(`table.views-table tbody tr`)
+                .slice(0, a)
+                .toArray()
+                .map((e) => {
+                    let t = l(e),
+                        r = t.find(`a`).first(),
+                        i = r.text(),
+                        a = t
+                            .find(`td.views-field-field-image a img`)
+                            .attr(`src`)
+                            ?.replace(/styles\/thumbnail\/public/, ``)
+                            ?.split(/\?/)?.[0],
+                        s = u({ images: a ? [{ src: a, alt: i }] : void 0, intro: r.parent().contents().last().text().trim() }),
+                        c = t.find(`td.views-field-created`).contents().first().text()?.trim(),
+                        f = r.attr(`href`),
+                        p = c;
+                    return { title: i, description: s, pubDate: c ? n(c) : void 0, link: f ? new URL(f, o).href : void 0, content: { html: s, text: s }, image: a, banner: a, updated: p ? n(p) : void 0, language: d };
+                })),
+            (f = await Promise.all(
+                f.map((r) =>
+                    r.link
+                        ? t.tryGet(r.link, async () => {
+                              let t = s(await e(r.link)),
+                                  i = t(`meta[property="og:title"]`).attr(`content`) ?? r.title,
+                                  a = t(`meta[property="og:image"]`).attr(`content`),
+                                  c = u({ images: a ? [{ src: a, alt: i }] : void 0, description: t(`div[property="content:encoded"]`).html() ?? void 0 }),
+                                  l = t(`div.pane-node-created`).text()?.trim(),
+                                  f = t(`div.pane-node-field-topics a`).toArray(),
+                                  p = [...new Set(f.map((e) => t(e).text()).filter(Boolean))],
+                                  m = t(`div.pane-node-author a.username`)
+                                      .toArray()
+                                      .map((e) => {
+                                          let n = t(e);
+                                          return { name: n.text(), url: n.attr(`href`) ? new URL(n.attr(`href`), o).href : void 0, avatar: void 0 };
+                                      }),
+                                  h = l,
+                                  g = { title: i, description: c, pubDate: l ? n(l) : r.pubDate, category: p, author: m, content: { html: c, text: c }, image: a, banner: a, updated: h ? n(h) : r.updated, language: d };
+                              return { ...r, ...g };
+                          })
+                        : r
+                )
+            )),
+            {
+                title: l(`title`).text(),
+                description: l(`meta[property="og:title"]`).attr(`content`),
+                link: c,
+                item: f,
+                allowEmpty: !0,
+                image: l(`meta[property="og:image"]`).attr(`content`),
+                author: l(`meta[property="og:site_name"]`).attr(`content`),
+                language: d,
+                id: l(`meta[property="og:url"]`).attr(`content`),
+            }
+        );
+    },
+    f = {
+        path: `/:category{.+}?`,
+        name: `Category`,
+        url: `www.producereport.com`,
+        maintainers: [`nczitzk`],
+        handler: d,
+        example: `/producereport/produce/fresh-fruits/apples`,
+        parameters: { category: { description: 'Category, `Fresh Fruits - Apple` by default' } },
+        description:
+            ':::tip\nTo subscribe to [Apples](https://www.producereport.com/produce/fresh-fruits/apples), where the source URL is `https://www.producereport.com/produce/fresh-fruits/apples`, extract the certain parts from this URL to be used as parameters, resulting in the route as [`/producereport/produce/fresh-fruits/apples`](https://rsshub.app/producereport/produce/fresh-fruits/apples).\n:::\n',
+        categories: [`new-media`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`www.producereport.com/:category`], target: `/:category` }],
+        view: r.Articles,
+    };
+export { d as handler, f as route };

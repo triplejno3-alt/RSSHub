@@ -1,0 +1,28 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import { a as t, i as n, o as r, r as i, t as a } from './utils-UGcwE5N1.mjs';
+const o = {
+    path: `/videos/maker/:maker?/:language?/:mode?`,
+    categories: [`multimedia`],
+    example: `/javlibrary/videos/maker/arlq/cn`,
+    parameters: { maker: 'Maker, S1 NO.1 STYLE by default, as `arlq`', language: 'Language, see below, Japanese by default, as `ja`', mode: 'Mode, see below, videos with comments (by date) by default, as `1`' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+    name: `Videos by makers`,
+    maintainers: [],
+    handler: s,
+    description: `| videos with comments (by date) | everything (by date) |
+| ------------------------------ | -------------------- |
+| 1                              | 2                    |`,
+};
+async function s(o) {
+    let s = o.req.param(`mode`) ?? t,
+        c = o.req.param(`maker`) ?? n,
+        l = o.req.param(`language`) ?? i;
+    return await a(l, `${r}/${l}/vl_maker.php?list&m=${c}&mode=${s}`, e.tryGet);
+}
+export { o as route };

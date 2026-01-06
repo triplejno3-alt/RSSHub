@@ -1,0 +1,49 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { renderToString as o } from 'hono/jsx/dom/server';
+import { raw as s } from 'hono/html';
+const c = ({ images: e, texts: t }) => o(a(r, { children: [e.map((e) => i(`img`, { src: e })), t.map((e) => i(r, { children: s(e) }))] })),
+    l = {
+        path: `/live/:id`,
+        categories: [`traditional-media`],
+        example: `/pts/live/62e8e4bbb4de2cbd74468b2b`,
+        parameters: { id: `報導 id，可在对应整理報導页 URL 中找到` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`news.pts.org.tw/live/:id`, `news.pts.org.tw/`] }],
+        name: `整理報導`,
+        maintainers: [],
+        handler: u,
+    };
+async function u(r) {
+    let i = r.req.param(`id`),
+        a = `https://news.pts.org.tw`,
+        o = `${a}/live/${i}`,
+        s = await n({ method: `get`, url: `${a}/live/api/liveblog/${i}` }),
+        l = s.data.data.blogArticleList.slice(0, r.req.query(`limit`) ? Number.parseInt(r.req.query(`limit`)) : 30).map((e) => ({ link: `${a}/live/api/liveblog/article?articleId=${e}&model=main` }));
+    return (
+        (l = await Promise.all(
+            l.map((r) =>
+                e.tryGet(r.link, async () => {
+                    let e = (await n({ method: `get`, url: r.link })).data.data;
+                    return (
+                        (r.title = e.title),
+                        (r.pubDate = t(e.updatedDate)),
+                        (r.description = c({
+                            images: e.content.filter((e) => e.type === `img`).map((e) => `https://dkjm35kkdt2ag.cloudfront.net/${e.imgFileUrl}`),
+                            texts: e.content.filter((e) => e.type === `text`).map((e) => e.content),
+                        })),
+                        r
+                    );
+                })
+            )
+        )),
+        { title: `公視新聞網 PNN - ${s.data.data.title.replace(/【不斷更新】/, ``)}`, link: o, item: l }
+    );
+}
+export { l as route };

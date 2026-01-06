@@ -1,0 +1,51 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/announcement`,
+    name: `交易所公告`,
+    url: `www.cffex.com.cn`,
+    maintainers: [`ChenXiangcheng1`],
+    example: `/cffex/announcement`,
+    parameters: {},
+    description: ``,
+    categories: [`government`],
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`cffex.com.cn`], target: `/announcement` }],
+    handler: o,
+};
+async function o() {
+    let a = `http://www.cffex.com.cn`,
+        o = `${a}/jystz`,
+        s = i(await e(o)),
+        c = s(`div.notice_list li`)
+            .toArray()
+            .map((e) => {
+                e = s(e);
+                let t = s(e).find(`a`).first(),
+                    i = s(e).find(`a`).eq(1);
+                return { title: t.text().trim(), link: `${a}${t.attr(`href`)}`, pubDate: r(n(i.text(), `YYYY-MM-DD`), 8) };
+            });
+    return {
+        title: `中国金融期货交易所 - 交易所公告`,
+        link: o,
+        item: await Promise.all(
+            c.map((n) =>
+                t.tryGet(
+                    n.link,
+                    async () => (
+                        (n.description = i(await e(n.link))(`div.jysggnr div.nan p`)
+                            .eq(1)
+                            ?.html()),
+                        n
+                    )
+                )
+            )
+        ),
+    };
+}
+export { a as route };

@@ -1,0 +1,34 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import './timezone-CrV-DT8S.mjs';
+import './wechat-mp-HNgcLN2K.mjs';
+import { t as e } from './utils-DtKQmsNv.mjs';
+const t = {
+    path: `/index/:type`,
+    categories: [`university`],
+    example: `/nua/index/346`,
+    parameters: { type: `News Type` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`index.nua.edu.cn/:type/list.htm`] }],
+    name: `Official Information`,
+    maintainers: [`evnydd0sf`],
+    handler: n,
+    description: `| News Type | Parameters |
+| --------- | ---------- |
+| 公告      | 346        |
+| 南艺要闻  | 332        |`,
+};
+async function n(t) {
+    let n = t.req.param(`type`),
+        r = `https://www.nua.edu.cn`,
+        i = `${r}/${n}/list.htm`,
+        a = await e.ProcessList(i, r, `li.news`, `.news_meta`, `.col_title`),
+        o = await e.ProcessFeed(a[0], `.read`);
+    return { title: `NUA-` + a[1], link: i, description: `南京艺术学院 ` + a[1], item: o };
+}
+export { t as route };

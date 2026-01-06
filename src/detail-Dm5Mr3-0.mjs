@@ -1,0 +1,34 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { t } from './utils-BnyXtbFN.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/detail/:id`,
+    categories: [`anime`],
+    example: `/agefans/detail/20200035`,
+    parameters: { id: `番剧 id，对应详情 URL 中找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`agemys.org/detail/:id`] }],
+    name: `番剧详情`,
+    maintainers: [`s2marine`],
+    handler: i,
+};
+async function i(r) {
+    let i = n((await e(`${t}/detail/${r.req.param(`id`)}`)).data),
+        a = JSON.parse(i(`script[type="application/ld+json"]`).text()),
+        o = i(`.video_detail_episode`)
+            .first()
+            .find(`li`)
+            .toArray()
+            .map((e) => {
+                e = i(e);
+                let t = e.find(`a`);
+                return { title: t.text(), link: t.attr(`href`).replace(`http://`, `https://`) };
+            })
+            .toReversed();
+    return { title: `AGE动漫 - ${a.name}`, link: `${t}/detail/${r.req.param(`id`)}`, description: a.description, item: o };
+}
+export { r as route };

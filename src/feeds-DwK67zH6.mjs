@@ -1,0 +1,40 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/feeds`,
+    categories: [`blog`],
+    example: `/foreverblog/feeds`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.foreverblog.cn/feeds.html`] }],
+    name: `专题展示 - 文章`,
+    maintainers: [`7Wate`, `a180285`],
+    handler: a,
+    url: `www.foreverblog.cn/feeds.html`,
+};
+async function a() {
+    let i = `https://www.foreverblog.cn/feeds.html`,
+        a = r((await t(i)).data);
+    return {
+        title: `十年之约——专题展示`,
+        link: i,
+        item: a(`article[class="post post-type-normal"]`)
+            .toArray()
+            .map((t) => {
+                let r = a(t).find(`h1[class="post-title"]`),
+                    i = r.text().trim(),
+                    o = r.find(`a`).eq(0).attr(`href`),
+                    s = a(t).find(`div[class="post-author"]`).text().trim(),
+                    c = n(e(a(t).find(`time`).text().trim(), `MM-DD`), 8),
+                    l = `${s}: ${i}`;
+                return { title: l, description: l, link: o, pubDate: c };
+            }),
+    };
+}
+export { i as route };

@@ -1,0 +1,56 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { Fragment as t, jsx as n, jsxs as r } from 'hono/jsx/jsx-runtime';
+import { renderToString as i } from 'hono/jsx/dom/server';
+const a = {
+    path: `/zhongchou/:type?`,
+    categories: [`shopping`],
+    example: `/taobao/zhongchou/all`,
+    parameters: { type: '类型, 默认为 `all` 全部' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `众筹项目`,
+    maintainers: [`xyqfer`, `Fatpandac`],
+    handler: o,
+    description: `| 全部 | 科技 | 食品        | 动漫 | 设计   | 公益 | 娱乐 | 影音  | 书籍 | 游戏 | 其他  |
+| ---- | ---- | ----------- | ---- | ------ | ---- | ---- | ----- | ---- | ---- | ----- |
+| all  | tech | agriculture | acg  | design | love | tele | music | book | game | other |`,
+};
+async function o(a) {
+    let { type: o = `all` } = a.req.param(),
+        s = (
+            await e({
+                method: `get`,
+                url: `https://izhongchou.taobao.com/dream/ajax/getProjectListNew.htm?_input_charset=utf-8&type=6&pageSize=20&page=1&sort=1&status=&projectType=${encodeURIComponent({ all: ``, tech: `121288001`, agriculture: `123330001,125672021`, acg: `122018001`, design: `121292001,126176002,126202001`, love: `121280001`, tele: `121284001`, music: `121278001`, book: `121274002`, game: `122020001`, other: `125706031,125888001,125886001,123332001` }[o])}&_=${Date.now()}&callback=`,
+            })
+        ).data.data.map((e) => ({
+            title: e.name,
+            link: `https://izhongchou.taobao.com/dreamdetail.htm?id=${e.id}`,
+            description: i(
+                r(t, {
+                    children: [
+                        n(`img`, { src: e.image }),
+                        n(`br`, {}),
+                        n(`br`, {}),
+                        n(`strong`, { children: `达成率:` }),
+                        ` `,
+                        `${e.finish_per}%`,
+                        n(`br`, {}),
+                        n(`strong`, { children: `已筹金额:` }),
+                        ` `,
+                        `${e.curr_money}元`,
+                        n(`br`, {}),
+                        n(`strong`, { children: `支持人数:` }),
+                        ` `,
+                        e.buy_amount,
+                        n(`br`, {}),
+                    ],
+                })
+            ),
+            guid: e.id,
+        }));
+    return { title: `淘宝众筹-${o}`, link: `https://izhongchou.taobao.com/index.htm`, item: s };
+}
+export { a as route };

@@ -1,0 +1,47 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/news`,
+    categories: [`game`],
+    example: `/gamegene/news`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`news.gamegene.cn/news`] }],
+    name: `资讯`,
+    maintainers: [`lone1y-51`],
+    handler: a,
+    url: `news.gamegene.cn/news`,
+};
+async function a() {
+    let i = `https://gamegene.cn/news`,
+        { data: a } = await n({ method: `get`, url: i }),
+        o = r(a),
+        s = o(`div.mr245`)
+            .toArray()
+            .map((e) => {
+                e = o(e);
+                let t = e.find(`a`).first(),
+                    n = t.attr(`href`);
+                return { title: t.find(`h3`).first().text(), link: n, author: e.find(`a.namenode`).text(), category: e.find(`span.r`).text() };
+            });
+    return {
+        item: await Promise.all(
+            s.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let { data: e } = await n({ method: `get`, url: i.link }),
+                        a = r(e);
+                    return ((i.pubDate = t(a(`div.meta`).find(`time`).first().text())), (i.description = a(`div.content`).first().html()), i);
+                })
+            )
+        ),
+        link: i,
+        title: `游戏基因 GameGene`,
+    };
+}
+export { i as route };

@@ -1,0 +1,68 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { jsx as i } from 'hono/jsx/jsx-runtime';
+import { load as a } from 'cheerio';
+import { renderToString as o } from 'hono/jsx/dom/server';
+const s = (e) =>
+        e
+            .map((e) => {
+                let t = e.type;
+                return t === `video` ? c(e.data) : t === `text` ? e.data.replaceAll(/data-lazyload=(.+?) src=(.+?) style=".+?"/g, `src=$1`) : ``;
+            })
+            .join(`<br>`),
+    c = (e) => o(e.mobileUrl ? i(`video`, { controls: !0, poster: e.bigPosterUrl, preload: `metadata`, children: i(`source`, { src: e.mobileUrl, type: `video/mp4` }) }) : null),
+    l = {
+        path: `/feng/:id/:type`,
+        categories: [`new-media`],
+        example: `/ifeng/feng/2583/doc`,
+        parameters: { id: `对应 id，可在 大风号作者页面 找到`, type: `类型，见下表` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `大风号`,
+        maintainers: [`Jamch`],
+        handler: u,
+        description: `| 文章 | 视频  |
+| ---- | ----- |
+| doc  | video |`,
+    };
+async function u(i) {
+    let { id: o, type: l } = i.req.param(),
+        { data: u } = await n(`https://ishare.ifeng.com/mediaShare/home/${o}/media`, { headers: { Referer: `https://feng.ifeng.com/author/${o}` } }),
+        { data: d } = await n(`https://shankapi.ifeng.com/season/ishare/getShareListData/${o}/${l}/1/ifengnewsh5/getListData`, { headers: { Referer: `https://feng.ifeng.com/author/${o}` } }),
+        f = a(u),
+        { sockpuppetInfo: p } = JSON.parse(
+            f(`script`)
+                .text()
+                .match(/var allData = (.*?);/)[1]
+        ),
+        { data: m } = JSON.parse(d.match(/getListData\((.*)\)/)[1]),
+        { weMediaName: h, honorDesc: g, description: _, logo: v } = p,
+        y = m.map((e) => ({ title: e.title, pubDate: r(t(e.newsTime), 8), author: h, link: `https:${e.url}` })),
+        b = await Promise.all(
+            y.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let { data: e } = await n(t.link),
+                        r = a(e),
+                        i = JSON.parse(
+                            r(`script`)
+                                .text()
+                                .match(/var allData = ({.*?});/)[1]
+                        );
+                    return (
+                        l === `doc` && (t.description = s(i.docData.contentData.contentList)),
+                        l === `video` && (t.description = c(i.videoInfo)),
+                        (t.category = i.keywords.split(`,`)),
+                        (t.author = i.docData?.editorName ?? t.author),
+                        t
+                    );
+                })
+            )
+        );
+    return { title: `大风号-${h}-${l === `doc` ? `文章` : `视频`}`, description: `${g} ${_}`, image: `https:${v}`, link: `https://ishare.ifeng.com/mediaShare/home/${o}/media`, item: b };
+}
+export { l as route };

@@ -1,0 +1,44 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/news/:team`,
+    categories: [`new-media`],
+    example: `/skysports/news/ac-milan`,
+    parameters: { team: `Team id, can be found in URL to the team page` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `News`,
+    maintainers: [`nczitzk`],
+    handler: a,
+};
+async function a(i) {
+    let a = `https://www.skysports.com/${i.req.param(`team`)}-news`,
+        o = r((await n({ method: `get`, url: a })).data),
+        s = o(`.news-list__headline-link`)
+            .toArray()
+            .map((e) => ((e = o(e)), { title: e.text(), link: e.attr(`href`) }));
+    return (
+        (s = await Promise.all(
+            s.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let e = await n({ method: `get`, url: i.link }),
+                        a = r(e.data);
+                    return (
+                        a(`.roadblock`).remove(),
+                        a(`.sdc-article-widget, .sdc-site-layout-sticky-region`).remove(),
+                        (i.description = a(`.sdc-article-body, .polaris-tile-group-separator`).html()),
+                        (i.pubDate = t(e.data.match(/"datePublished": ?"(.*)","dateModified"/)[1])),
+                        i
+                    );
+                })
+            )
+        )),
+        { title: o(`title`).text(), link: a, item: s }
+    );
+}
+export { i as route };

@@ -1,0 +1,50 @@
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import { t } from './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+import { n as r } from './puppeteer-BbZGb8cd.mjs';
+import { Fragment as i, jsx as a } from 'hono/jsx/jsx-runtime';
+import * as o from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+const c = ({ preview: e, cover: t }) => s(a(i, { children: e ? a(`video`, { controls: !0, preload: `metadata`, poster: t, children: a(`source`, { src: e, type: `video/mp4` }) }) : null })),
+    l = {
+        path: `/new_videos`,
+        categories: [`multimedia`],
+        example: `/spankbang/new_videos`,
+        name: `New Porn Videos`,
+        maintainers: [`TonyRL`],
+        features: { antiCrawler: !0, requirePuppeteer: !0, nsfw: !0 },
+        radar: [{ source: [`spankbang.com/new_videos/`, `spankbang.com/`] }],
+        handler: async () => {
+            let i = `https://spankbang.com`,
+                a = `${i}/new_videos/`,
+                s = await r(),
+                l = await n.tryGet(
+                    a,
+                    async () => {
+                        let e = await s.newPage();
+                        (await e.setRequestInterception(!0),
+                            e.on(`request`, (e) => {
+                                e.resourceType() === `document` ? e.continue() : e.abort();
+                            }),
+                            t.http(`Requesting ${a}`),
+                            await e.goto(a, { waitUntil: `domcontentloaded` }));
+                        let n = await e.content(),
+                            r = o.load(n),
+                            l = r(`.video-item`)
+                                .toArray()
+                                .map((e) => {
+                                    let t = r(e),
+                                        n = t.find(`.thumb`),
+                                        a = t.find(`img.cover`);
+                                    return { title: n.attr(`title`), link: new URL(n.attr(`href`), i).href, description: c({ cover: a.data(`src`), preview: a.data(`preview`) }) };
+                                });
+                        return { title: r(`head title`).text(), description: r(`head meta[name="description"]`).attr(`content`), item: l };
+                    },
+                    e.cache.routeExpire,
+                    !1
+                );
+            return (await s.close(), { title: l.title, description: l.description, link: a, item: l.item });
+        },
+    };
+export { l as route };

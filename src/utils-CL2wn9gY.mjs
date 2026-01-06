@@ -1,0 +1,11 @@
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { load as t } from 'cheerio';
+async function n(n, r, i, a, o = (e) => e) {
+    let s = t((await e({ method: `get`, url: r, https: { rejectUnauthorized: !1 } })).data),
+        c = s(n),
+        l = o(s(a).text()),
+        u = s(i).text();
+    return c ? { pageInfo: c.html(), date: l, title: u } : { pageInfo: `无法获取内容`, date: `1970-1-1`, title: `无法获取标题` };
+}
+const r = n;
+export { r as t };

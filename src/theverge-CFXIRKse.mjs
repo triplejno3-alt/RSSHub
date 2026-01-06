@@ -1,0 +1,136 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './rss-parser-CKuAfhVS.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+import { raw as c } from 'hono/html';
+const l = ({ featuredImage: e, ledeMediaData: t }) =>
+        s(
+            a(r, {
+                children: [
+                    e?.image?.originalUrl ? a(`figure`, { children: [i(`img`, { src: e.image.originalUrl.split(`?`)[0], alt: e.image.alt ?? void 0 }), i(`figcaption`, { children: e.image.title })] }) : null,
+                    t
+                        ? t.__typename === `LedeMediaEmbedType`
+                            ? i(r, { children: t.embedHtml ? c(t.embedHtml) : null })
+                            : t.__typename === `LedeMediaImageType` && !e
+                              ? a(`figure`, {
+                                    children: [i(`img`, { src: t.image?.thumbnails?.horizontal?.url?.split(`?`)[0], alt: t.image?.title ?? void 0 }), i(`figcaption`, { children: t.image?.credit?.plaintext || t.image?.title })],
+                                })
+                              : t.__typename === `LedeMediaVideoType`
+                                ? i(`iframe`, { src: `https://volume.vox-cdn.com/embed/${t.video?.volumeUuid}`, allowfullscreen: !0 })
+                                : null
+                        : null,
+                ],
+            })
+        ),
+    u = new Set([`NewsletterBlockType`, `RelatedPostsBlockType`, `ProductsTableBlockType`, `TableOfContentsBlockType`]),
+    d = (e) => !u.has(e.__typename.trim()),
+    f = {
+        path: `/:hub?`,
+        categories: [`new-media`],
+        example: `/theverge`,
+        parameters: { hub: `Hub, see below, All Posts by default` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`theverge.com/:hub`, `theverge.com/`] }],
+        name: `Category`,
+        maintainers: [`HenryQW`, `vbali`],
+        handler: m,
+        description: `| Hub         | Hub name            |
+| ----------- | ------------------- |
+|             | All Posts           |
+| android     | Android             |
+| apple       | Apple               |
+| apps        | Apps & Software     |
+| blackberry  | BlackBerry          |
+| culture     | Culture             |
+| gaming      | Gaming              |
+| hd          | HD & Home           |
+| microsoft   | Microsoft           |
+| photography | Photography & Video |
+| policy      | Policy & Law        |
+| web         | Web & Social        |
+
+  Provides a better reading experience (full text articles) over the official one.`,
+    },
+    p = (e) => {
+        if (!d(e)) return ``;
+        switch (e.__typename) {
+            case `CoreEmbedBlockType`:
+                return e.embedHtml;
+            case `CoreGalleryBlockType`:
+                return e.images.map((e) => `<figure><img src="${e.image.thumbnails.horizontal.url.split(`?`)[0]}" alt="${e.alt}" /><figcaption>${e.caption.html}</figcaption></figure>`).join(``);
+            case `CoreHeadingBlockType`:
+                return `<h${e.level}>${e.contents.html}</h${e.level}>`;
+            case `CoreHTMLBlockType`:
+                return e.markup;
+            case `CoreImageBlockType`:
+                return `<figure><img src="${e.thumbnail.url.split(`?`)[0]}" alt="${e.alt}" /><figcaption>${e.caption.html}</figcaption></figure>`;
+            case `CoreListBlockType`:
+                return `${e.ordered ? `<ol>` : `<ul>`}${e.items.map((e) => `<li>${e.contents.html}</li>`).join(``)}${e.ordered ? `</ol>` : `</ul>`}`;
+            case `CoreParagraphBlockType`:
+                return e.tempContents.map((e) => e.html).join(``);
+            case `CorePullquoteBlockType`:
+                return `<blockquote>${e.contents.html}</blockquote>`;
+            case `CoreQuoteBlockType`:
+                return `<blockquote>${e.children.map((e) => p(e)).join(``)}</blockquote>`;
+            case `CoreSeparatorBlockType`:
+                return `<hr>`;
+            case `HighlightBlockType`:
+                return e.children.map((e) => p(e)).join(``);
+            case `ImageCompareBlockType`:
+                return `<figure><img src="${e.leftImage.thumbnails.horizontal.url.split(`?`)[0]}" alt="${e.leftImage.alt}" /><img src="${e.rightImage.thumbnails.horizontal.url.split(`?`)[0]}" alt="${e.rightImage.alt}" /><figcaption>${e.caption.html}</figcaption></figure>`;
+            case `ImageSliderBlockType`:
+                return e.images.map((e) => `<figure><img src="${e.image.originalUrl.split(`?`)[0]}" alt="${e.alt}" /><figcaption>${e.caption.html}</figcaption></figure>`).join(``);
+            case `MethodologyAccordionBlockType`:
+                return `<h2>${e.heading.html}</h2>${e.sections.map((e) => `<h3>${e.heading.html}</h3>${e.content.html}`).join(``)}`;
+            case `ProductBlockType`: {
+                let t = e.product;
+                return `<div><figure><img src="${t.image.thumbnails.horizontal.url.split(`?`)[0]}" alt="${t.image.alt}" /><figcaption>${t.image.alt}</figcaption></figure><br><a href="${t.bestRetailLink.url}">${t.title} $${t.bestRetailLink.price}</a><br>${t.description.html}${t.pros.html ? `<br>The Good${t.pros.html}The Bad${t.cons.html}` : ``}</div>`;
+            }
+            case `TableBlockType`:
+                return `<table><tr>${e.header.map((e) => `<th>${e}</th>`).join(``)}</tr>${e.rows.map((e) => `<tr>${e.map((e) => `<td>${e}</td>`).join(``)}</tr>`).join(``)}</table>`;
+            default:
+                throw Error(`Unsupported block type: ${e.__typename}`);
+        }
+    };
+async function m(r) {
+    let i = r.req.param(`hub`) ? `https://www.theverge.com/rss/${r.req.param(`hub`)}/index.xml` : `https://www.theverge.com/rss/index.xml`,
+        a = await n.parseURL(i),
+        s = await Promise.all(
+            a.items.map((n) =>
+                t.tryGet(n.link, async () => {
+                    let t = o(await e(n.link)),
+                        r = JSON.parse(t(`script#__NEXT_DATA__`).text()).props.pageProps.hydration.responses.find((e) => e.operationName === `PostLayoutQuery` || e.operationName === `StreamLayoutQuery`).data.node,
+                        i = l({ featuredImage: r.featuredImage, ledeMediaData: r.ledeMediaData });
+                    return (
+                        (i += r.blocks.map((e) => p(e)).join(`<br><br>`)),
+                        r.__typename === `StreamResourceType` &&
+                            (i += r.posts.edges
+                                .map(({ node: e }) => {
+                                    let t = `<h2><a href="${e.permalink}">${e.promo.headline || e.title}</a></h2>` + l({ ledeMediaData: e.ledeMediaData });
+                                    switch (e.__typename) {
+                                        case `PostResourceType`:
+                                            t += e.excerpt.map((e) => e.contents.html).join(`<br>`);
+                                            break;
+                                        case `QuickPostResourceType`:
+                                            t += e.blocks.map((e) => p(e)).join(`<br>`);
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                    return t;
+                                })
+                                .join(`<br>`)),
+                        (n.description = i),
+                        (n.category = r.categories),
+                        n
+                    );
+                })
+            )
+        );
+    return { title: a.title, link: a.link, description: a.description, item: s };
+}
+export { f as route };

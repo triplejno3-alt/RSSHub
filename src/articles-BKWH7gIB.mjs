@@ -1,0 +1,43 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+import r from 'rss-parser';
+const i = new r({ customFields: { item: [`issued`] } }),
+    a = {
+        path: `/articles`,
+        categories: [`anime`],
+        example: `/ntrblog/articles`,
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+        name: `Articles`,
+        maintainers: [`keocheung`],
+        radar: [{ source: [`ntrblog.com`] }],
+        handler: o,
+    };
+async function o() {
+    let r = await t(`https://ntrblog.com/atom.xml`),
+        a = await i.parseString(r.data),
+        o = await Promise.all(
+            a.items.map((r) =>
+                r.link
+                    ? e.tryGet(r.link, async () => {
+                          let { data: e } = await t(r.link),
+                              i = n(e)(`div.article-body`);
+                          return (i.find(`#twitter-widget-1`).remove(), i.find(`[id^="ldblog_related_articles_"]`).remove(), i.find(`#ad2`).remove(), (r.content = `<div lang="ja">${i.html()}</div>`), r);
+                      })
+                    : r
+            )
+        );
+    return {
+        title: a.title || `NTR BLOG（寝取られブログ）`,
+        link: a.link || `https://ntrblog.com`,
+        description: a.description || `NTR BLOG（寝取られブログ）最新文章`,
+        image: a.image?.url,
+        item: o.map((e) => ({ title: e.title || ``, link: e.link || ``, author: e.author || ``, pubDate: e.issued ? new Date(e.issued) : void 0, description: e.content || ``, image: e.enclosure?.url, guid: e.guid })),
+        language: `ja`,
+    };
+}
+export { a as route };

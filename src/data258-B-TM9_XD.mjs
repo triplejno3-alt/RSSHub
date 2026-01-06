@@ -1,0 +1,63 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import { t } from './request-in-progress-DJ9USKmm.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './timezone-CrV-DT8S.mjs';
+import { t as a } from './wait-BbcjSMwa.mjs';
+import { n as o } from './wechat-mp-HNgcLN2K.mjs';
+import { load as s } from 'cheerio';
+const c = (e, t, r) => {
+        let a = e.find(t);
+        return { title: a.text(), link: a.attr(`href`), pubDate: i(n(e.find(r).text(), `YYYY-MM-DD HH:mm`), 8) };
+    },
+    l = { path: `/data258/:id?`, radar: [{ source: [`mp.data258.com/`, `mp.data258.com/article/category/:id`] }], name: `Unknown`, maintainers: [`Rongronggg9`], handler: u, url: `mp.data258.com/` };
+async function u(n) {
+    if ((await e.get(`data258:lock`, !1)) === `1`) throw new t(`Another request is in progress, please try again later.`);
+    let i = n.req.param(`id`),
+        l = n.req.query(`limit`) ? Number.parseInt(n.req.query(`limit`)) : 5,
+        u = `https://mp.data258.com`,
+        d = i ? `${u}/article/category/${i}` : u,
+        f = s((await r(d)).data),
+        p = f(`head title`).text(),
+        m = f(`meta[name="description"]`).attr(`content`),
+        h = f(`ul.fly-list`),
+        g =
+            h && h.length
+                ? f(h)
+                      .find(`li`)
+                      .toArray()
+                      .map((e) => c(f(e), `h2 a`, `.fly-list-info span`))
+                : f(`ul.jie-row li`)
+                      .toArray()
+                      .map((e) => c(f(e), `a.jie-title`, `.layui-hide-xs`));
+    if (((g = g.slice(0, l)), (await e.get(`data258:lock`, !1)) === `1`)) throw new t(`Another request is in progress, please try again later.`);
+    await e.set(`data258:lock`, `1`, 60);
+    let _;
+    for (let t of g) {
+        let n = t.link.match(/id=([\da-f]+)/)[1];
+        t.link = t.link.startsWith(`http`) ? t.link : `${u}${t.link}`;
+        let i = await e.tryGet(`data258:${n}`, async () => {
+            try {
+                await a(1e3);
+                let e = await r.get(t.link, { headers: { Referer: d } });
+                if (e.data.includes(`今日浏览次数已达上限`)) return ((_ = new r.RequestError(e.data, {}, e.request)), null);
+                let n = s(e.data);
+                return n(`script`)
+                    .filter((e, t) => n(t).html().includes(`location.href`))
+                    .html()
+                    .match(/location\.href='([^']+)'/)[1];
+            } catch (e) {
+                return ((_ = e), null);
+            }
+        });
+        if (i) t.link = i;
+        else break;
+    }
+    if ((await e.set(`data258:lock`, `0`, 1), (g = g.filter((e) => e.link.match(/^https?:\/\/mp\.weixin\.qq\.com\/s/))), g.length === 0 && _)) throw _;
+    return (await Promise.all(g.map((e) => o(e, !!h))), { title: p, link: d, description: m, item: g });
+}
+export { l as route };

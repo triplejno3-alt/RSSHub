@@ -1,0 +1,92 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = `https://www.hkepc.com`,
+    o = {
+        price: { url: `${a}/news`, feedSuffix: ` - 腦場新聞`, selector: `#sidebar > div:nth-child(1) > div.content > ul > li` },
+        review: { url: `${a}/news`, feedSuffix: ` - 新品快遞`, selector: `#sidebar > div:nth-child(2) > div.content > ul > li` },
+        coverStory: { url: `${a}/news`, feedSuffix: ` - 專題報導`, selector: `#sidebar > div:nth-child(3) > div.content > ul > li` },
+        news: { url: `${a}/news`, feedSuffix: ` - 新聞中心`, selector: `#sidebar > div:nth-child(4) > div.content > ul > li` },
+        press: { url: `${a}/news`, feedSuffix: ` - 業界資訊`, selector: `#sidebar > div:nth-child(5) > div.content > ul > li` },
+        member: { url: `${a}/news`, feedSuffix: ` - 會員消息`, selector: `#sidebar > div:nth-child(6) > div.content > ul > li` },
+        digital: { url: a, feedSuffix: ` - 流動數碼`, selector: `#contentR5 > div.left > div.article > div.heading` },
+        entertainment: { url: a, feedSuffix: ` - 生活娛樂`, selector: `#contentR5 > div.right > div.article > div.heading` },
+        latest: { url: a, feedSuffix: ` - 最新消息`, selector: `div .item` },
+        '': { url: a, feedSuffix: ` - 最新消息`, selector: `div .item` },
+        ocLab: { url: `${a}/ocLab`, feedSuffix: ` - 超頻領域`, selector: `.heading` },
+    },
+    s = {
+        path: `/:category?`,
+        categories: [`new-media`],
+        example: `/hkepc/news`,
+        parameters: { category: `分类，见下表，默认为最新消息` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`hkepc.com/`], target: `` }],
+        name: `HKEPC 电脑领域`,
+        maintainers: [`TonyRL`],
+        handler: c,
+        url: `hkepc.com/`,
+        description: `| 专题报导   | 新闻中心 | 新品快递 | 超频领域 | 流动数码 | 生活娱乐      | 会员消息 | 脑场新闻 | 业界资讯 | 最新消息 |
+| ---------- | -------- | -------- | -------- | -------- | ------------- | -------- | -------- | -------- | -------- |
+| coverStory | news     | review   | ocLab    | digital  | entertainment | member   | price    | press    | latest   |`,
+    };
+async function c(s) {
+    let c = s.req.param(`category`) ?? ``,
+        { data: l } = await n(o[c].url, { headers: { Referer: a } }),
+        u = i(l),
+        d = u(o[c].selector)
+            .find(`a`)
+            .toArray()
+            .map((e) => ({ title: u(e).text(), link: a + u(e).attr(`href`) })),
+        f = await Promise.all(
+            d.map((o) =>
+                e.tryGet(o.link, async () => {
+                    let { data: e } = await n(o.link, { headers: { Referer: a } }),
+                        s = i(e),
+                        c = s(`#view`),
+                        l = s(`#articleFooter .navigation a`)
+                            .toArray()
+                            .map((e) => `${a}${e.attribs.href}`)
+                            .slice(1);
+                    if (l.length) {
+                        let e = await Promise.all(
+                            l.map(async (e) => {
+                                let { data: t } = await n(e, { headers: { referer: o.link } });
+                                return i(t)(`#view`).html();
+                            })
+                        );
+                        c.append(e);
+                    }
+                    return (
+                        c.find(`#view > div.advertisement`).remove(),
+                        c.find(`div#comments`).remove(),
+                        c.find(`div#share_btn`).remove(),
+                        c.find(`#articleFooter`).remove(),
+                        c
+                            .find(`#view > p`)
+                            .filter((e, t) => t.children[0]?.data === `\xA0`)
+                            .remove(),
+                        c.find(`#view > p > img`).each((e, t) => {
+                            t.attribs.rel && (t.attribs.src = t.attribs.rel);
+                        }),
+                        (o.author = s(`.newsAuthor`).text().trim() || s(`#articleHead div.author`).text().trim()),
+                        (o.category = s(`div#relatedArticles div.tags a`)
+                            .toArray()
+                            .map((e) => s(e).text().trim())),
+                        (o.description = c.html()),
+                        (o.pubDate = r(t(s(`.publishDate`).text()), 8)),
+                        (o.guid = o.link.slice(0, o.link.lastIndexOf(`/`))),
+                        o
+                    );
+                })
+            )
+        );
+    return { title: `電腦領域 HKEPC${o[c].feedSuffix}`, link: `https://www.hkepc.com/${c}`, description: `電腦領域 HKEPC Hardware - 全港 No.1 PC網站`, language: `zh-hk`, item: f };
+}
+export { s as route };

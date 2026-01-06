@@ -1,0 +1,49 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { Fragment as i, jsx as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+const c = { path: `/csrc/news/:suffix{.+}?`, name: `Unknown`, maintainers: [], handler: l };
+async function l(c) {
+    let l = `http://www.csrc.gov.cn`,
+        { suffix: u = `c100028/common_xq_list.shtml` } = c.req.param(),
+        d = `${l}/csrc/${u}`,
+        { data: f } = await n(d),
+        p = o(f),
+        m = p(`meta[name="channelid"]`).attr(`content`),
+        h,
+        g = [];
+    if (m)
+        ((h = await n(`${l}/searchList/${m}`, { searchParams: { _isAgg: !0, _isJson: !0, _pageSize: 18, _template: `index`, _rangeTimeGte: ``, _channelName: ``, page: 1 } })),
+            (g = h.data.data.results.map((e) => ({
+                title: e.title,
+                description: (e.contentHtml ?? ``) + s(a(i, { children: e.resList?.map((e) => a(`a`, { href: e.filePath?.startsWith(`/`) ? `${l}${e.filePath}` : e.filePath, children: e.fileName }, `${e.fileName}-${e.filePath}`)) })),
+                pubDate: t(e.publishedTime, `x`),
+                link: e.url,
+            }))));
+    else {
+        let i = p(`#list li`)
+            .toArray()
+            .map((e) => {
+                e = p(e);
+                let n = e.find(`a`);
+                return { title: n.text(), link: `${l}${n.attr(`href`)}`, pubDate: r(t(e.find(`.data`).text(), `YYYY-MM-DD`), 8) };
+            });
+        g = await Promise.all(
+            i.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let { data: e } = await n(t.link);
+                    return ((t.description = o(e)(`.detail-news`).html()), t);
+                })
+            )
+        );
+    }
+    return { title: `中国证券监督管理委员会 - ${h?.data.channelName || p(`head title`).text()}`, link: d, image: `http://www.csrc.gov.cn/favicon.ico`, item: g };
+}
+export { c as route };

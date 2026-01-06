@@ -1,0 +1,119 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './types-Bl_lnefZ.mjs';
+import { load as a } from 'cheerio';
+const o = async (i) => {
+        let { category: o = `association-news` } = i.req.param(),
+            s = Number.parseInt(i.req.query(`limit`) ?? `10`, 10),
+            c = new URL(o, `http://www.ccagm.org.cn`).href,
+            l = a(await e(c)),
+            u = l(`html`).attr(`lang`) ?? `zh`,
+            d = [];
+        return (
+            (d = l(`ul.news_list li a`)
+                .slice(0, s)
+                .toArray()
+                .map((e) => {
+                    let t = l(e),
+                        i = t.attr(`title`) ?? t.find(`span.fl`).text(),
+                        a = t.find(`span.fr`).text(),
+                        o = t.attr(`href`),
+                        s = a;
+                    return { title: i, pubDate: a ? r(n(a), 8) : void 0, link: o, updated: s ? r(n(s), 8) : void 0, language: u };
+                })),
+            (d = await Promise.all(
+                d.map((i) =>
+                    i.link
+                        ? t.tryGet(i.link, async () => {
+                              let t = a(await e(i.link)),
+                                  o = t(`h2.center`).text(),
+                                  s = t(`div.newsview`).html() ?? void 0,
+                                  c = t(`p.title_s`).text().trim().split(/：/).pop(),
+                                  l = c,
+                                  d = { title: o, description: s, pubDate: c ? r(n(c), 8) : i.pubDate, content: { html: s, text: s }, updated: l ? r(n(l), 8) : i.updated, language: u };
+                              return { ...i, ...d };
+                          })
+                        : i
+                )
+            )),
+            {
+                title: `${l(`title`).text()}${l(`span.titlespan`).text() ? ` - ${l(`span.titlespan`).text()}` : ``}`,
+                description: l(`meta[name="description"]`).attr(`content`),
+                link: c,
+                item: d,
+                allowEmpty: !0,
+                image: l(`a.logo img`).attr(`src`),
+                author: l(`meta[name="keywords"]`).attr(`content`),
+                language: u,
+                id: c,
+            }
+        );
+    },
+    s = {
+        path: `/:category{.+}?`,
+        name: `栏目`,
+        url: `www.ccagm.org.cn`,
+        maintainers: [`nczitzk`],
+        handler: o,
+        example: `/ccagm/association-news`,
+        parameters: {
+            category: {
+                description: '分类，默认为 `association-news`，即协会动态，可在对应分类页 URL 中找到',
+                options: [
+                    { label: `协会动态`, value: `association-news` },
+                    { label: `会议活动`, value: `xh-activity/activities-huiyi` },
+                    { label: `调研与报告`, value: `xh-activity/bg-yj` },
+                    { label: `协会党建`, value: `xie-hui-dang-jian` },
+                    { label: `行业新闻`, value: `members-info` },
+                    { label: `行业研究`, value: `bg-yj` },
+                    { label: `行业标准`, value: `industry-policy/industry-standard` },
+                    { label: `法律法规`, value: `industry-policy/policies-regulations` },
+                    { label: `资料下载`, value: `download` },
+                    { label: `工作总结与计划`, value: `about-association/gong-zuo-zong-jie-yu-ji-hua` },
+                ],
+            },
+        },
+        description: `:::tip
+订阅 [协会动态](http://www.ccagm.org.cn/association-news)，其源网址为 \`http://www.ccagm.org.cn/association-news\`，请参考该 URL 指定部分构成参数，此时路由为 [\`/ccagm/association-news\`](https://rsshub.app/ccagm/association-news)。
+:::
+
+<details>
+  <summary>更多分类</summary>
+
+  | 栏目                                                                                         | ID                                                                                                                      |
+  | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+  | [协会动态](http://www.ccagm.org.cn/association-news.html)                                    | [association-news](https://rsshub.app/ccagm/association-news)                                                           |
+  | [会议活动](http://www.ccagm.org.cn/xh-activity/activities-huiyi.html)                        | [xh-activity/activities-huiyi](https://rsshub.app/ccagm/xh-activity/activities-huiyi)                                   |
+  | [调研与报告](http://www.ccagm.org.cn/xh-activity/bg-yj.html)                                 | [xh-activity/bg-yj](https://rsshub.app/ccagm/xh-activity/bg-yj)                                                         |
+  | [协会党建](http://www.ccagm.org.cn/xie-hui-dang-jian.html)                                   | [xie-hui-dang-jian](https://rsshub.app/ccagm/xie-hui-dang-jian)                                                         |
+  | [行业新闻](http://www.ccagm.org.cn/members-info.html)                                        | [members-info](https://rsshub.app/ccagm/members-info)                                                                   |
+  | [行业研究](http://www.ccagm.org.cn/bg-yj.html)                                               | [bg-yj](https://rsshub.app/ccagm/bg-yj)                                                                                 |
+  | [行业标准](http://www.ccagm.org.cn/industry-policy/industry-standard.html)                   | [industry-policy/industry-standard](https://rsshub.app/ccagm/industry-policy/industry-standard)                         |
+  | [法律法规](http://www.ccagm.org.cn/industry-policy/policies-regulations.html)                | [industry-policy/policies-regulations](https://rsshub.app/ccagm/industry-policy/policies-regulations)                   |
+  | [资料下载](http://www.ccagm.org.cn/download.html)                                            | [download](https://rsshub.app/ccagm/download)                                                                           |
+  | [工作总结与计划](http://www.ccagm.org.cn/about-association/gong-zuo-zong-jie-yu-ji-hua.html) | [about-association/gong-zuo-zong-jie-yu-ji-hua](https://rsshub.app/ccagm/about-association/gong-zuo-zong-jie-yu-ji-hua) |
+
+</details>
+`,
+        categories: [`new-media`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            { source: [`www.ccagm.org.cn/category?`], target: `/:category` },
+            { title: `协会动态`, source: [`www.ccagm.org.cn/association-news.html`], target: `/association-news` },
+            { title: `会议活动`, source: [`www.ccagm.org.cn/xh-activity/activities-huiyi.html`], target: `/xh-activity/activities-huiyi` },
+            { title: `调研与报告`, source: [`www.ccagm.org.cn/xh-activity/bg-yj.html`], target: `/xh-activity/bg-yj` },
+            { title: `协会党建`, source: [`www.ccagm.org.cn/xie-hui-dang-jian.html`], target: `/xie-hui-dang-jian` },
+            { title: `行业新闻`, source: [`www.ccagm.org.cn/members-info.html`], target: `/members-info` },
+            { title: `行业研究`, source: [`www.ccagm.org.cn/bg-yj.html`], target: `/bg-yj` },
+            { title: `行业标准`, source: [`www.ccagm.org.cn/industry-policy/industry-standard.html`], target: `/industry-policy/industry-standard` },
+            { title: `法律法规`, source: [`www.ccagm.org.cn/industry-policy/policies-regulations.html`], target: `/industry-policy/policies-regulations` },
+            { title: `资料下载`, source: [`www.ccagm.org.cn/download.html`], target: `/download` },
+            { title: `工作总结与计划`, source: [`www.ccagm.org.cn/about-association/gong-zuo-zong-jie-yu-ji-hua.html`], target: `/about-association/gong-zuo-zong-jie-yu-ji-hua` },
+        ],
+        view: i.Articles,
+    };
+export { o as handler, s as route };

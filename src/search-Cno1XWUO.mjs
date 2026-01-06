@@ -1,0 +1,23 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import { n as r, t as i } from './utils-C-VFa3b4.mjs';
+import { load as a } from 'cheerio';
+const o = { path: `/search/:kw`, categories: [`picture`], example: `/jpxgmn/search/candy`, parameters: { kw: `搜索关键词` }, name: `搜索`, maintainers: [`Urabartin`], handler: s, features: { nsfw: !0 } };
+async function s(o) {
+    let { kw: s } = o.req.param(),
+        c = (await r()) + `/plus/search/index.asp?keyword=${s}`,
+        l = await e.raw(c),
+        u = new URL(l.url).origin,
+        d = a(l._data),
+        f = d(`div.list div.list div.node p`)
+            .toArray()
+            .map((e) => ({ title: d(e).find(`b`).text(), link: new URL(d(e).find(`a`).attr(`href`), u).href, pubDate: n(d(e).next().next().next().find(`span`).first().text()) }))
+            .filter((e) => e.title.length !== 0);
+    return { title: `极品性感美女搜索 - ${s}`, link: l.url, item: await Promise.all(f.map((e) => t.tryGet(e.link, async () => ((e.description = await i(e.link)), e)))) };
+}
+export { o as route };

@@ -1,0 +1,44 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+import a from 'markdown-it';
+const o = a({ html: !0 });
+async function s() {
+    let { data: e } = await n(`https://www.apiseven.com/blog`),
+        a = i(e);
+    return JSON.parse(a(`#__NEXT_DATA__`).text()).props.pageProps.list.map((e) => ({ title: e.title, link: `https://www.apiseven.com` + e.slug, pubDate: r(t(e.published_at), 8), category: e.tags }));
+}
+const c = {
+    path: `/blog`,
+    categories: [`blog`],
+    example: `/apiseven/blog`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `博客`,
+    maintainers: [`aneasystone`],
+    handler: l,
+};
+async function l() {
+    let t = await s();
+    return {
+        title: `博客 | 支流科技`,
+        link: `https://www.apiseven.com/blog`,
+        item: await Promise.all(
+            t.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let { data: e } = await n(t.link),
+                        r = i(e),
+                        a = JSON.parse(r(`#__NEXT_DATA__`).text());
+                    return { title: t.title, description: o.render(a.props.pageProps.post.content), link: t.link, pubDate: t.pubDate, author: a.props.pageProps.post.author_name };
+                })
+            )
+        ),
+    };
+}
+export { c as route };

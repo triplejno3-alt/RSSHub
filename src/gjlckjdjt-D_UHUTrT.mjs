@@ -1,0 +1,87 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+const c = ({ image: e, video: t }) =>
+        s(
+            a(r, {
+                children: [
+                    e ? i(`figure`, { children: i(`img`, { src: e.src, alt: e.alt }) }) : null,
+                    t ? a(`video`, { controls: !0, children: [i(`source`, { src: t.src }), i(`object`, { data: t.src, children: i(`embed`, { src: t.src }) })] }) : null,
+                ],
+            })
+        ),
+    l = {
+        path: `/forestry/gjlckjdjt/:category?`,
+        categories: [`government`],
+        example: `/gov/forestry/gjlckjdjt`,
+        parameters: { category: `分类，见下表，默认为全部` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `国家林草科技大讲堂`,
+        maintainers: [`nczitzk`],
+        handler: u,
+        description: `| 分类     | id   |
+| -------- | ---- |
+| 经济林   | jjl  |
+| 林木良种 | lmlz |
+| 林下经济 | lxjj |
+| 生态修复 | stxf |
+| 用材林   | ycl  |
+| 其他     | qt   |`,
+    };
+async function u(r) {
+    let { category: i = `gjlckjdjt` } = r.req.param(),
+        a = r.req.query(`limit`) ? Number.parseInt(r.req.query(`limit`), 10) : 30,
+        s = `http://www.forestry.gov.cn`,
+        l = new URL(`${i}.jhtml`, s).href,
+        { data: u } = await n(l),
+        d = o(u),
+        f = d(`a.items`)
+            .slice(0, a)
+            .toArray()
+            .map((e) => {
+                e = d(e);
+                let n = e.find(`p.name`).text(),
+                    r = new URL(e.prop(`href`), s).href,
+                    i = r.match(/\/\d{8}\//);
+                return { title: n, link: r, description: c({ image: { src: e.find(`img`).prop(`src`), alt: n } }), pubDate: i ? t(i[1]) : void 0 };
+            });
+    f = await Promise.all(
+        f.map((r) =>
+            e.tryGet(r.link, async () => {
+                let { data: e } = await n(r.link),
+                    i = o(e);
+                (i(`p`).each((e, t) => {
+                    ((t = i(t)), t.find(`img, video, embed.edui-faked-video`).length === 0 && /^\s*$/.test(t.text()) && t.remove());
+                }),
+                    i(`video, embed.edui-faked-video`).each((e, t) => {
+                        t = i(t);
+                        let n = t.prop(`src`);
+                        ((r.enclosure_url = r.enclosure_url ?? n), t.replaceWith(c({ video: { src: n } })));
+                    }));
+                let a = r.link.match(/\/\d{8}\//);
+                return ((r.title = i(`div.tit`).text()), (r.description += i(`div.zhengwen`).html()), (r.pubDate = a ? t(a[1]) : void 0), (r.enclosure_type = r.enclosure_url ? `video/mp4` : void 0), r);
+            })
+        )
+    );
+    let p = new URL(`favicon.ico`, s).href;
+    return {
+        item: f,
+        title: d(`title`).text(),
+        link: l,
+        language: d(`html`).prop(`lang`),
+        image: new URL(`r/cms/www/default/zhuanti/2021djt/images/top.png`, s).href,
+        icon: p,
+        logo: p,
+        subtitle: d(`div.weizhi`).contents().last().text(),
+        author: `国家林业和草原局`,
+        allowEmpty: !0,
+    };
+}
+export { l as route };

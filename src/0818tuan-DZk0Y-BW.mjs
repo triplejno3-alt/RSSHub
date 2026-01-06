@@ -1,0 +1,49 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/:listId?`,
+    categories: [`shopping`],
+    example: `/0818tuan`,
+    parameters: { listId: '活动分类，见下表，默认为 `1`' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `分类`,
+    maintainers: [`TonyRL`],
+    handler: o,
+    description: `| 最新线报 | 实测活动 | 优惠券 |
+| -------- | -------- | ------ |
+| 1        | 2        | 3      |`,
+};
+async function o(a) {
+    let o = `http://www.0818tuan.com`,
+        s = a.req.param(`listId`) || `1`,
+        c = `${o}/list-${s}-0.html`,
+        { data: l } = await n(c),
+        u = i(l),
+        d = u(s === `3` ? `.col-xs-12 .thumbnail > a` : `.col-md-8 .list-group > a`)
+            .toArray()
+            .map((e) => ((e = u(e)), { title: e.attr(`title`), link: e.attr(`href`).startsWith(`http`) ? e.attr(`href`) : `${o}${e.attr(`href`)}` }))
+            .filter((e) => !e.link.includes(`m.0818tuan.com/tb1111.php`)),
+        f = await Promise.all(
+            d.map((a) =>
+                e.tryGet(a.link, async () => {
+                    let { data: e } = await n(a.link),
+                        o = i(e);
+                    return (
+                        o(`.pageLink, .alert, p[style="margin:15px;"]`).remove(),
+                        (a.description = o(`.post-content`).html()),
+                        (a.pubDate = r(t(o(`.panel-body > .text-center`).text().replace(`时间:`, ``), `YYYY-MM-DD HH:mm:ss`), 8)),
+                        a
+                    );
+                })
+            )
+        );
+    return { title: u(`head title`).text(), link: c, image: `http://www.0818tuan.com/favicon.ico`, item: f };
+}
+export { a as route };

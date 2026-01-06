@@ -1,0 +1,45 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/jwc`,
+    categories: [`university`],
+    example: `/ouc/jwc`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`jwc.ouc.edu.cn/`, `jwc.ouc.edu.cn/6517/list.htm`] }],
+    name: `教务处`,
+    maintainers: [`3401797899`],
+    handler: a,
+    url: `jwc.ouc.edu.cn/`,
+};
+async function a() {
+    let i = `https://jwc.ouc.edu.cn/6517/list.htm`,
+        a = r((await n(i)).data),
+        o = a(`.wp_article_list li`)
+            .toArray()
+            .map((e) => {
+                e = a(e);
+                let n = e.find(`a`);
+                return { title: n.attr(`title`), link: n.attr(`href`).startsWith(`http`) ? n.attr(`href`) : `https://jwc.ouc.edu.cn` + n.attr(`href`), pubDate: t(e.find(`span.Article_PublishDate`).text(), `YYYY-MM-DD`) };
+            });
+    return {
+        title: `中国海洋大学教务处`,
+        link: i,
+        description: `中国海洋大学教务处最新通知`,
+        item: await Promise.all(
+            o.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = r((await n(t.link)).data);
+                    return ((t.author = `中国海洋大学教务处`), (t.description = e(`.wp_articlecontent`).html()), t);
+                })
+            )
+        ),
+    };
+}
+export { i as route };

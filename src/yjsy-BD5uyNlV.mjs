@@ -1,0 +1,37 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/yjsy`,
+    categories: [`university`],
+    example: `/scau/yjsy`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`yjsy.scau.edu.cn/208/list.htm`, `yjsy.scau.edu.cn/`] }],
+    name: `研究生院通知`,
+    maintainers: [`Chunssu`],
+    handler: i,
+    url: `yjsy.scau.edu.cn/208/list.htm`,
+};
+async function i() {
+    let r = `https://yjsy.scau.edu.cn/208/list1.htm`,
+        i = n((await t(r)).data),
+        a = i(`#wp_news_w25 tr td tr`);
+    return {
+        title: `华南农业大学研究生院`,
+        link: r,
+        description: `通知公告`,
+        item:
+            a &&
+            a.toArray().map((t) => {
+                t = i(t);
+                let n = t.find(`a`).last();
+                return { title: n.text(), link: n.attr(`href`), pubDate: e(t.find(`td`).eq(2).text(), `YYYY/MM/DD`) };
+            }),
+    };
+}
+export { r as route };

@@ -1,0 +1,33 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { n as t, t as n } from './util-311rBg0P.mjs';
+const r = {
+    path: `/class/:category?`,
+    categories: [`reading`],
+    example: `/56kog/class/1_1`,
+    parameters: { category: `分类，见下表，默认为玄幻魔法` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `分类`,
+    maintainers: [`nczitzk`],
+    handler: i,
+    description: `| [玄幻魔法](https://www.56kog.com/class/1_1.html) | [武侠修真](https://www.56kog.com/class/2_1.html) | [历史军事](https://www.56kog.com/class/4_1.html) | [侦探推理](https://www.56kog.com/class/5_1.html) | [网游动漫](https://www.56kog.com/class/6_1.html) |
+| ------------------------------------------------ | ------------------------------------------------ | ------------------------------------------------ | ------------------------------------------------ | ------------------------------------------------ |
+| 1_1                                             | 2_1                                             | 4_1                                             | 5_1                                             | 6_1                                             |
+
+| [恐怖灵异](https://www.56kog.com/class/8_1.html) | [都市言情](https://www.56kog.com/class/3_1.html) | [科幻](https://www.56kog.com/class/7_1.html) | [女生小说](https://www.56kog.com/class/9_1.html) | [其他](https://www.56kog.com/class/10_1.html) |
+| ------------------------------------------------ | ------------------------------------------------ | -------------------------------------------- | ------------------------------------------------ | --------------------------------------------- |
+| 8_1                                             | 3_1                                             | 7_1                                         | 9_1                                             | 10_1                                         |`,
+};
+async function i(r) {
+    let { category: i = `1_1` } = r.req.param(),
+        a = r.req.query(`limit`) ? Number.parseInt(r.req.query(`limit`), 10) : 30,
+        o = new URL(`class/${i}.html`, t).href;
+    return await n(a, o, e.tryGet);
+}
+export { r as route };

@@ -1,0 +1,67 @@
+import { t as e } from './cache-DLkCV5c7.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+import a from 'dayjs';
+import o from 'dayjs/plugin/customParseFormat.js';
+a.extend(o);
+const s = {
+    path: `/:site/:category/:name`,
+    categories: [`traditional-media`],
+    example: `/cctv/tv/lm/xwlb`,
+    parameters: {
+        site: `站点, 可选值如'tv', 既'央视节目'`,
+        category: `分类名, 官网对应分类, 当前可选值'lm', 既'栏目大全'`,
+        name: { description: `栏目名称, 可在对应栏目页面 URL 中找到, 可选值如'xwlb',既'新闻联播'`, options: [{ value: `xwlb`, label: `新闻联播` }] },
+    },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`tv.cctv.com/lm/xwlb`, `tv.cctv.com/`] }],
+    name: `新闻联播`,
+    maintainers: [`zengxs`],
+    handler: c,
+    url: `tv.cctv.com/lm/xwlb`,
+    description: `新闻联播内容摘要。`,
+};
+async function c(e) {
+    let { site: t, category: n, name: r } = e.req.param(),
+        i;
+    return (t === `tv` && n === `lm` && r === `xwlb` && (i = await l()), i);
+}
+const l = async () => {
+    let o = a(i((await n({ method: `get`, url: `https://tv.cctv.com/lm/xwlb/` })).data)(`.rilititle p`).text(), `YYYY-MM-DD`),
+        s = [];
+    for (let e = 0; e < 20; e++) s.push(e);
+    return {
+        title: `CCTV 新闻联播`,
+        link: `http://tv.cctv.com/lm/xwlb/`,
+        item: await Promise.all(
+            s.map(async (a) => {
+                let s = o.subtract(a, `days`).hour(19),
+                    c = `https://tv.cctv.com/lm/xwlb/day/${s.format(`YYYYMMDD`)}.shtml`;
+                return {
+                    title: `新闻联播 ${s.format(`YYYY/MM/DD`)}`,
+                    link: c,
+                    pubDate: r(t(s.format()), 8),
+                    description: await e.tryGet(c, async () => {
+                        let e = i((await n(c)).data),
+                            t = [];
+                        return (
+                            e(`body li`).map((n, r) => {
+                                let i = e(r),
+                                    a = i.find(`a`).attr(`href`),
+                                    o = i.find(`a`).attr(`title`),
+                                    s = i.find(`span`).text();
+                                return (t.push(`<a href="${a}">${o} ⏱${s}</a>`), n);
+                            }),
+                            t.join(`<br/>
+`)
+                        );
+                    }),
+                };
+            })
+        ),
+    };
+};
+var u = l;
+export { u as n, s as t };

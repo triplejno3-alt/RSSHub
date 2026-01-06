@@ -1,0 +1,52 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import * as r from 'cheerio';
+const i = {
+        path: `/latest`,
+        categories: [`new-media`],
+        example: `/vertikal/latest`,
+        radar: [{ source: [`vertikal.net/en/news`, `vertikal.net`] }],
+        name: `News Archive`,
+        maintainers: [`TonyRL`],
+        handler: o,
+        url: `vertikal.net/en/news`,
+    },
+    a = `https://vertikal.net`;
+async function o() {
+    let i = await e(`${a}/en/homepage/async-news-loader`, { query: { perPage: 24, page: 1 } }),
+        o = r.load(i),
+        s = o(`.grid__column`)
+            .toArray()
+            .map((e) => {
+                let t = o(e);
+                return {
+                    title: t.find(`.news-teaser__title`).text(),
+                    link: `${a}${t.find(`.news-teaser`).attr(`href`)}`,
+                    pubDate: n(t.find(`.news-teaser__date`).text(), `DD.MM.YYYY`),
+                    description: t.find(`.news-teaser__text`).text(),
+                };
+            }),
+        c = await Promise.all(
+            s.map((n) =>
+                t.tryGet(n.link, async () => {
+                    let t = await e(n.link),
+                        i = r.load(t),
+                        a = i(`.newsentry`);
+                    return (
+                        (n.category = a
+                            .find(`.newsentry__tags a`)
+                            .toArray()
+                            .map((e) => i(e).text().trim())),
+                        a.find(`.newsentry__date, .newsentry__title, .lazyimage-placeholder, .newsentry__tags, .newsentry__share, .newsentry__comments, .newsentry__write-comment`).remove(),
+                        (n.description = a.html()),
+                        n
+                    );
+                })
+            )
+        );
+    return { title: `News Archive | Vertikal.net`, link: `${a}/en/news`, image: `${a}/apple-touch-icon-152x152.png`, item: c };
+}
+export { i as route };

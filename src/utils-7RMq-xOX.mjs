@@ -1,0 +1,62 @@
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { Fragment as r, jsx as i } from 'hono/jsx/jsx-runtime';
+import { load as a } from 'cheerio';
+import { renderToString as o } from 'hono/jsx/dom/server';
+const s = (e, n, r) => t(`https://feed.mix.sina.com.cn/api/roll/get`, { headers: { referer: `https://news.sina.com.cn/` }, searchParams: { pageid: e, lid: n, k: ``, num: r, page: 1, r: Math.random(), _: Date.now() } }),
+    c = (t) => t.map((t) => ({ title: t.title, description: t.intro, link: t.url.replace(`http://`, `https://`), author: t.media_name, pubDate: e(t.intime, `X`), updated: e(t.mtime, `X`) })),
+    l = (s, c) =>
+        c(s.link, async () => {
+            let c = a((await t(s.link)).data);
+            c(`#left_hzh_ad, .appendQr_wrap, .app-kaihu-qr, .tech-quotation`).remove();
+            let l = c(`meta[property="article:published_time"]`),
+                u = c(`#pub_date, .date`),
+                d = u.length ? n(e(u.text(), [`YYYY年MM月DD日 HH:mm`, `YYYY年MM月DD日HH:mm`]), 8) : null,
+                f = l.length ? e(l.attr(`content`)) : d;
+            if (((s.pubDate = s.pubDate ?? f), (s.author = c(`meta[property="article:author"]`).attr(`content`)), s.link.startsWith(`https://slide.sports.sina.com.cn/`) || s.link.startsWith(`https://slide.tech.sina.com.cn/`)))
+                s.description = o(
+                    i(r, {
+                        children: JSON.parse(
+                            c(`script`)
+                                .text()
+                                .match(/var slide_data = ({.*?})\s/)[1]
+                        ).images.map((e) => i(`img`, { src: e.download_img, alt: e.intro })),
+                    })
+                );
+            else if (s.link.startsWith(`https://video.sina.com.cn/`)) {
+                let n = c(`script`)
+                        .text()
+                        .match(/video_id:'?(.*?)'?,/)[1],
+                    { data: a } = await t(`https://api.ivideo.sina.com.cn/public/video/play`, {
+                        searchParams: {
+                            video_id: n,
+                            appver: `V11220.210521.03`,
+                            appname: `sinaplayer_pc`,
+                            applt: `web`,
+                            tags: `sinaplayer_pc`,
+                            jsonp: ``,
+                            plid: 2021012801,
+                            prid: ``,
+                            uid: ``,
+                            tid: ``,
+                            pid: 1,
+                            ran: Math.random(),
+                            r: s.link,
+                            ssid: `gusr_pc_${Date.now()}`,
+                            preload: 0,
+                            uu: ``,
+                            isAuto: 1,
+                        },
+                    }),
+                    l = a.data,
+                    u = l.image,
+                    d = l.videos.find((e) => e.type === `mp4`).dispatch_result.url;
+                ((s.description = o(i(r, { children: d ? i(`video`, { controls: !0, poster: u ?? ``, preload: `metadata`, children: i(`source`, { src: d }) }) : null }))), (s.pubDate = e(l.create_time, `X`)));
+            } else
+                s.link.startsWith(`https://news.sina.com.cn/`) || s.link.startsWith(`https://mil.news.sina.com.cn/`)
+                    ? ((s.description = c(`#article`).html()), (s.category = c(`meta[name="keywords"]`).attr(`content`).split(`,`)))
+                    : ((s.description = c(`#artibody`).html()), (s.category = c(`#keywords`).data(`wbkey`)?.split(`,`)));
+            return s;
+        });
+export { l as n, c as r, s as t };

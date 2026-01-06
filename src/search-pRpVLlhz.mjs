@@ -1,0 +1,38 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import * as t from 'node:url';
+const n = `https://github.com`,
+    r = {
+        path: `/search/:query/:sort?/:order?`,
+        categories: [`programming`],
+        example: `/github/search/RSSHub/bestmatch/desc`,
+        parameters: { query: `search keyword`, sort: `Sort options (default to bestmatch)`, order: `Sort order, desc and asc (desc descending by default)` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `Search Result`,
+        maintainers: [`LogicJake`],
+        handler: i,
+        description: `| Sort options     | sort      |
+| ---------------- | --------- |
+| Best match       | bestmatch |
+| Most stars       | stars     |
+| Most forks       | forks     |
+| Recently updated | updated   |`,
+    };
+async function i(r) {
+    let i = r.req.param(`query`),
+        a = r.req.param(`sort`) || `bestmatch`,
+        o = r.req.param(`order`) || `desc`;
+    a === `bestmatch` && (a = ``);
+    let s = `search?o=${o}&q=${encodeURIComponent(i)}&s=${a}&type=Repositories`,
+        c = t.resolve(n, s),
+        l = (await e(c, { headers: { accept: `application/json` } })).payload.results.map((e) => {
+            let {
+                repo: { repository: t },
+                hl_trunc_description: r,
+            } = e;
+            return { title: t.name, author: t.owner_login, link: n.concat(`/${t.owner_login}/${t.name}`), description: r };
+        });
+    return { allowEmpty: !0, title: `${i}的搜索结果`, link: c, item: l };
+}
+export { r as route };

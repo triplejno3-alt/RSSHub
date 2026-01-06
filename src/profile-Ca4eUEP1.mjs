@@ -1,0 +1,27 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+const t = {
+    path: `/profile/:path`,
+    categories: [`programming`],
+    example: `/hackmd/profile/hackmd`,
+    parameters: { path: `userpath or teampath` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `Profile`,
+    maintainers: [`Yukaii`, `kaiix`],
+    handler: n,
+};
+async function n(t) {
+    let n = t.req.param(`path`),
+        r = (await e({ method: `get`, url: `https://hackmd.io/api/@${n}/overview` })).data,
+        i = r.user || r.team;
+    return {
+        title: `${i.name}'s Profile`,
+        link: `https://hackmd.io/@${n}`,
+        description: `${i.name}'s profile on HackMD`,
+        item: r.notes.map((e) => ({ title: e.title, description: `<pre>${e.content}</pre>`, pubDate: new Date(e.publishedAt).toUTCString(), link: `https://hackmd.io/@${n}/${e.permalink || e.shortId}` })),
+    };
+}
+export { t as route };

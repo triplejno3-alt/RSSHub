@@ -1,0 +1,46 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import { t } from './types-Bl_lnefZ.mjs';
+import { t as n } from './rss-parser-CKuAfhVS.mjs';
+import { t as r } from './utils-A_J9u13o.mjs';
+import { load as i } from 'cheerio';
+import a from 'p-map';
+const o = async (t) => {
+        let n = `https://www.bloomberg.com/authors/${t}`,
+            r = await e(`https://www.bloomberg.com/lineup/api/lazy_load_author_stories?slug=${t}&authorType=default&page=1`);
+        if (!r.html) return [];
+        let a = i(r.html);
+        return a(`article.story-list-story`)
+            .toArray()
+            .map((e) => {
+                e = a(e);
+                let t = e.find(`a.story-list-story__info__headline-link`);
+                return { title: t.text(), pubDate: e.attr(`data-updated-at`), guid: `bloomberg:${e.attr(`data-id`)}`, link: new URL(t.attr(`href`), n).href };
+            });
+    },
+    s = {
+        path: `/authors/:id/:slug/:source?`,
+        categories: [`finance`],
+        view: t.Articles,
+        example: `/bloomberg/authors/ARbTQlRLRjE/matthew-s-levine`,
+        parameters: { id: `Author ID, can be found in URL`, slug: `Author Slug, can be found in URL`, source: 'Data source, either `api` or `rss`,`api` by default' },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`www.bloomberg.com/*/authors/:id/:slug`, `www.bloomberg.com/authors/:id/:slug`], target: `/authors/:id/:slug` }],
+        name: `Authors`,
+        maintainers: [`josh`, `pseudoyu`],
+        handler: c,
+    };
+async function c(e) {
+    let { id: t, slug: i, source: s } = e.req.param(),
+        c = `https://www.bloomberg.com/authors/${t}/${i}`,
+        l = [];
+    ((!s || s === `api`) && (l = await o(`${t}/${i}`)), (s === `rss` || l.length === 0) && (l = (await n.parseURL(`${c}.rss`)).items));
+    let u = await a(l, (e) => r(e), { concurrency: 1 });
+    return { title: `Bloomberg - ${u.find((e) => e.author)?.author ?? i}`, link: c, language: `en-us`, item: u };
+}
+export { s as route };

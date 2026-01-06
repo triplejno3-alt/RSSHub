@@ -1,0 +1,43 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { n as r, r as i, t as a } from './utils-DrHGekec.mjs';
+import { load as o } from 'cheerio';
+const s = {
+    path: `/user/:user`,
+    categories: [`social-media`],
+    view: n.SocialMedia,
+    example: `/plurk/user/plurkoffice`,
+    parameters: { user: `User ID, can be found in URL` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `User`,
+    maintainers: [`TonyRL`],
+    handler: c,
+};
+async function c(n) {
+    let s = n.req.param(`user`),
+        { data: c } = await t(`${a}/${s}`),
+        l = o(c),
+        u = JSON.parse(
+            l(`body script[type]`)
+                .text()
+                .match(/PUBLIC_PLURKS = (.*);\nPINNED_PLURK/)[1]
+                .replaceAll(/new Date\((.*?)\)/g, `$1`)
+                .replaceAll(`null`, `""`)
+        ),
+        d = await r(u.map((e) => e.user_id)),
+        f = await Promise.all(u.map((t) => i(`plurk:${t.plurk_id}`, t, d[t.user_id].display_name, e.tryGet)));
+    return {
+        title: l(`head title`).text(),
+        description: l(`meta[property=og:description]`).attr(`content`),
+        image: l(`meta[property=og:image]`).attr(`content`) || l(`meta[name=msapplication-TileImage]`).attr(`content`),
+        link: `${a}/${s}`,
+        item: f,
+    };
+}
+export { s as route };

@@ -1,0 +1,26 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+const t = {
+    path: `/doodles`,
+    categories: [`other`],
+    example: `/sogou/doodles`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `特色 LOGO`,
+    maintainers: [`xyqfer`],
+    handler: n,
+};
+async function n() {
+    return {
+        title: `搜狗特色LOGO`,
+        link: `http://help.sogou.com/logo/`,
+        item: (await e({ method: `get`, url: `http://help.sogou.com/logo/doodle_logo_list.html` })).data
+            .split(/\r\n/)
+            .slice(1)
+            .map((e) => ((e = e.split(`,`)), { title: `${e[2]}-${e[5]}`, description: `<img src="${e[4]}">`, pubDate: new Date(e[5]).toUTCString(), link: e[7], guid: e[4] })),
+    };
+}
+export { t as route };

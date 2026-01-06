@@ -1,0 +1,58 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/:type`,
+    categories: [`new-media`],
+    example: `/kelownacapnews/local-news`,
+    parameters: { type: `Type of news` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.kelownacapnews.com/:type`], target: `/:type` }],
+    name: `News`,
+    maintainers: [`hualiong`],
+    url: `www.kelownacapnews.com`,
+    description: `\`type\` is as follows:
+  
+| News type     | Value         | News type    | Value        |
+| ------------- | ------------- | ------------ | ------------ |
+| News          | news          | Sports       | sports       |
+| Local News    | local-news    | Business     | business     |
+| Canadian News | national-news | Trending Now | trending-now |
+| World News    | world-news    | Opinion      | opinion      |
+| Entertainment | entertainment |              |              |`,
+    handler: async (i) => {
+        let a = i.req.param(`type`),
+            o = `https://www.kelownacapnews.com`,
+            s = r(await e(`${o}/${a}`)),
+            c = s(`.media`)
+                .toArray()
+                .map((e) => {
+                    let t = s(e);
+                    return { title: t.find(`.media-heading`).text(), pubDate: n(t.find(`.media-links time`).attr(`datetime`)), link: o + t.attr(`href`) };
+                }),
+            l = await Promise.all(
+                c.map((n) =>
+                    t.tryGet(n.link, async () => {
+                        let t = r(await e(n.link)),
+                            i = t(`.details-file`);
+                        i.length || (i = t(`#sliderImgs .tablist-item .galleryWrap`));
+                        let a = t(`.details-byline`).find(`.profile-title`);
+                        a.length && (n.author = a.find(`a`).text());
+                        let o = ``;
+                        if (i.length > 1)
+                            for (let e of i.toArray()) {
+                                let n = t(e);
+                                o += `<figure style="margin: 10px 0 0 0"><img src='${n.data(`src`)}' /><figcaption>${n.attr(`title`)}</figcaption></figure>`;
+                            }
+                        else o = `<figure style="margin: 0">${i.html()}</figure>`;
+                        return ((n.description = o + t(`.details-body`).html()), n);
+                    })
+                )
+            );
+        return { title: `${s(`.body-title`).text()} - Kelowna Capital News`, link: `${o}/${a}`, item: l };
+    },
+};
+export { i as route };

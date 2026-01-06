@@ -1,0 +1,50 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = { tzgg: `通知公告`, zsxx: `硕士招生信息`, pyxx: `研究生培养信息` },
+    o = { tzgg: `通知公告`, zsxx: `硕士招生信息`, pyxx: `研究生培养信息` },
+    s = { tzgg: `tzgg`, zsxx: `zsxx/sszsxx`, pyxx: `pyxx/pyxx` },
+    c = {
+        path: `/master/:type`,
+        categories: [`university`],
+        example: `/ncepu/master/tzgg`,
+        parameters: { type: `类型参数` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `北京校区研究生院`,
+        maintainers: [`nilleo`],
+        handler: l,
+        description: `| 类型 | 硕士招生信息 | 通知公告 | 研究生培养信息 |
+| ---- | ------------ | -------- | -------------- |
+| 参数 | zsxx         | tzgg     | pyxx           |`,
+    };
+async function l(c) {
+    let l = c.req.param(`type`),
+        u = (await n(`https://yjsy.ncepu.edu.cn/${s[l]}/index.htm`)).data,
+        d = i(u),
+        f = d(`.articleList ul li`)
+            .toArray()
+            .map((e) => {
+                e = d(e);
+                let n = e.find(`a`),
+                    i = r(t(e.find(`span`).text().replace(`[`, ``).replace(`]`, ``)), 8),
+                    a = `https://yjsy.ncepu.edu.cn/${s[l]}/` + n.attr(`href`);
+                return { title: n.attr(`title`), link: a, pubDate: i };
+            }),
+        p = await Promise.all(
+            f.map(async (t) => {
+                let r = i(await e.tryGet(t.link, async () => (await n(t.link)).data)),
+                    a = r(`.articleAuthor`).html().replace(`作者：&nbsp;&nbsp;`, ``).replace(`来源：&nbsp;&nbsp;`, ``),
+                    o = r(`.article`).html(),
+                    s = r(`.Annex`).html() || ``;
+                return { title: t.title, link: t.link, description: a + o + s, pubDate: t.pubDate };
+            })
+        );
+    return { title: `${a[l]}-华北电力大学研究生院`, link: `http://yjsy.ncepu.edu.cn/${s[l]}`, description: `华北电力大学研究生院${o[l]}`, item: p };
+}
+export { c as route };

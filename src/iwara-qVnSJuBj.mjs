@@ -1,0 +1,39 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+import { t as r } from './parse-date-DjdQS_Nt.mjs';
+const i = `https://www.iwara.tv`,
+    a = `https://api.iwara.tv`,
+    o = `https://i.iwara.tv`,
+    s = { video: `Videos`, image: `Images` },
+    c = { video: `${a}/videos`, image: `${a}/images` },
+    l = (e, t) => {
+        if (e === `image`) return `<img src="${o}/image/original/${t.thumbnail.id}/${t.thumbnail.name}">`;
+        if (t.embedUrl === null) return `<img src="${o}/image/original/${t.file.id}/thumbnail-${String(t.thumbnail).padStart(2, `0`)}.jpg">`;
+        let n = /https?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w-]*)(&(amp;)?[\w=?]*)?/.exec(t.embedUrl);
+        return n ? `<img src="${o}/image/embed/original/youtube/${n[1]}">` : ``;
+    },
+    u = {
+        path: `/users/:username/:type?`,
+        example: `/iwara/users/kelpie/video`,
+        parameters: { username: `username, can find in userpage`, type: `content type, can be video or image, default is video` },
+        name: `User`,
+        maintainers: [`Fatpandac`],
+        handler: d,
+        features: { nsfw: !0 },
+    };
+async function d(o) {
+    let { username: u, type: d = `video` } = o.req.param(),
+        f = (await n.tryGet(`${a}/profile/${u}`, async () => (await e(`${a}/profile/${u}`, { headers: { 'user-agent': t.trueUA } })).user)).id,
+        p = (await n.tryGet(`${c[d]}?user=${f}`, async () => (await e(`${c[d]}?user=${f}`, { headers: { 'user-agent': t.trueUA } })).results, t.cache.routeExpire, !1)).map((e) => ({
+            title: e.title,
+            author: u,
+            link: `${i}/${d}/${e.id}/${e.slug}`,
+            category: e.tags.map((e) => e.id),
+            description: l(d, e),
+            pubDate: r(e.createdAt),
+        }));
+    return { title: `${u}'s iwara - ${s[d]}`, link: `${i}/users/${u}`, item: p };
+}
+export { u as route };

@@ -1,0 +1,124 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { r } from './common-utils-uYpL50sT.mjs';
+import { t as i } from './got-CKQ7C9HX.mjs';
+import { t as a } from './types-Bl_lnefZ.mjs';
+import { t as o } from './config-not-found-DGyG6Tbz.mjs';
+import { Fragment as s, jsx as c, jsxs as l } from 'hono/jsx/jsx-runtime';
+import { load as u } from 'cheerio';
+import { renderToString as d } from 'hono/jsx/dom/server';
+import { raw as f } from 'hono/html';
+const p = (e) => {
+        let t = e.match(/(\d+(\.\d+)?)(\w+)/);
+        return t[3] === `GB` ? t[1] * 1024 : t[1];
+    },
+    m = ({ info: e, videoSrc: t, videoPreview: n, magnets: r, thumbs: i }) =>
+        d(
+            l(s, {
+                children: [
+                    e ? f(e) : null,
+                    c(`br`, {}),
+                    t ? c(`a`, { href: t, children: `觀看完整影片` }) : null,
+                    c(`br`, {}),
+                    n ? c(`video`, { controls: !0, children: c(`source`, { src: n, type: `video/mp4` }) }) : null,
+                    c(`br`, {}),
+                    c(`h4`, { children: `磁力連結投稿` }),
+                    l(`table`, {
+                        children: [
+                            l(`tr`, { children: [c(`th`, { children: `磁力名稱` }), c(`th`, { children: `檔案大小` }), c(`th`, { children: `分享日期` })] }),
+                            r?.map((e) => l(`tr`, { children: [c(`td`, { children: c(`a`, { href: e.link, children: e.title }) }), c(`td`, { children: e.size }), c(`td`, { children: e.date })] })),
+                        ],
+                    }),
+                    c(`h4`, { children: `樣品圖像` }),
+                    i?.map((e) => c(`img`, { src: e })),
+                ],
+            })
+        ),
+    h = new Set([`javbus.com`, `javbus.org`, `javsee.icu`, `javsee.one`]),
+    g = {
+        path: `/:path{.+}?`,
+        radar: [{ source: [`www.javbus.com/:path*`], target: `/:path` }],
+        name: `Works`,
+        maintainers: [`MegrezZhu`, `CoderTonyChan`, `nczitzk`, `Felix2yu`],
+        categories: [`multimedia`],
+        view: a.Videos,
+        handler: _,
+        url: `www.javbus.com`,
+        example: `/javbus/star/rwt`,
+        parameters: { path: { description: `Any path of list page on javbus` } },
+        features: { nsfw: !0 },
+    };
+async function _(a) {
+    let s = /^\/western/.test(r(a)),
+        c = a.req.query(`domain`) ?? `javbus.com`,
+        l = a.req.query(`western_domain`) ?? `javbus.org`,
+        d = `https://www.${c}`,
+        f = `https://www.${l}`;
+    if (!e.feature.allow_user_supply_unsafe_domain && (!h.has(new URL(`https://${c}/`).hostname) || !h.has(new URL(`https://${l}/`).hostname)))
+        throw new o(`This RSS is disabled unless 'ALLOW_USER_SUPPLY_UNSAFE_DOMAIN' is set to 'true'.`);
+    let g = `${s ? f : d}${r(a)
+            .replace(/^\/western/, ``)
+            .replace(/\/home/, ``)}`,
+        _ = { 'accept-language': `zh-CN` },
+        v = u((await i({ method: `get`, url: g, headers: _ })).data),
+        y = v(`.movie-box`)
+            .slice(0, a.req.query(`limit`) ? Number.parseInt(a.req.query(`limit`)) : 50)
+            .toArray()
+            .map((e) => ((e = v(e)), { link: e.attr(`href`), guid: e.find(`date`).first().text(), pubDate: n(e.find(`date`).last().text()) }));
+    y = await Promise.all(
+        y.map((e) =>
+            t.tryGet(e.link, async () => {
+                let t = await i({ method: `get`, url: e.link, headers: _ }),
+                    n = u(t.data);
+                (n(`.genre`).last().parent().remove(), n(`input[type="checkbox"], button`).remove());
+                let r = n(`.avatar-box span`)
+                        .toArray()
+                        .map((e) => n(e).text()),
+                    a = {
+                        author: r.join(`, `),
+                        title: n(`h3`).text(),
+                        category: [
+                            ...n(`.genre label`)
+                                .toArray()
+                                .map((e) => n(e).text()),
+                            ...r,
+                        ],
+                        info: n(`.row.movie`).html(),
+                        thumbs: n(`.sample-box`)
+                            .toArray()
+                            .map((e) => {
+                                let t = n(e).attr(`href`);
+                                return t.startsWith(`http`) ? t : `${d}${t}`;
+                            }),
+                    },
+                    o,
+                    c,
+                    l;
+                try {
+                    let n = t.data.match(/var gid = (\d+);[\S\s]*var uc = (\d+);[\S\s]*var img = '(.*)';/),
+                        r = u(`<table>${(await i({ method: `get`, url: `${d}/ajax/uncledatoolsbyajax.php`, searchParams: { gid: n[1], lang: `zh`, img: n[3], uc: n[2], floor: 800 }, headers: { Referer: e.link } })).data}</table>`);
+                    ((o = r(`tr`)
+                        .toArray()
+                        .map((e) => {
+                            let t = r(e).find(`a[href]`);
+                            return { title: t.first().text().trim(), link: t.first().attr(`href`), size: t.eq(1).text().trim(), date: t.last().text().trim(), score: r(e).find(`a`).length ** 8 * p(t.eq(1).text().trim()) };
+                        })),
+                        o && ((e.enclosure_url = o.toSorted((e, t) => t.score - e.score)[0].link), (e.enclosure_type = `application/x-bittorrent`)));
+                } catch {}
+                if (!s)
+                    try {
+                        let t = await i({ method: `get`, url: `https://api.avgle.com/v1/jav/${e.guid}/0` });
+                        ((c = t.data.response.videos[0]?.embedded_url ?? ``), (l = t.data.response.videos[0]?.preview_video_url ?? ``));
+                    } catch {}
+                return ((e.author = a.author), (e.title = a.title), (e.category = a.category), (e.description = m({ info: a.info, thumbs: a.thumbs, magnets: o, videoSrc: c, videoPreview: l })), e);
+            })
+        )
+    );
+    let b = v(`head title`).text();
+    return { title: `${b.startsWith(`JavBus`) ? `` : `JavBus - `}${b.replace(/ - AV磁力連結分享/, ``)}`, link: g, item: y, allowEmpty: !0 };
+}
+export { g as route };

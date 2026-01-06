@@ -1,0 +1,2 @@
+const e = `https://apps.shopify.com`;
+export { e as t };

@@ -1,0 +1,186 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { load as r } from 'cheerio';
+import i from 'p-map';
+function a(n) {
+    let i = `https://www.cfr.org${n}`;
+    return t.tryGet(i, async () => {
+        let t = n?.split(`/`)[1],
+            a = r(await e(i)),
+            _;
+        switch (t) {
+            case `article`:
+                _ = o(a);
+                break;
+            case `blog`:
+                _ = s(a);
+                break;
+            case `book`:
+                _ = c(a);
+                break;
+            case `conference-calls`:
+                _ = l(a);
+                break;
+            case `event`:
+                _ = u(a);
+                break;
+            case `backgrounder`:
+                _ = d(a);
+                break;
+            case `podcasts`:
+                _ = f(a);
+                break;
+            case `task-force-report`:
+                _ = p(a);
+                break;
+            case `timeline`:
+                _ = m(a);
+                break;
+            case `video`:
+                _ = h(a);
+                break;
+            default:
+                _ = g(a);
+        }
+        return { ..._, link: i };
+    });
+}
+function o(e) {
+    let t = _(e),
+        n = y(e(`.body-content`), e),
+        r = e(`.article-header__image`);
+    return (r.length && (n = `<figure>${r.html()}</figure><br>${n}`), { title: t?.title ?? e(`.article-header__title`).text(), pubDate: t?.pubDate, description: n });
+}
+function s(e) {
+    let t = _(e),
+        n = y(e(`.body-content`), e),
+        r = e(`.article-header-blog__figure`);
+    return (r.length && (n = `<figure>${r.html()}</figure><br>${n}`), { title: t?.title ?? e(`.article-header-blog__title`).text(), pubDate: t?.pubDate, description: n });
+}
+function c(e) {
+    let t = _(e),
+        n = y(e(`.body-content`), e);
+    return ((n = `${e(`.article-header__section-top`).html()}<br>${n}`), { title: t?.title ?? e(`.article-header__title`).text(), pubDate: t?.pubDate, description: n });
+}
+function l(e) {
+    let t = _(e),
+        n = y(e(`.podcast-body`).last(), e);
+    return { title: t?.title ?? e(`head title`).text(), pubDate: t?.pubDate, description: n };
+}
+function u(e) {
+    let t = _(e),
+        n = y(e(`.body-content`), e),
+        r = v(e(`.msp-event-video`));
+    return (r && (n = `${r}<br>${n}`), { title: t?.title ?? e(`.msp-event-header-past__title`).text(), pubDate: t?.pubDate, description: n });
+}
+function d(e) {
+    let t = _(e),
+        n = y(e(`.main-wrapper__article-body .body-content`), e),
+        r = e(`.main-wrapper__article-body .summary`).html();
+    r && (n = `${r}<br>${n}`);
+    let i = e(`.article-header-backgrounder__figure`);
+    return (i.length && (n = `<figure>${i.html()}</figure><br>${n}`), { title: t?.title ?? e(`.article-header-backgrounder__title`).text(), pubDate: t?.pubDate, description: n });
+}
+function f(e) {
+    let t = _(e),
+        n = e(`.body-content`).first().html() ?? ``,
+        r = e(`#player-default`).attr(`src`);
+    return (r && (n = `<audio controls src="${r}"></audio><br>${n}`), { title: t?.title ?? e(`head title`).text(), pubDate: t?.pubDate, description: n, enclosure_url: r, enclosure_type: `audio/mpeg` });
+}
+function p(e) {
+    let t = _(e),
+        n = ``;
+    return (
+        e(`.main-content`).each((t, r) => {
+            let i = e(r).find(`.content_area`).html() ?? ``;
+            n += `${i}<br>`;
+        }),
+        { title: t?.title ?? e(`.hero__title`).remove(`.subtitle`).text(), pubDate: t?.pubDate, description: n }
+    );
+}
+function m(e) {
+    let t = _(e),
+        n = e(`.timeline-slides`);
+    (n.find(`.timeline-slide__shadow`).remove(),
+        n.find(`.field--image`).each((t, n) => {
+            e(n).replaceWith(e(n).find(`img`));
+        }));
+    let r = n.find(`.timeline-intro__description`).html() ?? ``;
+    for (let t of n.find(`.timeline-slide__content`).toArray()) {
+        let n = e(t);
+        (n.find(`.timeline-slide__dates-header`).replaceWith(`<h1>` + n.find(`.timeline-slide__dates-header`).text() + `</h1>`),
+            n.find(`.timeline-slide__dates`).replaceWith(`<h2>` + n.find(`.timeline-slide__dates`).text() + `</h2>`),
+            (r += `<br>${n.html()}`));
+    }
+    return { title: t?.title ?? e(`.timeline-header__title`).text(), pubDate: t?.pubDate, description: r };
+}
+function h(e) {
+    let t = _(e),
+        n = y(e(`.body-content`), e),
+        r = v(e(`.article-header__image`));
+    return (r && (n = `${r}<br>${n}`), { title: t?.title ?? e(`.article-header__title`).text(), pubDate: t?.pubDate, description: n });
+}
+function g(e) {
+    if (e(`.body-content`).length) return o(e);
+    let t = _(e);
+    return { title: t?.title ?? e(`head title`).text(), pubDate: t?.pubDate };
+}
+function _(e) {
+    try {
+        let t = JSON.parse(e(`script[type="application/ld+json"]`).text())[`@graph`][0];
+        return { title: t.name, pubDate: n(t.dateModified) };
+    } catch {}
+}
+function v(e) {
+    let t = e.find(`video`).data(`setup`);
+    if (t) {
+        let e = t.sources.find((e) => e.type === `video/youtube`);
+        if (e) {
+            let t = e.src.match(/\?v=([^&]+)/)?.[1];
+            if (t) return `<iframe src="https://www.youtube-nocookie.com/embed/${t}" width="640" height="360" frameborder="0" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+        }
+    }
+}
+function y(e, t) {
+    return (
+        e.find(`.desktop-only`).remove(),
+        e.find(`.mobile-only`).remove(),
+        e.find(`.newsletter-tout`).remove(),
+        e.find(`.carousel-gallery`).remove(),
+        e.find(`svg`).remove(),
+        e.find(`.field--image`).each((e, n) => {
+            t(n).replaceWith(t(n).find(`img`));
+        }),
+        e.find(`.video-embed`).each((e, n) => {
+            let r = t(n),
+                i = v(r);
+            i && r.replaceWith(i);
+        }),
+        e.html() ?? ``
+    );
+}
+const b = {
+    path: `/:category/:subCategory?`,
+    categories: [`traditional-media`],
+    parameters: { category: `category, find it in the URL`, subCategory: `sub-category, find it in the URL` },
+    example: `/cfr/asia`,
+    name: `News`,
+    maintainers: [`KarasuShin`],
+    handler: x,
+    radar: [{ source: [`www.cfr.org/:category`, `www.cfr.org/:category/:subCategory`], target: `/:category/:subCategory?` }],
+    features: { antiCrawler: !0 },
+};
+async function x(t) {
+    let { category: n, subCategory: o } = t.req.param(),
+        s = `https://www.cfr.org/${n}`;
+    o && (s += `/${o}`);
+    let c = r(await e(s)),
+        l = await i(c({ podcasts: `.episode-content__title a`, blog: `.card-series__content-link`, 'books-reports': `.card-article__link` }[n] ?? `.card-article-large__link`).toArray(), (e) => a(c(e).attr(`href`)), {
+            concurrency: 5,
+        });
+    return { title: c(`head title`).text().replace(` | Council on Foreign Relations`, ``), link: s, item: l };
+}
+export { b as route };

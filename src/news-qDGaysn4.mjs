@@ -1,0 +1,49 @@
+import './config-Cc-zZ5p-.mjs';
+import { t as e } from './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { n as r } from './puppeteer-BbZGb8cd.mjs';
+const i = {
+    path: `/news/:options?`,
+    categories: [`game`],
+    example: `/fortnite/news`,
+    parameters: { options: `Params` },
+    features: { requireConfig: !1, requirePuppeteer: !0, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `News`,
+    maintainers: [`lyqluis`],
+    handler: a,
+    description: `-   \`options.lang\`, optional, language, eg. \`/fortnite/news/lang=en-US\`, common languages are listed below, more languages are available one the [official website](https://www.fortnite.com/news)
+
+| English (default) | Spanish | Japanese | French | Korean | Polish |
+| ----------------- | ------- | -------- | ------ | ------ | ------ |
+| en-US             | es-ES   | ja       | fr     | ko     | pl     |`,
+};
+async function a(i) {
+    let a = i.req
+            .param(`options`)
+            ?.split(`&`)
+            .map((e) => e.split(`=`)),
+        o = `https://www.fortnite.com`,
+        s = `news`,
+        c = a?.find((e) => e[0] === `lang`)[1] ?? `en-US`,
+        l = `${o}/${s}?lang=${c}`,
+        u = `https://www.fortnite.com/api/blog/getPosts?category=&postsPerPage=0&offset=0&locale=${c}&rootPageSlug=blog`,
+        d = await r(),
+        f = await d.newPage();
+    (await f.setRequestInterception(!0),
+        f.on(`request`, (e) => {
+            e.resourceType() === `document` ? e.continue() : e.abort();
+        }));
+    let p;
+    (f.on(`response`, async (e) => {
+        p = await e.json();
+    }),
+        e.http(`Requesting ${u}`),
+        await f.goto(u, { waitUntil: `networkidle0` }),
+        await f.close(),
+        await d.close());
+    let { blogList: m } = p;
+    return { title: `Fortnite News`, link: l, item: await Promise.all(m.map((e) => t.tryGet(e.link, () => ({ title: e.title, link: `${o}/${s}/${e.slug}?lang=${c}`, pubDate: n(e.date), author: e.author, description: e.content })))) };
+}
+export { i as route };

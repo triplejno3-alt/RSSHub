@@ -1,0 +1,74 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    name: `Packages`,
+    categories: [`program-update`],
+    maintainers: [`CaoMeiYouRen`],
+    path: `/pkgs/:name/:routeParams?`,
+    parameters: { name: `Packages name`, routeParams: `Filters of packages type. E.g. branch=edge&repo=main&arch=armv7&maintainer=Jakub%20Jirutka` },
+    example: `/alpinelinux/pkgs/nodejs`,
+    description: `Alpine Linux packages update`,
+    handler: s,
+    radar: [
+        {
+            source: [`https://pkgs.alpinelinux.org/packages`],
+            target: (e, t) => {
+                let n = new URL(t).searchParams,
+                    r = n.get(`name`);
+                return (n.delete(`name`), `/alpinelinux/pkgs/${r}/${n.toString()}`);
+            },
+        },
+    ],
+    zh: { name: `软件包`, description: `Alpine Linux 软件包更新` },
+};
+function o(e) {
+    let t = i(e);
+    return t(`tbody tr`)
+        .toArray()
+        .map((e) => ({
+            package: t(e).find(`.package a`).text().trim(),
+            packageUrl: t(e).find(`.package a`).attr(`href`)?.trim(),
+            description: t(e).find(`.package a`).attr(`aria-label`)?.trim(),
+            version: t(e).find(`.version`).text().trim(),
+            project: t(e).find(`.url a`).attr(`href`)?.trim(),
+            license: t(e).find(`.license`).text().trim(),
+            branch: t(e).find(`.branch`).text().trim(),
+            repository: t(e).find(`.repo a`).text().trim(),
+            architecture: t(e).find(`.arch a`).text().trim(),
+            maintainer: t(e).find(`.maintainer a`).text().trim(),
+            buildDate: t(e).find(`.bdate`).text().trim(),
+        }));
+}
+async function s(i) {
+    let { name: a, routeParams: s } = i.req.param(),
+        c = new URLSearchParams(s);
+    c.append(`name`, a);
+    let l = `https://pkgs.alpinelinux.org/packages?${c.toString()}`,
+        u = `alpinelinux:packages:${c.toString()}`,
+        d = (
+            await t.tryGet(
+                u,
+                async () => {
+                    let e = (await r({ url: l })).data;
+                    return o(e);
+                },
+                e.cache.routeExpire,
+                !1
+            )
+        ).map((e) => ({
+            title: `${e.package}@${e.version}/${e.architecture}`,
+            description: `Version: ${e.version}<br>Project: ${e.project}<br>Description: ${e.description}<br>License: ${e.license}<br>Branch: ${e.branch}<br>Repository: ${e.repository}<br>Maintainer: ${e.maintainer}<br>Build Date: ${e.buildDate}`,
+            link: `https://pkgs.alpinelinux.org${e.packageUrl}`,
+            guid: `https://pkgs.alpinelinux.org${e.packageUrl}#${e.version}`,
+            author: e.maintainer,
+            pubDate: n(e.buildDate),
+        }));
+    return { title: `${a} - Alpine Linux packages`, link: l, description: `Alpine Linux packages update`, item: d };
+}
+export { a as route };

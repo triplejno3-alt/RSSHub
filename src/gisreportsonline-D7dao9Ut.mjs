@@ -1,0 +1,45 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/:path{.*}`,
+    categories: [`new-media`],
+    example: `/gis/c/security-challenges/`,
+    parameters: { path: `包含"Reports"页面下的路径` },
+    name: `报告`,
+    maintainers: [`dzx-dzx`],
+    radar: [{ source: [`www.gisreportsonline.com`] }],
+    handler: a,
+};
+async function a(i) {
+    let a = `https://www.gisreportsonline.com/${i.req.param(`path`)}`,
+        o = r(await e(a)),
+        s = o(`article h3 a`)
+            .toArray()
+            .map((e) => ({ link: o(e).attr(`href`), title: o(e).text() })),
+        c = await Promise.all(
+            s.map((i) =>
+                t.tryGet(i.link, async () => {
+                    let t = r(await e(i.link)),
+                        a = JSON.parse(t(`script.rank-math-schema-pro`).text())[`@graph`].find((e) => e[`@type`] === `NewsArticle`);
+                    return (
+                        (i.pubDate = n(a.datePublished)),
+                        (i.updated = n(a.dateModified)),
+                        (i.author = [a.author]),
+                        (i.category = a.keywords.split(`,`)),
+                        (i.language = a.inLanguage),
+                        (i.description = t(`header.entry-header ~ :not(#pos-conclusion ~ *)`)
+                            .toArray()
+                            .map((e) => t(e).prop(`outerHTML`))
+                            .join(``)),
+                        i
+                    );
+                })
+            )
+        );
+    return { title: o(`title`).text(), link: a, item: c };
+}
+export { i as route };

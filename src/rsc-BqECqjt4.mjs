@@ -1,0 +1,58 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/rsc/:category?`,
+    categories: [`university`],
+    example: `/xaut/rsc/tzgg`,
+    parameters: { category: `通知类别，默认为通知公告` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `人事处`,
+    maintainers: [`mocusez`, `light0926`],
+    handler: a,
+    description: `::: warning
+  有些内容指向外部链接，目前只提供这些链接，不提供具体内容，去除 jwc 和 index 的修改
+:::
+
+| 通知公告 | 工作动态 |
+| :------: | :------: |
+|   tzgg   |   gzdt   |`,
+};
+async function a(i) {
+    let a = i.req.param(`category`),
+        o = { tzgg: `tzgg.htm`, gzdt: `gzdt.htm` },
+        s = { tzgg: `通知公告`, gzdt: `工作动态` };
+    s[a] === void 0 && (a = `tzgg`);
+    let c = (await n({ method: `get`, url: `http://renshichu.xaut.edu.cn/` + o[a] })).body,
+        l = r(c),
+        u = l(`.vsb-space.n_right .list .cleafix`)
+            .toArray()
+            .map((e) => {
+                e = l(e);
+                let t = e.find(`.list_wen a`).eq(0).attr(`href`),
+                    n = t.slice(0, 4) === `http` ? t : `http://renshichu.xaut.edu.cn/` + t;
+                return { title: e.find(`.list_wen a.tit`).text(), link: n };
+            });
+    return {
+        title: `西安理工大学人事处-` + s[a],
+        link: `http://renshichu.xaut.edu.cn`,
+        description: `西安理工大学人事处-` + s[a],
+        item: await Promise.all(
+            u.map((i) =>
+                e.tryGet(i.link, async () => {
+                    if (i.link.slice(0, 16) === `http://renshichu`) {
+                        let e = r((await n({ method: `get`, url: i.link })).body);
+                        ((i.description = e(`.vsb-space form[name]`).html()), (i.pubDate = t(e(`.vsb-space form[name] h3 span:contains(时间)`).text().slice(3))));
+                    } else i.description = `这是一个外链("▔□▔)/("▔□▔)/所以你没法直接看到内容` + i.link;
+                    return i;
+                })
+            )
+        ),
+    };
+}
+export { i as route };

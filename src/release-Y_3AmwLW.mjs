@@ -1,0 +1,55 @@
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { n } from './puppeteer-BbZGb8cd.mjs';
+import * as r from 'cheerio';
+const i = `https://support.bluestacks.com/hc/en-us/articles/360056960211-Release-Notes-BlueStacks-5`,
+    a = {
+        path: `/release/5`,
+        categories: [`program-update`],
+        example: `/bluestacks/release/5`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !0, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`bluestacks.com/hc/en-us/articles/360056960211-Release-Notes-BlueStacks-5`, `bluestacks.com/`] }],
+        name: `BlueStacks 5 Release Notes`,
+        maintainers: [`TonyRL`],
+        handler: o,
+        url: `bluestacks.com/hc/en-us/articles/360056960211-Release-Notes-BlueStacks-5`,
+    };
+async function o() {
+    let a = await n(),
+        o = await a.newPage();
+    (await o.setRequestInterception(!0),
+        o.on(`request`, (e) => {
+            e.resourceType() === `document` || e.resourceType() === `script` ? e.continue() : e.abort();
+        }),
+        await o.goto(i, { waitUntil: `domcontentloaded` }));
+    let s = await o.evaluate(() => document.documentElement.innerHTML);
+    await o.close();
+    let c = r.load(s),
+        l = c(`div h3 a`)
+            .toArray()
+            .map((e) => ((e = c(e)), { title: e.text(), link: e.attr(`href`) }));
+    return (
+        await Promise.all(
+            l.map((n) =>
+                e.tryGet(n.link, async () => {
+                    let e = await a.newPage();
+                    (await e.setRequestInterception(!0),
+                        e.on(`request`, (e) => {
+                            e.resourceType() === `document` || e.resourceType() === `script` ? e.continue() : e.abort();
+                        }),
+                        await e.goto(n.link, { waitUntil: `domcontentloaded` }));
+                    let i = await e.evaluate(() => document.documentElement.innerHTML),
+                        o = r.load(i);
+                    return (await e.close(), (n.description = o(`div.article__body`).html()), (n.pubDate = t(o(`div.meta time`).attr(`datetime`))), n);
+                })
+            )
+        ),
+        await a.close(),
+        { title: c(`.article__title`).text().trim(), description: c(`meta[name=description]`).text().trim(), link: i, image: c(`link[rel="shortcut icon"]`).attr(`href`), item: l }
+    );
+}
+export { a as route };

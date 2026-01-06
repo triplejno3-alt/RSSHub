@@ -1,0 +1,52 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+import { t as r } from './parse-date-DjdQS_Nt.mjs';
+import { t as i } from './types-Bl_lnefZ.mjs';
+import { load as a } from 'cheerio';
+const o = `f05fca638390aed897fbe3c2fff03000`,
+    s = {
+        name: `文章`,
+        categories: [`blog`],
+        path: `/`,
+        example: `/sorrycc`,
+        radar: [{ source: [`sorrycc.com`] }],
+        handler: c,
+        maintainers: [`KarasuShin`],
+        view: i.Articles,
+        features: {
+            supportRadar: !0,
+            requireConfig: [
+                {
+                    name: `SORRYCC_COOKIES`,
+                    description: `登录用户的Cookie,获取方式：\n1. 登录sorrycc.com\n2. 打开浏览器开发者工具，切换到 Application 面板\n3. 点击侧边栏中的Storage -> Cookies -> https://sorrycc.com\n4. 复制 Cookie 中的 wordpress_logged_in_${o} 值`,
+                    optional: !0,
+                },
+            ],
+        },
+        description: `云谦的博客，部分内容存在权限校验，访问完整内容请部署RSSHub私有实例并配置授权信息`,
+    };
+async function c(i) {
+    let s = `https://sorrycc.com`,
+        c = i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`), 10) : 100,
+        l = t.sorrycc.cookie,
+        u = await e(`${s}/wp-json/wp/v2/posts?per_page=${c}`);
+    return {
+        title: `文章`,
+        item: await Promise.all(
+            u.map(async (t) => {
+                let i = t.title.rendered,
+                    s = t.link,
+                    c = r(t.date_gmt),
+                    u = r(t.modified_gmt);
+                return t.categories.includes(7) && l
+                    ? await n.tryGet(s, async () => ({ title: i, description: a(await e(s, { headers: { Cookie: `wordpress_logged_in_${o}=${l}` } }))(`.content`).html(), link: s, pubDate: c, updated: u }))
+                    : { title: i, description: t.content.rendered, link: s, pubDate: c, updated: u };
+            })
+        ),
+        link: s,
+        image: `${s}/wp-content/uploads/2024/01/cropped-CC-1-32x32.png`,
+    };
+}
+export { s as route };

@@ -1,0 +1,54 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { Fragment as t, jsx as n, jsxs as r } from 'hono/jsx/jsx-runtime';
+import { renderToString as i } from 'hono/jsx/dom/server';
+const a = {
+    path: `/package/:name{(@[a-z0-9-~][a-z0-9-._~]*/)?[a-z0-9-~][a-z0-9-._~]*}`,
+    name: `Package`,
+    maintainers: [`Fatpandac`],
+    categories: [`program-update`],
+    example: `/npm/package/rsshub`,
+    radar: [{ source: [`www.npmjs.com/package/:name`] }],
+    handler: o,
+};
+async function o(a) {
+    let o = a.req.param(`name`),
+        s = `https://api.npmjs.org/downloads/point/last-month/${o}`,
+        c = `https://api.npmjs.org/downloads/point/last-week/${o}`,
+        l = `https://api.npmjs.org/downloads/point/last-day/${o}`,
+        u = `https://registry.npmjs.org/${o}`,
+        d = await e(s),
+        f = await e(c),
+        p = await e(l),
+        m = (await e(u)).time,
+        h = Object.keys(m)
+            .map((e) => ({ version: e, time: m[e] }))
+            .toReversed();
+    return {
+        title: `${o} - npm`,
+        link: `https://www.npmjs.com/package/${o}`,
+        description: `${o} - npm`,
+        item: [
+            {
+                title: `${o} - npm`,
+                description: i(
+                    r(t, {
+                        children: [
+                            n(`h3`, { children: `Download` }),
+                            r(`p`, { children: [`Last Day: `, p.downloads] }),
+                            r(`p`, { children: [`Last week: `, f.downloads] }),
+                            r(`p`, { children: [`Last month: `, d.downloads] }),
+                            n(`hr`, {}),
+                            n(`h3`, { children: `Version` }),
+                            h.map((e) => r(`p`, { children: [e.version, `: `, e.time] })),
+                        ],
+                    })
+                ),
+                link: `https://www.npmjs.com/package/${o}`,
+                guid: `https://www.npmjs.com/package/${o}${m.modified}`,
+            },
+        ],
+    };
+}
+export { a as route };

@@ -1,0 +1,4 @@
+import { Fragment as e, jsx as t, jsxs as n } from 'hono/jsx/jsx-runtime';
+import { renderToString as r } from 'hono/jsx/dom/server';
+var i = { courseDesc: (i, a) => r(n(e, { children: [t(`img`, { src: i }), t(`br`, {}), a] })) };
+export { i as t };

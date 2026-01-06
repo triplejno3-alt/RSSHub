@@ -1,0 +1,43 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = `http://jwc.swjtu.edu.cn`,
+    a = `${i}/vatuu/WebAction?setAction=newsList`,
+    o = (e, a) => {
+        let o = e.find(`h3`).find(`a`),
+            s = e.find(`p`).find(`span`).text().slice(0, 19),
+            c = o.text(),
+            l = `${i}${o.attr(`href`).slice(2)}`;
+        return a.tryGet(l, async () => {
+            try {
+                let e = r((await n({ method: `get`, url: l })).data)(`.content-main`).html();
+                return ((e ||= `转发通知`), { title: c, pubDate: t(String(s)), link: l, description: e });
+            } catch (e) {
+                if (e.response && e.response.status === 404) return { title: c, pubDate: t(String(s)), link: l, description: `` };
+                throw e;
+            }
+        });
+    },
+    s = {
+        path: `/jwc`,
+        categories: [`university`],
+        example: `/swjtu/jwc`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`jwc.swjtu.edu.cn/vatuu/WebAction`, `jwc.swjtu.edu.cn/`] }],
+        name: `教务网`,
+        maintainers: [`mobyw`],
+        handler: c,
+        url: `jwc.swjtu.edu.cn/vatuu/WebAction`,
+    };
+async function c() {
+    let t = r((await n({ method: `get`, url: a })).data),
+        i = t(`[class='littleResultDiv']`);
+    return { title: `西南交大-教务网通知`, link: a, item: await Promise.all(i.toArray().map((n) => o(t(n), e))), allowEmpty: !0 };
+}
+export { s as route };

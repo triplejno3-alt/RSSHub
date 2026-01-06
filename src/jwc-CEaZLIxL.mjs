@@ -1,0 +1,33 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = `https://jwc.nuist.edu.cn`,
+    a = {
+        path: `/jwc/:category?`,
+        categories: [`university`],
+        example: `/nuist/jwc/jxyw`,
+        parameters: { category: `默认为教学要闻` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `教务处`,
+        maintainers: [`gylidian`],
+        handler: o,
+        description: `| 教学要闻 | 学院教学 | 教务管理 | 教学研究 | 教务管理 | 教材建设 | 考试中心 |
+| -------- | -------- | -------- | -------- | -------- | -------- | -------- |
+| jxyw     | xyjx     | jwgl     | jxyj     | sjjx     | jcjs     | kszx     |`,
+    };
+async function o(a) {
+    let { category: o = `jxyw` } = a.req.param(),
+        s = `${i}/${o === `jxyw` || o === `xyjx` ? `index` : `xxtz`}/${o}.htm`,
+        c = r((await n(s)).data),
+        l = c(`.main_list ul li`)
+            .toArray()
+            .map((e) => ((e = c(e)), { title: e.find(`a`).contents().first().text(), link: new URL(e.find(`a`).attr(`href`), i).href, pubDate: t(e.find(`.date`).text()) })),
+        u = await Promise.all(l.map((t) => e.tryGet(t.link, async () => ((t.description = r((await n(t.link)).data)(`#vsb_content`).html()), t))));
+    return { title: `南京信息工程大学-教务处：` + c(`.dqwz`).find(`a`).eq(1).text(), link: s, item: u };
+}
+export { a as route };

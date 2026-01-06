@@ -1,0 +1,45 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/jwc/:path{.+}?`,
+    categories: [`university`],
+    example: `/cqu/jwc/index/tzgg`,
+    parameters: { path: { description: '路径参数，默认为 `index/tzgg`', default: `index/tzgg` } },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`jwc.cqu.edu.cn/:path`], target: `/jwc/:path` }],
+    name: `本科教学信息网通知`,
+    maintainers: [`AhsokaTano26`],
+    handler: a,
+};
+async function a(i) {
+    let { path: a = `index/tzgg` } = i.req.param(),
+        o = new URL(`${a}.htm`, `http://jwc.cqu.edu.cn`).href,
+        s = r(await e(o)),
+        c = s(`div.page-contner.fl li.pot-r`)
+            .toArray()
+            .map((e) => {
+                e = s(e);
+                let t = e.find(`a.no-wrap`),
+                    r = new URL(t.attr(`href`), o).href;
+                return { title: t.attr(`title`), link: r, pubDate: n(e.find(`span.fr`).text()) };
+            }),
+        l = await Promise.all(
+            c.map((n) =>
+                t.tryGet(
+                    n.link,
+                    async () => (
+                        (n.description = r(await e(n.link))(`form[name="_newscontent_fromname"] div#vsb_content`)
+                            .find(`div.v_news_content`)
+                            .html()),
+                        n
+                    )
+                )
+            )
+        );
+    return { title: s(`title`).text().replace(/--/, ` - `), link: o, item: l };
+}
+export { i as route };

@@ -1,0 +1,72 @@
+import './config-Cc-zZ5p-.mjs';
+import { t as e } from './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { n as r } from './puppeteer-BbZGb8cd.mjs';
+import { n as i, t as a } from './puppeteer-utils-BhPB3ohS.mjs';
+import { load as o } from 'cheerio';
+const s = {
+    path: `/journals/current/:journal`,
+    categories: [`journal`],
+    example: `/uchicago/journals/current/jpe`,
+    parameters: { journal: `Journal id, can be found in URL. [Browse journals by title](https://www.journals.uchicago.edu/action/showPublications)` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`journals.uchicago.edu/toc/:journal/current`, `journals.uchicago.edu/journal/:journal`] }],
+    name: `Current Issue`,
+    maintainers: [`TonyRL`],
+    handler: c,
+};
+async function c(s) {
+    let c = s.req.param(`journal`),
+        l = `https://www.journals.uchicago.edu`,
+        u = `${l}/toc/${c}/current`,
+        d = await r(),
+        f = await d.newPage();
+    (await f.setRequestInterception(!0),
+        f.on(`request`, (e) => {
+            e.resourceType() === `document` ? e.continue() : e.abort();
+        }),
+        e.http(`Requesting ${u}`),
+        await f.goto(u, { waitUntil: `domcontentloaded` }));
+    let p = await f.evaluate(() => document.documentElement.innerHTML),
+        m = await a(f);
+    await f.close();
+    let h = o(p),
+        g = h(`.issue-item__title`)
+            .toArray()
+            .map((e) => ({ link: `${l}${h(e).find(`a`).attr(`href`)}` })),
+        _ = await Promise.all(
+            g.map((r) =>
+                t.tryGet(r.link, async () => {
+                    let t = await d.newPage();
+                    (await i(t, m, `journals.uchicago.edu`),
+                        await t.setRequestInterception(!0),
+                        t.on(`request`, (e) => {
+                            e.resourceType() === `document` ? e.continue() : e.abort();
+                        }),
+                        e.http(`Requesting ${r.link}`),
+                        await t.goto(r.link, { waitUntil: `domcontentloaded`, referer: u }));
+                    let a = await t.evaluate(() => document.documentElement.innerHTML);
+                    await t.close();
+                    let s = o(a);
+                    return (
+                        (r.title = s(`head title`).text()),
+                        (r.pubDate = n(s(`head meta[name="dc.Date"]`).attr(`content`))),
+                        (r.doi = s(`head meta[scheme="doi"]`).attr(`content`)),
+                        (r.author = s(`.author-name span`)
+                            .toArray()
+                            .map((e) => s(e).text())
+                            .join(`, `)),
+                        s(`.figure__image`).each((e, t) => {
+                            t.attribs[`data-lg-src`] && (s(t).attr(`src`, `${l}${t.attribs[`data-lg-src`]}`), delete t.attribs[`data-lg-src`]);
+                        }),
+                        (r.description = s(`.article__body`).html()),
+                        r
+                    );
+                })
+            )
+        );
+    return (await d.close(), { title: h(`head title`).text(), description: h(`.jumbotron-journal-info`).text(), link: u, image: h(`head meta[property="og:image"]`).attr(`content`), item: _, language: h(`html`).attr(`lang`) });
+}
+export { s as route };

@@ -1,0 +1,70 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { t as r } from './description-BF5qJI9E.mjs';
+import { load as i } from 'cheerio';
+const a = { 0: `全部`, 1: `精选`, 2: `政策`, 3: `数据`, 4: `NFT`, 5: `项目` },
+    o = {
+        path: `/lives/:category?`,
+        categories: [`finance`],
+        view: n.Notifications,
+        example: `/jinse/lives`,
+        parameters: { category: { description: `分类`, options: Object.entries(a).map(([e, t]) => ({ value: e, label: t })), default: `0` } },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `快讯`,
+        maintainers: [`nczitzk`],
+        handler: s,
+        description: `| 全部 | 精选 | 政策 | 数据 | NFT | 项目 |
+| ---- | ---- | ---- | ---- | --- | ---- |
+| 0    | 1    | 2    | 3    | 4   | 5    |`,
+    };
+async function s(n) {
+    let { category: o = `0` } = n.req.param(),
+        s = n.req.query(`limit`) ? Number.parseInt(n.req.query(`limit`), 10) : 100,
+        c = `https://jinse.cn`,
+        l = new URL(`noah/v2/lives`, `https://api.jinse.cn`).href,
+        u = new URL(`lives`, c).href,
+        { data: d } = await t(l, { searchParams: { limit: s, reading: !1, source: `web`, flag: `up`, id: 0, category: o } }),
+        f =
+            d.list
+                .flatMap((e) => e.lives)
+                .slice(0, s)
+                .map((t) => ({
+                    title: t.content_prefix,
+                    link: new URL(`lives/${t.id}.html`, c).href,
+                    description: r({
+                        images: t.images?.map((e) => ({ src: e.url.replace(/_[^\W_]+(\.\w+)$/, `_true$1`), width: e.width, height: e.height })) ?? [],
+                        description: t.content,
+                        original: t.link ? { link: t.link, name: t.link_name } : void 0,
+                    }),
+                    author: t.show_source_name,
+                    guid: `jinse-lives-${t.id}`,
+                    pubDate: e(t.created_at, `X`),
+                    upvotes: t.up_counts ?? 0,
+                    downvotes: t.down_counts ?? 0,
+                    comments: t.comment_count ?? 0,
+                })) ?? [],
+        { data: p } = await t(u),
+        m = i(p),
+        h = m(`meta[name="author"]`).prop(`content`),
+        g = m(`a.js-logoBox img`).prop(`src`),
+        _ = new URL(m(`link[rel="favicon"]`).prop(`href`), c).href;
+    return {
+        item: f,
+        title: `${h} - ${Object.hasOwn(a, o) ? a[o] : o}`,
+        link: u,
+        description: m(`meta[name="description"]`).prop(`content`),
+        language: m(`html`).prop(`lang`),
+        image: g,
+        icon: _,
+        logo: _,
+        subtitle: m(`meta[name="keywords"]`).prop(`content`),
+        author: h,
+        allowEmpty: !0,
+    };
+}
+export { o as route };

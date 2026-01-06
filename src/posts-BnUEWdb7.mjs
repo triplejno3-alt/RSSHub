@@ -1,0 +1,23 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { t } from './rss-parser-CKuAfhVS.mjs';
+import { t as n } from './utils-DBCkFkfl.mjs';
+const r = {
+    path: `/:configId/posts`,
+    categories: [`bbs`],
+    example: `/discourse/0/posts`,
+    parameters: { configId: `Environment variable configuration id, see above` },
+    features: { requireConfig: [{ name: `DISCOURSE_CONFIG_*`, description: `` }], requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `Latest posts`,
+    maintainers: [`dzx-dzx`],
+    handler: i,
+};
+async function i(r) {
+    let { link: i, key: a } = n(r),
+        o = await t.parseString((await e(`${i}/posts.rss`, { headers: { 'User-Api-Key': a } })).data);
+    return ((o.items = o.items.map((e) => ({ description: e.content, author: e.creator, ...e }))), { item: o.items, ...o });
+}
+export { r as route };

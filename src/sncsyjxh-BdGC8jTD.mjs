@@ -1,0 +1,41 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { renderToString as o } from 'hono/jsx/dom/server';
+const s = {
+    path: `/guangdong/tqyb/sncsyjxh`,
+    categories: [`forecast`],
+    example: `/gov/guangdong/tqyb/sncsyjxh`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.tqyb.com.cn/gz/weatherAlarm/otherCity/`] }],
+    name: `广东省内城市预警信号`,
+    maintainers: [`Fatpandac`],
+    handler: c,
+    url: `www.tqyb.com.cn/gz/weatherAlarm/otherCity/`,
+};
+async function c() {
+    let s = await t.get(`http://www.tqyb.com.cn/data/gzWeather/otherCityAlarm.js`),
+        c = JSON.parse(String(s.data.match(/Alarm = (.*?);/)[1])),
+        l = [];
+    for (let e in c) for (let t in c[e]) l.push(c[e][t]);
+    return {
+        title: `广东省内城市预警信号`,
+        link: `http://www.tqyb.com.cn/gz/weatherAlarm/otherCity/`,
+        item: l.map((t) => ({
+            title: t.cname + ` ` + t.sigtypename,
+            link: `http://www.tqyb.com.cn/gz/weatherAlarm/otherCity/`,
+            description: o(
+                a(r, { children: [a(`text`, { children: [`地区： `, t.cname, ` `] }), i(`br`, {}), a(`text`, { children: [`等级： `, t.sigtypename, ` `] }), i(`br`, {}), a(`text`, { children: [`发布时间：`, t.datetime] })] })
+            ),
+            pubDate: n(e(t.datetime, `YYYY年MM月DD日 HH:mm`), 8),
+            guid: n(e(t.datetime, `YYYY年MM月DD日 HH:mm`), 8) + t.cname + t.sigtypename,
+        })),
+    };
+}
+export { s as route };

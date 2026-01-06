@@ -1,0 +1,101 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+import { raw as l } from 'hono/html';
+const u = ({ image: e, abstracts: t, description: n }) => o(i, { children: [e ? a(`figure`, { children: a(`img`, { src: e.src, alt: e.alt }) }) : null, t ? a(`backquote`, { children: l(t) }) : null, n ? l(n) : null] }),
+    d = (e) => c(a(u, { ...e })),
+    f = {
+        path: `/:language/news/:category?`,
+        categories: [`new-media`],
+        example: `/dn/en-us/news`,
+        parameters: { language: `Language, see below`, category: `Category, see below, The Latest by default` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `News`,
+        maintainers: [`nczitzk`],
+        handler: p,
+        description: `#### Language
+
+| English | 中文  |
+| ------- | ----- |
+| en-us   | zh-cn |
+
+#### Category
+
+| English Category     | 中文分类 | Category id |
+| -------------------- | -------- | ----------- |
+| The Latest           | 最新     |             |
+| Industry Information | 行业资讯 | category-1  |
+| Knowledge            | 域名知识 | category-2  |
+| Investment           | 域名投资 | category-3  |`,
+    };
+async function p(i) {
+    let { language: a, category: o = `` } = i.req.param(),
+        c = i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`), 10) : 10,
+        l = `https://dn.com`,
+        u = new URL(`/${a}/news/${o}`, l).href,
+        { data: f } = await n(u),
+        p = s(f),
+        m = p(`a.list-item`)
+            .slice(0, c)
+            .toArray()
+            .map((e) => {
+                e = p(e);
+                let n = e.find(`div.img img`);
+                return {
+                    title: e.find(`h2.ellipse2`).text(),
+                    link: new URL(e.prop(`href`), l).href,
+                    description: d({ image: n ? { src: n.prop(`src`), alt: n.prop(`alt`) } : void 0, abstracts: e.find(`p.abstract`).html() }),
+                    category: e
+                        .find(`span.cat`)
+                        .toArray()
+                        .map((e) => p(e).text()),
+                    pubDate: r(t(e.find(`span.time`).text()), 8),
+                };
+            });
+    m = await Promise.all(
+        m.map((i) =>
+            e.tryGet(i.link, async () => {
+                let { data: e } = await n(i.link),
+                    a = s(e);
+                return (
+                    (i.title = a(`h1.tit`).text()),
+                    (i.description = d({ abstracts: a(`div.abstract`).html(), description: a(`div.detail`).html() })),
+                    (i.author = a(`span.author`)
+                        .text()
+                        .replace(/(By|作者)\s/, ``)),
+                    (i.category = [
+                        ...i.category,
+                        ...a(`div.tags p a`)
+                            .toArray()
+                            .map((e) => a(e).text()),
+                    ]),
+                    (i.pubDate = r(t(a(`span.date`).text()), 8)),
+                    i
+                );
+            })
+        )
+    );
+    let h = p(`a.logo img`).prop(`alt`),
+        g = p(`link[rel="icon"]`).prop(`href`);
+    return {
+        item: m,
+        title: `${h} - ${p(`div.group a.active`).text()}`,
+        link: u,
+        description: p(`meta[name="description"]`).prop(`content`),
+        language: p(`html`).prop(`lang`),
+        image: new URL(p(`a.logo img`).prop(`src`), l).href,
+        icon: g,
+        logo: g,
+        subtitle: p(`title`).text(),
+        author: h,
+    };
+}
+export { f as route };

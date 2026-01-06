@@ -1,0 +1,63 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { load as n } from 'cheerio';
+import r from 'markdown-it';
+import i from 'node:vm';
+const a = `https://raw.githubusercontent.com`,
+    o = `${a}/typst/packages/main/packages/preview`;
+function s(e, t) {
+    if (e.includes(`://`))
+        e.startsWith(`https://typst.app/universe/package`)
+            ? (e = e.replaceAll(`https://typst.app/universe/package`, `${o}/${t.name}/${t.version}`))
+            : e.startsWith(`https://github.com/`) && e.match(/\.(jpeg|jpg|gif|png|bmp|webp)$/gi)?.length && (e = e.replace(`https://github.com/`, `${a}/`));
+    else {
+        let n = e.startsWith(`/`) ? `` : `/`,
+            r = `${o}/${t.name}/${t.version}${n}`;
+        e = new URL(e, r).toString();
+    }
+    return e;
+}
+const c = {
+    path: `/universe`,
+    categories: [`program-update`],
+    example: `/typst/universe`,
+    radar: [{ source: [`typst.app/universe`], target: `/universe` }],
+    name: `Universe`,
+    maintainers: [`HPDell`],
+    handler: async () => {
+        let a = `https://typst.app/universe/search?kind=packages%2Ctemplates&packages=last-updated`,
+            o = (
+                await e(
+                    `https://typst.app${n(await e(a))(`script`)
+                        .toArray()
+                        .map((e) => e.attribs.src)
+                        .find((e) => e && e.startsWith(`/scripts/universe-search`))}`,
+                    { parseResponse: (e) => e }
+                )
+            ).match(/(an.exports=[\S\s]+);var ([$A-Z_a-z][\w$]*)=new Intl.Collator/)?.[1];
+        if (o) {
+            o = o.slice(0, -2);
+            let e = { an: { exports: [] } };
+            (i.createContext(e), i.runInContext(o, e, { displayErrors: !0 }));
+            let c = r(`commonmark`),
+                l = e.an.exports.toSorted((e, t) => e.updatedAt - t.updatedAt);
+            return {
+                title: `Typst universe`,
+                link: a,
+                item: [...new Map(l.map((e) => [e.name, e])).values()].map((e) => {
+                    let r = n(c.render(e.readme));
+                    return (
+                        r(`img`).each((t, n) => {
+                            let r = n.attribs.src;
+                            n.attribs.src = s(r, e);
+                        }),
+                        { title: `${e.name} (${e.version}) | ${e.description}`, link: `https://typst.app/universe/package/${e.name}`, description: r.html(), pubDate: t(e.updatedAt, `X`) }
+                    );
+                }),
+            };
+        } else return { title: `Typst universe`, link: a, item: [] };
+    },
+};
+export { c as route };

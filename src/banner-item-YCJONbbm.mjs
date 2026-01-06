@@ -1,0 +1,53 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/bannerItem`,
+    categories: [`anime`],
+    example: `/hpoi/bannerItem`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.hpoi.net/bannerItem/list`] }],
+    name: `热门推荐`,
+    maintainers: [`DIYgod`],
+    handler: i,
+    url: `www.hpoi.net/bannerItem/list`,
+};
+async function i() {
+    let r = `https://www.hpoi.net/bannerItem/list?categoryId=0&bannerItemType=0&subType=0&page=1`,
+        i = n((await t({ method: `get`, url: r })).data);
+    return {
+        title: `Hpoi 手办维基 - 热门推荐`,
+        link: r,
+        item: (
+            await Promise.all(
+                i(`#content .item`)
+                    .toArray()
+                    .map(async (r) => {
+                        let a = i(r),
+                            o = new URL(a.find(`a`).attr(`href`) ?? ``, `https://www.hpoi.net`).href;
+                        if (o.startsWith(`https://www.hpoi.net`))
+                            return await e.tryGet(o, async () => {
+                                let e = n((await t(o)).data);
+                                return (
+                                    e(`.hpoi-album-content .album-ibox`).remove(),
+                                    e(`.hpoi-album-content .row`).remove(),
+                                    e(`.hpoi-album-content .hpoi-hr-line`).remove(),
+                                    {
+                                        title: a.find(`.title`).text(),
+                                        link: o,
+                                        description: e(`.hpoi-album-content`).html() || `<img src="${a.find(`img`).attr(`src`)}">`,
+                                        pubDate: new Date(a.find(`.time`).text().replace(`发布时间：`, ``)).toUTCString(),
+                                    }
+                                );
+                            });
+                    })
+            )
+        ).filter((e) => !!e),
+    };
+}
+export { r as route };

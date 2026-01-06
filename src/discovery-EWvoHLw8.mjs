@@ -1,0 +1,42 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { n as t, r as n, t as r } from './utils-7RMq-xOX.mjs';
+const i = new Map([
+        [`zx`, { title: `最新`, id: `1795` }],
+        [`twhk`, { title: `天文航空`, id: `1796` }],
+        [`dwzw`, { title: `动物植物`, id: `1797` }],
+        [`zrdl`, { title: `自然地理`, id: `1798` }],
+        [`lskg`, { title: `历史考古`, id: `1799` }],
+        [`smyx`, { title: `生命医学`, id: `1800` }],
+        [`shbk`, { title: `生活百科`, id: `1801` }],
+        [`kjqy`, { title: `科技前沿`, id: `1802` }],
+    ]),
+    a = {
+        path: `/discovery/:type`,
+        categories: [`new-media`],
+        example: `/sina/discovery/zx`,
+        parameters: { type: `订阅分区类型，见下表` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `科技 - 科学探索`,
+        maintainers: [`LogicJake`],
+        handler: o,
+        description: `| 最新 | 天文航空 | 动物植物 | 自然地理 | 历史考古 | 生命医学 | 生活百科 | 科技前沿 |
+| ---- | -------- | -------- | -------- | -------- | -------- | -------- | -------- |
+| zx   | twhk     | dwzw     | zrdl     | lskg     | smyx     | shbk     | kjqy     |`,
+    };
+async function o(a) {
+    let o = a.req.param(`type`),
+        s = i.get(o).id,
+        c = i.get(o).title,
+        { limit: l = `50` } = a.req.query(),
+        u = n((await r(`207`, s, l)).data.result.data),
+        d = await Promise.all(u.map((n) => t(n, e.tryGet)));
+    return { title: `${c}-新浪科技科学探索`, link: `https://tech.sina.com.cn/discovery/`, item: d };
+}
+export { a as route };

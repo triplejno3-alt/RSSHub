@@ -1,0 +1,49 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { n as r } from './wechat-mp-HNgcLN2K.mjs';
+import { load as i } from 'cheerio';
+const a = `https://csyh.sdu.edu.cn/`,
+    o = { zytz: `zytz.htm`, gsl: `gsl.htm` },
+    s = { zytz: `重要通知`, gsl: `公示栏` },
+    c = {
+        path: `/cs/yjsgz/:type?`,
+        categories: [`university`],
+        example: `/sdu/cs/yjsgz/zytz`,
+        parameters: { type: '默认为`zytz`' },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `计算机科学与技术学院研究生工作网站`,
+        maintainers: [`kukeya`, `wiketool`],
+        handler: l,
+        description: `| 重要通知 | 公示栏 |
+| -------- | -------- |
+| zytz      | gsl       |`,
+    };
+async function l(c) {
+    let l = c.req.param(`type`) ?? `zytz`,
+        u = new URL(o[l], a).href,
+        d = i((await n(u)).data),
+        f = d(`.ss li`)
+            .toArray()
+            .map((e) => {
+                e = d(e);
+                let n = e.find(`a`);
+                return { title: n.text().trim(), link: n.attr(`href`).startsWith(`info/`) ? a + n.attr(`href`) : n.attr(`href`), pubDate: t(e.find(`span`).text().trim(), `YYYY-MM-DD`) };
+            });
+    return (
+        (f = await Promise.all(f.map((t) => e.tryGet(t.link, async () => (new URL(t.link).hostname === `mp.weixin.qq.com` ? r(t) : ((t.description = i((await n(t.link)).data)(`.v_news_content`).html()), t)))))),
+        {
+            title: `山东大学计算机科学与技术学院研究生工作网站${s[l]}`,
+            description: d(`title`).text(),
+            link: u,
+            item: f,
+            icon: `https://assets.i-scmp.com/static/img/icons/scmp-icon-256x256.png`,
+            logo: `https://assets.i-scmp.com/static/img/icons/scmp-icon-256x256.png`,
+        }
+    );
+}
+export { c as route };

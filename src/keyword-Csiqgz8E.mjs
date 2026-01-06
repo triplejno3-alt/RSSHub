@@ -1,0 +1,50 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './types-Bl_lnefZ.mjs';
+import { t as a } from './config-not-found-DGyG6Tbz.mjs';
+import { t as o } from './utils-Br3UwJrQ.mjs';
+import { load as s } from 'cheerio';
+const c = {
+    path: `/keyword/:keyword`,
+    categories: [`shopping`],
+    view: i.Notifications,
+    example: `/smzdm/keyword/女装`,
+    parameters: { keyword: `你想订阅的关键词` },
+    features: { requireConfig: [{ name: `SMZDM_COOKIE`, description: `什么值得买登录后的 Cookie 值` }], requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `关键词`,
+    maintainers: [`DIYgod`, `MeanZhang`],
+    handler: l,
+};
+async function l(i) {
+    if (!e.smzdm.cookie) throw new a(`什么值得买排行榜 is disabled due to the lack of SMZDM_COOKIE`);
+    let c = i.req.param(`keyword`),
+        l = (await n(`https://search.smzdm.com`, { headers: { ...o(), Referer: `https://search.smzdm.com/?c=home&s=${encodeURIComponent(c)}&order=time&v=a` }, searchParams: { c: `home`, s: c, order: `time`, v: `a`, mx_v: `a` } }))
+            .data,
+        u = s(l),
+        d = u(`.feed-row-wide`);
+    return {
+        title: `${c} - 什么值得买`,
+        link: `https://search.smzdm.com/?c=home&s=${encodeURIComponent(c)}&order=time`,
+        item:
+            d &&
+            d
+                .toArray()
+                .map(
+                    (e) => (
+                        (e = u(e)),
+                        {
+                            title: `${e.find(`.feed-block-title a`).eq(0).text().trim()} - ${e.find(`.feed-block-title a`).eq(1).text().trim()}`,
+                            description: `${e.find(`.feed-block-descripe`).contents().eq(2).text().trim()}<br>${e.find(`.feed-block-extras span`).text().trim()}<br><img src="http:${e.find(`.z-feed-img img`).attr(`src`)}">`,
+                            pubDate: r(t(e.find(`.feed-block-extras`).contents().eq(0).text().trim(), [`MM-DD HH:mm`, `HH:mm`]), 8),
+                            link: e.find(`.feed-block-title a`).attr(`href`),
+                        }
+                    )
+                ),
+    };
+}
+export { c as route };

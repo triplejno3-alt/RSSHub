@@ -1,0 +1,37 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { t } from './types-Bl_lnefZ.mjs';
+import { n, t as r } from './util-CvIiZVp2.mjs';
+import { load as i } from 'cheerio';
+const a = async (t) => {
+        let { id: a } = t.req.param(),
+            o = Number.parseInt(t.req.query(`limit`) ?? `30`, 10),
+            s = new URL(`/topic/${a}`, n).href,
+            c = i(await e(s)),
+            l = c(`html`).prop(`lang`) ?? `zh`,
+            u = await r(c, c(`div.aw-question-list`), o);
+        c(`div.pagination`).remove();
+        let d = c(`meta[name="keywords"]`).prop(`content`).split(/,/)[0],
+            f = c(`div.aw-logo img`).prop(`src`);
+        return { title: c(`title`).text(), description: c(`meta[name="description"]`).prop(`content`), link: s, item: u, allowEmpty: !0, image: f, author: d, language: l, id: s };
+    },
+    o = {
+        path: `/topic/:id`,
+        name: `话题`,
+        url: `www.jisilu.cn`,
+        maintainers: [`nczitzk`],
+        handler: a,
+        example: `/jisilu/topic/可转债`,
+        parameters: { id: `话题 id，可在对应话题页 URL 中找到` },
+        description:
+            '::: tip\n若订阅 [可转债](https://www.jisilu.cn/topic/可转债)，网址为 `https://www.jisilu.cn/topic/可转债`，请截取 `https://www.jisilu.cn/topic/` 到末尾的部分 `可转债` 作为 `id` 参数填入，此时目标路由为 [`/jisilu/topic/可转债`](https://rsshub.app/jisilu/topic/可转债)。\n:::\n\n::: tip\n前往 [话题广场](https://www.jisilu.cn/topic) 查看更多话题。\n:::\n',
+        categories: [`finance`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`www.jisilu.cn/topic/:id`], target: `/topic/:id` }],
+        view: t.Articles,
+    };
+export { a as handler, o as route };

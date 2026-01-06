@@ -1,0 +1,92 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { t as i } from './invalid-parameter-DGZgOgO2.mjs';
+import { load as a } from 'cheerio';
+const o = `https://www.acfun.cn`,
+    s = {
+        184: { title: `二次元画师`, realmId: `realmId=18&realmId=14&realmId=51` },
+        110: { title: `综合`, realmId: `realmId=5&realmId=22&realmId=28&realmId=3&realmId=4` },
+        73: { title: `生活情感`, realmId: `realmId=50&realmId=25&realmId=34&realmId=7&realmId=6&realmId=17&realmId=1&realmId=2&realmId=49` },
+        164: { title: `游戏`, realmId: `realmId=8&realmId=53&realmId=52&realmId=11&realmId=43&realmId=44&realmId=45&realmId=46&realmId=47` },
+        74: { title: `动漫文化`, realmId: `realmId=13&realmId=31&realmId=48` },
+        75: { title: `漫画文学`, realmId: `realmId=15&realmId=23&realmId=16` },
+    },
+    c = new Set([`createTime`, `lastCommentTime`, `hotScore`]),
+    l = new Set([`all`, `oneDay`, `threeDay`, `oneWeek`, `oneMonth`]),
+    u = {
+        path: `/article/:categoryId/:sortType?/:timeRange?`,
+        categories: [`anime`],
+        view: r.Articles,
+        example: `/acfun/article/110`,
+        parameters: {
+            categoryId: { description: `分区 ID`, options: Object.keys(s).map((e) => ({ value: e, label: s[e].title })) },
+            sortType: {
+                description: `排序`,
+                options: [
+                    { value: `createTime`, label: `最新发表` },
+                    { value: `lastCommentTime`, label: `最新动态` },
+                    { value: `hotScore`, label: `最热文章` },
+                ],
+                default: `createTime`,
+            },
+            timeRange: {
+                description: '时间范围，仅在排序是 `hotScore` 有效',
+                options: [
+                    { value: `all`, label: `时间不限` },
+                    { value: `oneDay`, label: `24 小时` },
+                    { value: `threeDay`, label: `三天` },
+                    { value: `oneWeek`, label: `一周` },
+                    { value: `oneMonth`, label: `一个月` },
+                ],
+                default: `all`,
+            },
+        },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `文章`,
+        maintainers: [`TonyRL`],
+        handler: d,
+        description: `| 二次元画师 | 综合 | 生活情感 | 游戏 | 动漫文化 | 漫画文学 |
+| ---------- | ---- | -------- | ---- | -------- | -------- |
+| 184        | 110  | 73       | 164  | 74       | 75       |
+
+| 最新发表   | 最新动态        | 最热文章 |
+| ---------- | --------------- | -------- |
+| createTime | lastCommentTime | hotScore |
+
+| 时间不限 | 24 小时 | 三天     | 一周    | 一个月   |
+| -------- | ------- | -------- | ------- | -------- |
+| all      | oneDay  | threeDay | oneWeek | oneMonth |`,
+    };
+async function d(r) {
+    let { categoryId: u, sortType: d = `createTime`, timeRange: f = `all` } = r.req.param();
+    if (!s[u]) throw new i(`Invalid category Id: ${u}`);
+    if (!c.has(d)) throw new i(`Invalid sort type: ${d}`);
+    if (!l.has(f)) throw new i(`Invalid time range: ${f}`);
+    let p = `${o}/v/list${u}/index.htm`,
+        m = (await n.post(`${o}/rest/pc-direct/article/feed?cursor=first_page&onlyOriginal=false&limit=10&sortType=${d}&timeRange=${d === `hotScore` ? f : `all`}&${s[u].realmId}`, { headers: { referer: p } })).data.data.map((e) => ({
+            title: e.title,
+            link: `${o}/a/ac${e.articleId}`,
+            author: e.userName,
+            pubDate: t(e.createTime, `x`),
+            category: e.realmName,
+        })),
+        h = await Promise.all(
+            m.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = a((await n(t.link, { headers: { referer: p } })).data)(`.main script`)
+                            .text()
+                            .match(/window.articleInfo = (.*);\n\s*window.likeDomain/)[1],
+                        r = JSON.parse(e);
+                    return ((t.description = r.parts[0].content), r.tagList && (t.category = [t.category, ...r.tagList.map((e) => e.name)]), t);
+                })
+            )
+        );
+    return { title: s[u].title, link: p, item: h };
+}
+export { u as route };

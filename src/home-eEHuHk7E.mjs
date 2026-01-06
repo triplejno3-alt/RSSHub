@@ -1,0 +1,29 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t as e } from './types-Bl_lnefZ.mjs';
+import { a as t, n, r, t as i } from './utils-BDqpzFK3.mjs';
+const a = {
+    path: `/home`,
+    name: `フォロー中`,
+    categories: [`social-media`],
+    example: `/mixi2/home`,
+    features: { requireConfig: i, supportRadar: !0 },
+    radar: [{ source: [`mixi.social/home`], target: `/home`, title: `フォロー中` }],
+    view: e.SocialMedia,
+    handler: async (e) => {
+        let i = Number.parseInt(e.req.query(`limit`) ?? `20`, 10),
+            a = r(),
+            o = await a.getSubscribingFeeds({ limit: i }),
+            s = await a.getPersonas({ personaIds: o?.feeds?.map((e) => e.post.personaId) ?? [] });
+        return {
+            title: `フォロー中`,
+            link: `https://mixi.social/home`,
+            image: `https://mixi.social/_next/static/media/image_logo.8bb36f11.svg`,
+            item: o?.feeds?.filter((e) => t(e.post)).map((e) => ({ title: `@${s.personas.find((t) => t.personaId === e.post.personaId)?.name}`, ...n(e.post, s.personas) })) ?? [],
+        };
+    },
+    maintainers: [`KarasuShin`],
+};
+export { a as route };

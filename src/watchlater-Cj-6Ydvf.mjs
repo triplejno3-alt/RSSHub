@@ -1,0 +1,59 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './config-not-found-DGyG6Tbz.mjs';
+import './puppeteer-BbZGb8cd.mjs';
+import { r as i } from './utils-Bu8-ZFdB.mjs';
+import { t as a } from './cache-BV7o58Cb.mjs';
+const o = {
+    path: `/watchlater/:uid/:embed?`,
+    categories: [`social-media`],
+    example: `/bilibili/watchlater/2267573`,
+    parameters: { uid: `用户 id`, embed: `默认为开启内嵌视频, 任意值为关闭` },
+    features: {
+        requireConfig: [
+            {
+                name: `BILIBILI_COOKIE_*`,
+                description:
+                    'BILIBILI_COOKIE_{uid}: 用于用户关注动态系列路由，对应 uid 的 b 站用户登录后的 Cookie 值，`{uid}` 替换为 uid，如 `BILIBILI_COOKIE_2267573`，获取方式：\n    1.  打开 [https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/dynamic_new?uid=0&type=8](https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/dynamic_new?uid=0&type=8)\n    2.  打开控制台，切换到 Network 面板，刷新\n    3.  点击 dynamic_new 请求，找到 Cookie\n    4.  视频和专栏，UP 主粉丝及关注只要求 `SESSDATA` 字段，动态需复制整段 Cookie',
+            },
+        ],
+        requirePuppeteer: !1,
+        antiCrawler: !1,
+        supportBT: !1,
+        supportPodcast: !1,
+        supportScihub: !1,
+    },
+    name: `用户稍后再看`,
+    maintainers: [`JimenezLi`],
+    handler: s,
+    description: `::: warning
+  用户稍后再看需要 b 站登录后的 Cookie 值，所以只能自建，详情见部署页面的配置模块。
+:::`,
+};
+async function s(o) {
+    let s = o.req.param(`uid`),
+        c = !o.req.param(`embed`),
+        l = await a.getUsernameFromUID(s),
+        u = e.bilibili.cookies[s];
+    if (u === void 0) throw new r(`缺少对应 uid 的 Bilibili 用户登录后的 Cookie 值`);
+    let d = await n({ method: `get`, url: `https://api.bilibili.com/x/v2/history/toview`, headers: { Referer: `https://space.bilibili.com/${s}/`, Cookie: u } });
+    if (d.data.code) {
+        let e = d.data.code === -6 ? `对应 uid 的 Bilibili 用户的 Cookie 已过期` : d.data.message;
+        throw new r(`Error code ${d.data.code}: ${e}`);
+    }
+    let f = (d.data.data.list || []).map((e) => ({
+        title: e.title,
+        description: i.renderUGCDescription(c, e.pic, `${e.desc}<br><a href="https://www.bilibili.com/list/watchlater?bvid=${e.bvid}">在稍后再看列表中查看</a>`, e.aid, void 0, e.bvid),
+        pubDate: t(e.add_at * 1e3),
+        link: e.pubdate > i.bvidTime && e.bvid ? `https://www.bilibili.com/video/${e.bvid}` : `https://www.bilibili.com/video/av${e.aid}`,
+        author: e.owner.name,
+    }));
+    return { title: `${l} 稍后再看`, link: `https://www.bilibili.com/watchlater#/list`, item: f };
+}
+export { o as route };

@@ -1,0 +1,139 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = `https://getitfree.cn`,
+    i = `wp-json/wp/v2`,
+    a = { search: `s` },
+    o = { category: `categories`, tag: `tags`, search: void 0 },
+    s = new Set([`search`]),
+    c = (e, t, n = !1) => {
+        let r = (e, i) => {
+            let s = Object.keys(e).filter((t) => e[t]?.length > 0 && (n ? Object.hasOwn(o, t) : Object.hasOwn(a, t)));
+            if (s.length === 0) return i;
+            let c = s[0],
+                l = e[c],
+                u = Object.assign({}, e);
+            return (delete u[c], i.append(p(c, n), l.map((e) => (Object.hasOwn(e, t) ? e[t] : e)).join(`,`)), r(u, i));
+        };
+        return r(e, new URLSearchParams());
+    },
+    l = async (e) => {
+        let t = async (e, n) => {
+                if (n.length === 0) return [];
+                let [r, ...i] = n,
+                    a = await f(e, r);
+                return [...(a?.id && a?.slug ? [{ id: a.id, name: a.name, slug: a.slug }] : []), ...(await t(e, i))];
+            },
+            n = async (e, r) => {
+                let i = Object.keys(e);
+                if (i.length === 0) return r;
+                let a = i[0],
+                    o = e[a],
+                    c = Object.assign({}, e);
+                return (delete c[a], n(c, { ...r, [a]: s.has(a) ? o : await t(a, o) }));
+            };
+        return await n(e, {});
+    },
+    u = (e, t, n = new URLSearchParams()) => {
+        let r = String(n) ? `?${n}` : ``;
+        return new URL(`${e}${r}`, t).href;
+    },
+    d = async (e) => {
+        let i = async (e) => {
+                if (e.length === 0) return;
+                let [n, ...r] = e;
+                try {
+                    let { data: e } = await t(n);
+                    return e;
+                } catch {
+                    return i(r);
+                }
+            },
+            a = await i([e, r]);
+        if (!a) return {};
+        let o = n(a),
+            s = o(`title`).text().split(/\|/)[0],
+            c = new URL(`wp-content/uploads/site_logo.png`, r).href,
+            l = new URL(o(`link[rel="shortcut icon"]`).prop(`href`), r).href;
+        return {
+            title: s,
+            link: e,
+            description: o(`meta[name="description"]`).prop(`content`),
+            language: o(`html`).prop(`lang`),
+            image: c,
+            icon: l,
+            logo: l,
+            subtitle: s.split(/【/)[0],
+            author: o(`h1.logo a`).prop(`title`),
+            allowEmpty: !0,
+        };
+    },
+    f = async (e, n) => {
+        let a = new URL(`${i}/${p(e, !0)}`, r).href,
+            { data: o } = await t(a, { searchParams: { search: n } });
+        return o.length > 0 ? o[0] : void 0;
+    },
+    p = (e, t = !1) => {
+        let n = t ? o : a;
+        return Object.hasOwn(n, e) ? (n[e] ?? e) : void 0;
+    },
+    m = (e) =>
+        Object.values(e)
+            .flat()
+            .map((e) => e?.name ?? e?.slug ?? e)
+            .filter(Boolean)
+            .join(`,`),
+    h = (e) => {
+        let t = Object.keys(e).filter((t) => e[t]);
+        if (t.length === 0) return;
+        let n = t[0];
+        return `${n}/${e[n].map((e) => e.slug).join(`/`)}`;
+    },
+    g = (e) => {
+        let t = (e, n = {}, r) => {
+            if (!e) return n;
+            let [i, ...a] = e.split(/\/|,/),
+                s = Object.hasOwn(o, i),
+                c = s ? i : r,
+                l = { ...n, [c]: [...(n[c] || []), ...(s ? [] : [i])] };
+            return t(a.join(`/`), l, c);
+        };
+        return t(e, {});
+    },
+    _ = { path: `/:filter{.+}?`, name: `Unknown`, maintainers: [], handler: v };
+async function v(a) {
+    let o = a.req.param(`filter`),
+        s = a.req.query(`limit`) ? Number.parseInt(a.req.query(`limit`), 10) : 50,
+        f = g(o),
+        p = await l(f),
+        _ = c(f, `name`, !1),
+        v = c(p, `id`, !0);
+    (v.append(`_embed`, `true`), v.append(`per_page`, s));
+    let y = u(`${i}/posts`, r, v),
+        b = u(h(p) ?? ``, r, _),
+        { data: x } = await t(y),
+        S = (Array.isArray(x) ? x : JSON.parse(x.match(/(\[.*])$/)[1])).slice(0, s).map((t) => {
+            let r = t._embedded[`wp:term`],
+                i = n(t.content?.rendered ?? t.content);
+            return (
+                i(`div.mycred-sell-this-wrapper`).prevUntil(`hr`).nextAll().remove(),
+                {
+                    title: t.title?.rendered ?? t.title,
+                    link: t.link,
+                    description: i.html(),
+                    author: t._embedded.author.map((e) => e.name).join(`/`),
+                    category: [...new Set(r.flat().map((e) => e.name))],
+                    guid: t.guid?.rendered ?? t.guid,
+                    pubDate: e(t.date_gmt),
+                    updated: e(t.modified_gmt),
+                }
+            );
+        }),
+        C = m(p);
+    return { ...(await d(b)), item: S, title: `Getitfree${C ? ` | ${C}` : ``}` };
+}
+export { _ as route };

@@ -1,0 +1,30 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { n as r, r as i, t as a } from './utils-DAZORnRC.mjs';
+import { load as o } from 'cheerio';
+const s = {
+    path: `/news`,
+    categories: [`journal`],
+    example: `/nature/news`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !0 },
+    radar: [{ source: [`nature.com/latest-news`, `nature.com/news`, `nature.com/`] }],
+    name: `Nature News`,
+    maintainers: [`y9c`, `TonyRL`],
+    handler: c,
+    url: `nature.com/latest-news`,
+};
+async function c() {
+    let s = `${a}/latest-news`,
+        c = o((await n(s, { cookieJar: r })).data),
+        l = c(`.c-article-item__content`)
+            .toArray()
+            .map((e) => ((e = c(e)), { title: e.find(`h3`).text(), link: a + e.find(`a`).attr(`href`), pubDate: t(e.find(`.c-article-item__date`).text()) }));
+    return ((l = await Promise.all(l.map((t) => e.tryGet(t.link, () => i(t))))), { title: `Nature | Latest News`, description: c(`meta[name=description]`).attr(`content`), link: s, item: l });
+}
+export { s as route };

@@ -1,0 +1,53 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { n, t as r } from './parse-date-DjdQS_Nt.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+const l = (e) => ({ title: e.name, link: e.link, description: e.name, pubDate: r(e.pubTimeLong), media: { content: { url: e.pic } } });
+var u = {
+    ProcessItem: (i, o) => {
+        let u = o.req.query(`old`) === `yes`;
+        if (i.link) return l(i);
+        let p = `https://m.thepaper.cn/${i.cornerLabelDesc && i.cornerLabelDesc === `短剧` ? `series` : `detail`}/${i.contId}`;
+        return t.tryGet(`${p}${u ? `:old` : ``}`, async () => {
+            let t = s(await e(p))(`#__NEXT_DATA__`).text(),
+                o = JSON.parse(t).props.pageProps.detailData,
+                m = o.contentDetail || o.liveDetail || o.specialDetail?.specialInfo;
+            if (!m) return l(i);
+            let h = m.content || m.summary || m.desc || ``;
+            (m.videos && (h += m.summary), u && (m.videos && (h = c(a(d, { videos: m.videos })) + h), m.images && (h = c(a(f, { images: m.images })) + h)));
+            let g = r(i.pubTimeLong || m.publishTime);
+            Number.isNaN(g) && (g = n(m.pubTime));
+            let _ = {
+                title: m.name || m.shareName,
+                link: p,
+                description: h,
+                category: [...(m.tagList?.map((e) => e.tag) ?? []), m?.nodeInfo?.name ?? []],
+                pubDate: g,
+                author: m.author || ``,
+                media: { content: { url: i.pic || m.videos?.coverUrl || m.bigPic }, thumbnails: { url: i.sharePic || m.sharePic } },
+            };
+            return (m.voiceInfo?.isHaveVoice && ((_.enclosure_type = `audio/mpeg`), (_.enclosure_url = m.voiceInfo.voiceSrc), (_.itunes_item_image = i.pic || m.videos?.coverUrl)), _);
+        });
+    },
+    ChannelIdToName: (e, t) => t.props.appProps.menu.channelList.find((t) => t.nodeId.toString() === e.toString()).name,
+    ListIdToName: (e, t) => t.props.appProps.menu.channelList.flatMap((e) => e.childNodeList || []).find((t) => t.nodeId.toString() === e.toString())?.name,
+    ExtractLogo: (e) => `https://m.thepaper.cn` + s(e)(`img.imageCover`).attr(`src`),
+};
+const d = ({ videos: e }) =>
+        a(`video`, {
+            src: e.url,
+            controls: !0,
+            playsinline: `true`,
+            'webkit-playsinline': `true`,
+            'x5-playsinline': `true`,
+            'x5-video-player-type': `h5`,
+            'x5-video-orientation': `landscape|portrait`,
+            'x5-video-player-fullscreen': `true`,
+            'x-webkit-airplay': `allow`,
+            preload: `metadata`,
+            poster: e.coverUrl,
+        }),
+    f = ({ images: e }) => a(i, { children: e.map((e) => o(i, { children: [a(`figure`, { class: `wp-block-image size-full`, children: a(`img`, { width: e.width, src: e.src }) }), a(`p`, { children: e.description })] })) });
+export { u as t };

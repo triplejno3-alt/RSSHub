@@ -1,0 +1,32 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+const n = `https://www.nogizaka46.com`,
+    r = {
+        path: `/news`,
+        categories: [`new-media`],
+        example: `/nogizaka46/news`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`news.nogizaka46.com/s/n46/news/list`] }],
+        name: `Nogizaka46 News 乃木坂 46 新闻`,
+        maintainers: [`crispgm`, `Fatpandac`],
+        handler: i,
+        url: `news.nogizaka46.com/s/n46/news/list`,
+    };
+async function i(r) {
+    let i = r.req.query(`limit`) ? Number.parseInt(r.req.query(`limit`)) : 25,
+        a = await t({ method: `get`, url: `${n}/s/n46/api/list/news`, headers: { Referer: `http://www.nogizaka46.com/` } });
+    return {
+        allowEmpty: !0,
+        title: `乃木坂46官网 NEWS`,
+        link: `http://www.nogizaka46.com/news/`,
+        item: JSON.parse(a.data.match(/res\((.*)\);/)[1])
+            .data.slice(0, i)
+            .map((t) => ({ title: t.title, link: t.link_url, description: t.text, pubDate: e(t.date), category: t.cate, guid: n + new URL(t.link_url).pathname })),
+    };
+}
+export { r as route };

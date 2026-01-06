@@ -1,0 +1,28 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { r as t } from './common-utils-uYpL50sT.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+const i = { path: `/yjxx/*`, radar: [{ source: [`cneb.gov.cn/yjxx`, `cneb.gov.cn/`], target: `/yjxx` }], name: `Unknown`, maintainers: [], handler: a, url: `cneb.gov.cn/yjxx` };
+async function a(i) {
+    let a = i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`)) : 200,
+        o = decodeURI(t(i))
+            .replace(/\/yjxx/, ``)
+            .split(`/`);
+    o.shift();
+    let s = o.find((e) => /.*色$/.test(e)) ?? ``,
+        c = o.filter((e) => !/.*色$/.test(e)).slice(0, 2),
+        l = `${c.join(``)}${s}`,
+        u = (await n({ method: `post`, url: `https://gdapi.cnr.cn/yjwnews`, json: { size: a, level: s ? `${s}预警` : ``, province: c.shift(), city: c.shift() } })).data.datas.map((t) => ({
+            title: t.doctitle,
+            link: t.docpuburl,
+            author: t.chnlname,
+            description: t.doccontent,
+            pubDate: r(e(t.docpubtime), 8),
+        }));
+    return { title: `国家应急广播 - ${l}预警信息`, link: `http://www.cneb.gov.cn/yjxx`, item: u, allowEmpty: !0 };
+}
+export { i as route };

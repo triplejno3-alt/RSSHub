@@ -1,0 +1,68 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import { t as e } from './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { load as i } from 'cheerio';
+const a = `https://www.moe.gov.cn/`,
+    o = [
+        { type: `policy_anal`, id: `tt_con2`, name: `政策解读` },
+        { type: `newest_file`, id: `nine_con1`, name: `最新文件` },
+        { type: `notice`, id: `nine_con2`, name: `公告公示` },
+        { type: `edu_ministry_news`, id: `nine_con3`, name: `教育部简报` },
+        { type: `edu_focus_news`, id: `eight_con2 .pchide>.TRS_Editor`, name: `教育要闻` },
+    ],
+    s = {
+        path: `/moe/:type`,
+        categories: [`government`],
+        example: `/gov/moe/policy_anal`,
+        parameters: { type: `分类名` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `新闻`,
+        maintainers: [`Crawler995`],
+        handler: c,
+        description: `|   政策解读   |   最新文件   | 公告公示 |      教育部简报     |     教育要闻     |
+| :----------: | :----------: | :------: | :-----------------: | :--------------: |
+| policy_anal | newest_file |  notice  | edu_ministry_news | edu_focus_news |`,
+    };
+async function c(s) {
+    let c = s.req.param(`type`),
+        l = ``,
+        u = ``;
+    for (let e of o) e.type === c && ((l = e.id), (u = e.name));
+    if (l === ``) {
+        e.error(`The given type not found.`);
+        return;
+    }
+    let d = i((await r(a)).data),
+        f = d(`div#` + l + `>ul>li`);
+    return {
+        title: u,
+        link: a,
+        item: await Promise.all(
+            f.toArray().map(async (e) => {
+                e = d(e);
+                let o = e.find(`a`),
+                    s = new URL(o.attr(`href`), a).href,
+                    c = s.includes(`/live/`)
+                        ? { description: o.html() }
+                        : await t.tryGet(s, async () => {
+                              let e = {},
+                                  t = i((await r({ method: `get`, url: s, headers: { Referer: a } })).data);
+                              return (
+                                  s.includes(`www.gov.cn`)
+                                      ? (e.description = t(`#UCAP-CONTENT`).html())
+                                      : s.includes(`srcsite`)
+                                        ? (e.description = t(`div#content_body_xxgk`).html())
+                                        : s.includes(`jyb_`) && (e.description = t(`div.moe-detail-box`).html() || t(`div#moe-detail-box`).html()),
+                                  e
+                              );
+                          });
+                return { title: o.text(), description: c.description, link: s, pubDate: n(e.find(`span`).text(), `MM-DD`) };
+            })
+        ),
+    };
+}
+export { s as route };

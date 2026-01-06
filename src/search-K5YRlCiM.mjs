@@ -1,0 +1,36 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import i from 'crypto-js';
+const a = i.enc.Utf8.parse(`r4rt5A8L6ye6ts8y`),
+    o = i.enc.Utf8.parse(`fs0Hkjg8a23u8sE0`),
+    s = (e) => i.AES.encrypt(e, a, { iv: o, mode: i.mode.CBC, padding: i.pad.Pkcs7 }).toString(),
+    c = (e) => i.AES.decrypt(e, a, { iv: o, mode: i.mode.CBC, padding: i.pad.Pkcs7 }).toString(i.enc.Utf8),
+    l = { path: `/search`, name: `最新`, categories: [`finance`], example: `/stream-capital/search`, maintainers: [`TonyRL`], handler: u, radar: [{ source: [`www.stream-capital.com/search`] }] };
+async function u() {
+    let i = `https://www.stream-capital.com`,
+        a = `https://api.yuanchuan.cn`,
+        o = await e(`${a}/yc/webbloglist`, { method: `POST`, query: { apptype: 9 }, body: s(JSON.stringify({ type: 0, name: null, page: 1 })) }),
+        l = JSON.parse(c(o.data)).list.map((e) => ({
+            title: e.title,
+            author: e.userName,
+            pubDate: r(n(e.ctime, `YYYY-MM-DD HH:mm:ss`), 8),
+            link: `${i}/article/${e.id}`,
+            description: e.content,
+            category: e.tags.map((e) => e.tagName),
+            id: e.id,
+        })),
+        u = await Promise.all(
+            l.map((n) =>
+                t.tryGet(n.link, async () => {
+                    let t = await e(`${a}/yc/webblogdetail`, { method: `POST`, query: { apptype: 9 }, body: s(JSON.stringify({ blogId: n.id })) });
+                    return ((n.description = JSON.parse(c(t.data)).detailInfo.articleContent), n);
+                })
+            )
+        );
+    return { title: `最新 - 远川研究所`, link: `${i}/search`, language: `zh`, item: u };
+}
+export { l as route };

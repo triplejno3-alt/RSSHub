@@ -1,0 +1,47 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+const n = {
+        0: { title: `全部`, link: `home?id=0` },
+        1: { title: `要闻`, link: `focus_news?id=1` },
+        2: { title: `商业`, link: `business?id=2` },
+        3: { title: `快讯`, link: `hours?id=3` },
+        8: { title: `财富`, link: `fortune?id=8` },
+        6: { title: `生活`, link: `life?id=6` },
+    },
+    r = {
+        path: `/:category?`,
+        categories: [`new-media`],
+        example: `/caus`,
+        parameters: { category: `分类，见下表，默认为全部` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `分类`,
+        maintainers: [`nczitzk`],
+        handler: i,
+        description: `| 全部 | 要闻 | 商业 | 快讯 | 财富 | 生活 |
+| ---- | ---- | ---- | ---- | ---- | ---- |
+| 0    | 1    | 2    | 3    | 8    | 6    |`,
+    };
+async function i(r) {
+    let i = r.req.param(`category`) || `0`,
+        a = i === `0`,
+        o = `https://www.caus.com`,
+        s = `https://api.caus.money`,
+        c = `${o}/${n[i].link}`,
+        l = `${s}/toronto/display/searchList`,
+        u = `${s}/toronto/display/lanmuArticlelistNew`,
+        d = await t({ method: `post`, url: a ? l : u, json: a ? { pageQ: { pageSize: 10, sortFiled: `id`, sortType: `DESC` }, types: [`ARTICLE`, `VIDEO`] } : { filterIds: [], lanmuId: Number.parseInt(i) } }),
+        f = (a ? d.data.data : d.data.data.articleList).map((e) => ({
+            title: e.title,
+            link: `${o}/detail/${e.contentId}`,
+            contentId: e.contentId,
+            pubDate: new Date(e.createTime),
+            category: [...new Set([...e.lanmus.map((e) => e.name), ...e.tags.map((e) => e.name)])],
+        })),
+        p = await Promise.all(f.map((n) => e.tryGet(n.link, async () => ((n.description = (await t({ method: `get`, url: `${s}/toronto/display/contentWithRelate?contentId=${n.contentId}` })).data.data.content.content), n))));
+    return { title: `${n[i].title} - 加美财经`, link: c, item: p };
+}
+export { r as route };

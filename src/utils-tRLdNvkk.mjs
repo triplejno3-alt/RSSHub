@@ -1,0 +1,63 @@
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { Fragment as t, jsx as n, jsxs as r } from 'hono/jsx/jsx-runtime';
+import { renderToString as i } from 'hono/jsx/dom/server';
+const a = `eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE0OTcyMzI1MjMsInN5c3RlbV9uYW1lIjoiZm9ydW0iLCJ6dXZpb19pZCI6LTk5OSwiZW1haWwiOm51bGwsIm5hbWUiOm51bGwsInVuaXZlcnNpdHlfaWQiOm51bGwsInVuaXZlcnNpdHlfbmFtZSI6bnVsbH0.0KoJiSnyazsJxLCNEnqnuNUdKsJFhBdCn3R2BJpoUtk`,
+    o = `https://forum.zuvio.com.tw/api`,
+    s = `https://irs.zuvio.com.tw/student5/chickenM`,
+    c = (e) => {
+        let t = ``;
+        return (e.ref_article && (t += d(e.ref_article)), (t += l(e.sections)), t);
+    },
+    l = (e) => {
+        let t = ``;
+        for (let n of e)
+            switch (n.type) {
+                case `text`:
+                    t += n.content.replaceAll(
+                        `
+`,
+                        `<br>`
+                    );
+                    break;
+                case `img`:
+                    t += f(n);
+                    break;
+                case `youtube`:
+                    t += p(n);
+                    break;
+                case `link`:
+                    t += m(n);
+                    break;
+                default:
+                    throw Error(`Unknown section type: ${n.type}`);
+            }
+        return t;
+    },
+    u = (t) =>
+        t(`zuvio:boards`, async () => {
+            let { data: t } = await e(`${o}/board`, { searchParams: { api_token: a, user_id: `0` } });
+            return t.map((e) => ({ title: e.name, description: h(e.id), boardId: e.id, link: `${s}/articles/${e.id}` }));
+        }),
+    d = (e) =>
+        i(
+            r(t, {
+                children: [
+                    `引用自：`,
+                    r(`a`, { href: e.id, children: [n(`img`, { src: e.user_icon }), r(`div`, { children: [e.university, ` `, e.user_name, ` `, e.board_name] }), n(`div`, { children: e.title }), n(`div`, { children: e.abstract })] }),
+                    n(`hr`, {}),
+                ],
+            })
+        ),
+    f = (e) => i(r(t, { children: [n(`img`, { src: e.content }), n(`br`, {})] })),
+    p = (e) =>
+        i(
+            r(t, {
+                children: [
+                    n(`iframe`, { width: `672`, height: `377`, src: `https://www.youtube-nocookie.com/embed/${e.youtube_id}`, frameborder: `0`, allowfullscreen: !0, referrerpolicy: `strict-origin-when-cross-origin` }),
+                    n(`br`, {}),
+                ],
+            })
+        ),
+    m = (e) => i(n(`p`, { children: r(`a`, { href: e.content, children: [n(`img`, { src: e.icon }), n(`div`, { children: e.title }), n(`div`, { children: e.description })] }) })),
+    h = (e) => i(n(`a`, { href: `https://rsshub.app/zuvio/student5/${e}`, children: e }));
+export { a, s as i, u as n, c as r, o as t };

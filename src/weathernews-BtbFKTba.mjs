@@ -1,0 +1,41 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/weathernews`,
+    name: `Weather News`,
+    maintainers: [`tssujt`],
+    handler: i,
+    example: `/meteoblue/weathernews`,
+    categories: [`blog`],
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    description: `Weather news and articles from meteoblue`,
+};
+async function i() {
+    let r = `https://www.meteoblue.com`,
+        i = `${r}/en/blog/article/weathernews`,
+        a = n(await e(i));
+    return {
+        title: `meteoblue Weather News`,
+        link: i,
+        description: `Latest weather news and articles from meteoblue`,
+        item: a(`article[itemprop="blogPost"]`)
+            .toArray()
+            .map((e) => {
+                let n = a(e),
+                    i = n.find(`h3[itemprop="headline"] a[itemprop="mainEntityOfPage"]`),
+                    o = i.text().trim(),
+                    s = i.attr(`href`);
+                if (!o || !s) return null;
+                let c = n.find(`time[itemprop="datePublished"]`).attr(`datetime`) || ``,
+                    l = n.find(`meta[itemprop="author"]`).attr(`content`)?.trim() || `meteoblue`,
+                    u = n.find(`div[itemprop="description"]`).text().trim() || o;
+                return { title: o, link: s.startsWith(`http`) ? s : `${r}${s}`, pubDate: c ? t(c) : void 0, author: l, description: u };
+            })
+            .filter(Boolean),
+        allowEmpty: !0,
+    };
+}
+export { r as route };

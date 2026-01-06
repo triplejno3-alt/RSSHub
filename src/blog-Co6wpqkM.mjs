@@ -1,0 +1,44 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { load as r } from 'cheerio';
+const i = async (n) => {
+        let { topic: i } = n.req.param(),
+            a = Number.parseInt(n.req.query(`limit`) ?? `10`, 10),
+            o = `https://cursor.com`,
+            s = i ? `/blog/topic/${i}` : `/blog`,
+            c = new URL(s, o).href,
+            l = r(await e(c, { headers: { cookie: `NEXT_LOCALE=en` } })),
+            u = l(`#main`)
+                .last()
+                .find(`article`)
+                .slice(0, a)
+                .toArray()
+                .map((e) => {
+                    let n = l(e),
+                        r = n.find(`a`).first(),
+                        i = r.find(`p`).first().text().trim(),
+                        a = r.find(`p`).eq(1).text().trim(),
+                        s = t(n.find(`time`).first().text().trim()),
+                        c = r.attr(`href`);
+                    return { title: i, description: a, pubDate: s, link: c ? new URL(c, o).href : void 0 };
+                });
+        return { title: l(`title`).text() || `Cursor Blog`, description: l(`meta[property="og:description"]`).attr(`content`), link: c, item: u, allowEmpty: !0, image: l(`meta[property="og:image"]`).attr(`content`) };
+    },
+    a = {
+        path: `/blog/:topic?`,
+        name: `Blog`,
+        url: `cursor.com`,
+        maintainers: [`johan456789`],
+        example: `/cursor/blog`,
+        parameters: { topic: `Optional topic: product | research | company | news` },
+        description: void 0,
+        categories: [`blog`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`cursor.com/blog`, `cursor.com/blog/topic/:topic`], target: `/blog/:topic` }],
+        view: n.Articles,
+        handler: i,
+    };
+export { i as handler, a as route };

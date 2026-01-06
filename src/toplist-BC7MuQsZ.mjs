@@ -1,0 +1,37 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { n as r, r as i, t as a } from './utils-Crc9OdTy.mjs';
+import { load as o } from 'cheerio';
+const s = {
+    path: [`/ranking/:id?/:period?`, `/toplist/:id?/:period?`],
+    name: `Unknown`,
+    maintainers: [`HenryQW`, `nczitzk`],
+    handler: c,
+    description: `| 文章点击排行 | 最近更新文章 | 文章推荐排行 |
+| ------------ | ------------ | ------------ |
+| 1            | 10           | 11           |`,
+};
+async function c(s) {
+    let { id: c = `1`, period: l = `1` } = s.req.param(),
+        u = s.req.query(`limit`) ? Number.parseInt(s.req.query(`limit`), 10) : 30,
+        d = new URL(`toplist${c ? `?id=${c}${c === `1` ? `&period=${l}` : ``}` : ``}`, i).href,
+        { data: f } = await n(d),
+        p = o(f),
+        m = `${p(`a.hl`).text() || ``}${p(`title`).text().split(`_`)[0]}`,
+        h = p(`div.tops_list`)
+            .slice(0, u)
+            .toArray()
+            .map((e) => {
+                e = p(e);
+                let n = e.find(`div.tips a`);
+                return { title: n.text(), link: new URL(n.prop(`href`), i).href, author: e.find(`div.name`).text(), pubDate: t(e.find(`div.times`).text()) };
+            });
+    return { item: await a(u, e.tryGet, h), title: `爱思想 - ${m}`, link: d, language: `zh-cn`, image: new URL(`images/logo_toplist.jpg`, r).href, subtitle: m };
+}
+export { s as route };

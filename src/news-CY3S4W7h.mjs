@@ -1,0 +1,109 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './types-Bl_lnefZ.mjs';
+import { t as a } from './invalid-parameter-DGZgOgO2.mjs';
+import { Fragment as o, jsx as s, jsxs as c } from 'hono/jsx/jsx-runtime';
+import { load as l } from 'cheerio';
+import { renderToString as u } from 'hono/jsx/dom/server';
+import { raw as d } from 'hono/html';
+const f = { newslist: `newsList`, r18list: `newsPornList` },
+    p = ({ images: e, intro: t, description: n }) =>
+        u(
+            c(o, {
+                children: [e?.length ? e.map((e) => (e?.src ? s(`figure`, { children: s(`img`, { src: e.src, alt: e.alt }) }, e.src) : null)) : null, t ? s(`blockquote`, { children: t }) : null, n ? s(o, { children: d(n) }) : null],
+            })
+        ),
+    m = async (i) => {
+        let { type: o = `newslist`, category: s = `all` } = i.req.param();
+        if (!f.hasOwnProperty(o)) throw new a(`Invalid type: ${o}`);
+        let c = Number.parseInt(i.req.query(`limit`) ?? `30`, 10),
+            u = `https://news.gamebase.com.tw`,
+            d = new URL(`news${s === `all` ? `` : `/newslist?type=${s}`}`, u).href,
+            m = new URL(`api/news/getNewsList`, `https://api.gamebase.com.tw`).href,
+            h = await e(m, { method: `post`, body: { GB_type: f[o], category: s, page: 1 } }),
+            g = l(await e(d)),
+            _ = g(`html`).attr(`lang`) ?? `zh-TW`,
+            v = await Promise.all(
+                h.return_msg?.list?.slice(0, c).map((i) =>
+                    t.tryGet(`gamebase-news-${i.news_no}`, async () => {
+                        let t = i.news_title,
+                            a = i.post_time,
+                            o = i.news_no ? `news/detail/${i.news_no}` : void 0,
+                            s = [i.system],
+                            c = i.nickname,
+                            l = `gamebase-news-${i.news_no}`,
+                            d = i.news_img,
+                            f = i.updated ?? a,
+                            m = i.news_meta?.meta_des;
+                        m ||= ((await e(i.link)).match(/(\\u003C.*?)","/)?.[1] ?? ``).replaceAll(String.raw`\"`, `"`).replaceAll(/\\u([\da-f]{4})/gi, (e, t) => String.fromCodePoint(Number.parseInt(t, 16)));
+                        let h = p({ images: d && !m ? [{ src: d, alt: t }] : void 0, intro: i.news_short_desc, description: m });
+                        return {
+                            title: t,
+                            description: h,
+                            pubDate: a ? r(n(a), 8) : void 0,
+                            link: o ? new URL(o, u).href : void 0,
+                            category: s,
+                            author: c,
+                            guid: l,
+                            id: l,
+                            content: { html: h, text: h },
+                            image: d,
+                            banner: d,
+                            updated: f ? r(n(f), 8) : void 0,
+                            language: _,
+                        };
+                    })
+                ) ?? []
+            );
+        return {
+            title: g(`title`).text(),
+            description: g(`meta[property="og:description"]`).attr(`content`),
+            link: d,
+            item: v,
+            allowEmpty: !0,
+            image: g(`meta[property="og:image"]`).attr(`content`),
+            author: g(`meta[property="og:title"]`).attr(`content`)?.split(/\|/).pop()?.trim(),
+            language: _,
+            id: g(`meta[property="og:url"]`).attr(`content`),
+        };
+    },
+    h = {
+        path: `/news/:type?/:category?`,
+        name: `新聞`,
+        url: `news.gamebase.com.tw`,
+        maintainers: [`nczitzk`],
+        handler: m,
+        example: `/gamebase/news`,
+        parameters: { type: `類型，見下表，預設為 newslist`, category: '分類，預設為 `all`，即全部，可在對應分類頁 URL 中找到' },
+        description:
+            '::: tip\n若訂閱 [手機遊戲新聞](https://news.gamebase.com.tw/news/newslist?type=mobile)，網址為 `https://news.gamebase.com.tw/news/newslist?type=mobile`，請截取 `https://news.gamebase.com.tw/news/` 到末尾的部分 `newslist` 作為 `type` 參數填入，`mobile` 作為 `category` 參數填入，此時目標路由為 [`/gamebase/news/newslist/mobile`](https://rsshub.app/gamebase/news/newslist/mobile)。\n:::\n\n| newslist | r18list |\n| -------- | ------- |\n',
+        categories: [`game`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            {
+                source: [`news.gamebase.com.tw/news`, `news.gamebase.com.tw/news/:type`],
+                target: (e, t) => {
+                    let n = e.type,
+                        r = new URL(t).searchParams.get(`type`) ?? void 0;
+                    return `/gamebase/news${n ? `/${n}${r ? `/${r}` : ``}` : ``}`;
+                },
+            },
+        ],
+        view: i.Articles,
+        zh: {
+            path: `/news/:type?/:category?`,
+            name: `新闻`,
+            url: `news.gamebase.com.tw`,
+            maintainers: [`nczitzk`],
+            handler: m,
+            example: `/gamebase/news`,
+            parameters: { type: `类型，见下表，默认为 newslist`, category: '分类，默认为 `all`，即全部，可在对应分类页 URL 中找到' },
+            description:
+                '::: tip\n若订阅 [手机游戏新闻](https://news.gamebase.com.tw/news/newslist?type=mobile)，网址为 `https://news.gamebase.com.tw/news/newslist?type=mobile`，请截取 `https://news.gamebase.com.tw/news/` 到末尾的部分 `newslist` 作为 `type` 参数填入，`mobile` 作为 `category` 参数填入，此时目标路由为 [`/gamebase/news/newslist/mobile`](https://rsshub.app/gamebase/news/newslist/mobile)。\n:::\n\n| newslist | r18list |\n| -------- | ------- |\n',
+        },
+    };
+export { m as handler, h as route };

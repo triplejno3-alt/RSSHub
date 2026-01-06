@@ -1,0 +1,34 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { jsx as n } from 'hono/jsx/jsx-runtime';
+import { renderToString as r } from 'hono/jsx/dom/server';
+const i = (e, t) => r(n(`img`, { src: e, alt: t })),
+    a = {
+        path: `/`,
+        categories: [`anime`],
+        example: `/bangumi.online`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`bangumi.online/`] }],
+        name: `當季新番`,
+        maintainers: [`devinmugen`],
+        handler: o,
+        url: `bangumi.online/`,
+    };
+async function o() {
+    return {
+        title: `アニメ新番組`,
+        link: `https://bangumi.online`,
+        item: (await t.post(`https://api.bangumi.online/serve/home`)).data.data.list.map((t) => ({
+            title: `${t.title.zh ?? t.title.ja} - 第 ${t.volume} 集`,
+            description: i(`https:${t.cover}`, `${t.title_zh} - 第 ${t.volume} 集`),
+            link: `https://bangumi.online/watch/${t.vid}`,
+            pubDate: e(t.create_time),
+        })),
+    };
+}
+export { a as route };

@@ -1,0 +1,86 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+import a from 'iconv-lite';
+const o = async (o) => {
+        let { category: s = `60847` } = o.req.param(),
+            c = o.req.query(`limit`) ? Number.parseInt(o.req.query(`limit`), 10) : 12,
+            l = `https://cfhd.cf.qq.com`,
+            u = new URL(`webplat/info/news_version3/37427/59139/59140/${s}/m22510/list_1.shtml`, l).href,
+            { data: d } = await n(u, { responseType: `buffer` }),
+            f = i(a.decode(d, `gbk`)),
+            p = f(`html`).prop(`lang`),
+            m = f(`div.news-list-item ul li.list-item`)
+                .slice(0, c)
+                .toArray()
+                .map((e) => ((e = f(e)), { title: e.find(`p`).text(), pubDate: t(e.find(`span.date`).text()), link: new URL(e.find(`a.clearfix`).prop(`href`), l).href }));
+        m = await Promise.all(
+            m.map((o) =>
+                e.tryGet(o.link, async () => {
+                    let { data: e } = await n(o.link, { responseType: `buffer` }),
+                        s = i(a.decode(e, `gbk`)),
+                        c = s(`div.news-details-title h4`).text(),
+                        l = s(`div.news-details-cont`).html(),
+                        u = s(`div.news-details-cont img`).first().prop(`src`);
+                    return (
+                        (o.title = c),
+                        (o.description = l),
+                        (o.pubDate = r(t(s(`p.news-details-p1`).text().trim()), 8)),
+                        (o.content = { html: l, text: s(`div.news-details-cont`).text() }),
+                        (o.image = u),
+                        (o.banner = u),
+                        (o.language = p),
+                        o
+                    );
+                })
+            )
+        );
+        let h = new URL(`images/cfhd/web202305/logo.png`, `https://game.gtimg.cn`).href;
+        return {
+            title: `${f(`title`).text().split(/-/)[0]} - ${f(`li.cur`).text()}`,
+            description: f(`meta[name="Description"]`).prop(`content`),
+            link: u,
+            item: m,
+            allowEmpty: !0,
+            image: h,
+            author: f(`meta[name="author"]`).prop(`content`),
+            language: p,
+        };
+    },
+    s = {
+        path: `/cfhd/news/:category?`,
+        name: `穿越火线 CFHD 专区资讯中心`,
+        url: `cfhd.cf.qq.com`,
+        maintainers: [`nczitzk`],
+        handler: o,
+        example: `/qq/cfhd/news`,
+        parameters: { category: `分类，默认为 60847，即最新，可在对应分类页 URL 中找到` },
+        description: `::: tip
+  若订阅 [穿越火线 CFHD 专区资讯中心 - 最新](https://cfhd.cf.qq.com/webplat/info/news_version3/37427/59139/59140/60847/m22510/list_1.shtml)，网址为 \`https://cfhd.cf.qq.com/webplat/info/news_version3/37427/59139/59140/60847/m22510/list_1.shtml\`。截取 \`https://cfhd.cf.qq.com/webplat/info/news_version3/37427/59139/59140/\` 到末尾 \`/m22510/list_1.shtml\` 的部分 \`60847\` 作为参数填入，此时路由为 [\`/qq/cfhd/news/60847\`](https://rsshub.app/qq/cfhd/news/60847)。
+:::
+
+| 分类                                                                                                  | ID                                            |
+| ----------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| [最新](https://cfhd.cf.qq.com/webplat/info/news_version3/37427/59139/59140/60847/m22510/list_1.shtml) | [60847](https://rsshub.app/qq/cfhd/news/60847) |
+| [公告](https://cfhd.cf.qq.com/webplat/info/news_version3/37427/59139/59140/59625/m22510/list_1.shtml) | [59625](https://rsshub.app/qq/cfhd/news/59625) |
+| [版本](https://cfhd.cf.qq.com/webplat/info/news_version3/37427/59139/59140/60850/m22510/list_1.shtml) | [60850](https://rsshub.app/qq/cfhd/news/60850) |
+| [赛事](https://cfhd.cf.qq.com/webplat/info/news_version3/37427/59139/59140/59626/m22510/list_1.shtml) | [59626](https://rsshub.app/qq/cfhd/news/59626) |
+| [杂谈](https://cfhd.cf.qq.com/webplat/info/news_version3/37427/59139/59140/59624/m22510/list_1.shtml) | [59624](https://rsshub.app/qq/cfhd/news/59624) |
+  `,
+        categories: [`game`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            { title: `穿越火线 CFHD 专区资讯中心 - 最新`, source: [`cfhd.cf.qq.com/webplat/info/news_version3/37427/59139/59140/60847/m22510/list_1.shtml`], target: `/cfhd/news/60847` },
+            { title: `穿越火线 CFHD 专区资讯中心 - 公告`, source: [`cfhd.cf.qq.com/webplat/info/news_version3/37427/59139/59140/59625/m22510/list_1.shtml`], target: `/cfhd/news/59625` },
+            { title: `穿越火线 CFHD 专区资讯中心 - 版本`, source: [`cfhd.cf.qq.com/webplat/info/news_version3/37427/59139/59140/60850/m22510/list_1.shtml`], target: `/cfhd/news/60850` },
+            { title: `穿越火线 CFHD 专区资讯中心 - 赛事`, source: [`cfhd.cf.qq.com/webplat/info/news_version3/37427/59139/59140/59626/m22510/list_1.shtml`], target: `/cfhd/news/59626` },
+            { title: `穿越火线 CFHD 专区资讯中心 - 杂谈`, source: [`cfhd.cf.qq.com/webplat/info/news_version3/37427/59139/59140/59624/m22510/list_1.shtml`], target: `/cfhd/news/59624` },
+        ],
+    };
+export { o as handler, s as route };

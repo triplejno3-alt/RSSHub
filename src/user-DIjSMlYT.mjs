@@ -1,0 +1,52 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './utils-lcRUpQu2.mjs';
+import { load as a } from 'cheerio';
+const o = {
+    path: `/user/:id`,
+    categories: [`new-media`],
+    example: `/odaily/user/2147486902`,
+    parameters: { id: `用户 id，可在用户页地址栏中找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`0daily.com/user/:id`, `0daily.com/`] }],
+    name: `用户文章`,
+    maintainers: [`nczitzk`],
+    handler: s,
+};
+async function s(o) {
+    let s = o.req.param(`id`),
+        c = `${i}/service/feed_stream/user/${s}?b_id=10&per_page=${o.req.query(`limit`) ?? 25}`,
+        l = ``,
+        u = (await n({ method: `get`, url: c })).data.data.items.data.map((e) => ({ title: e.title, summary: e.summary, link: `${i}/post/${e.entity_id}`, pubDate: r(t(e.published_at), 8) }));
+    return (
+        (u = await Promise.all(
+            u.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = await n({ method: `get`, url: t.link }),
+                        r = a(e.data.match(/"content":"(.*)","extraction_tags":/)[1]);
+                    return (
+                        r(`img`).each(function () {
+                            r(this).attr(
+                                `src`,
+                                r(this)
+                                    .attr(`src`)
+                                    .replaceAll(String.raw`\"`, ``)
+                            );
+                        }),
+                        (t.description = r.html()),
+                        (t.author = l = e.data.match(/"name":"(.*)","role_id/)[1]),
+                        t
+                    );
+                })
+            )
+        )),
+        { title: `${l} - Odaily星球日报`, link: `${i}/user/${s}`, item: u }
+    );
+}
+export { o as route };

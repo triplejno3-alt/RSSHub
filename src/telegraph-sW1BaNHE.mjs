@@ -1,0 +1,38 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { n, t as r } from './utils-BhV27ZO7.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { renderToString as s } from 'hono/jsx/dom/server';
+const c = { watch: `看盘`, announcement: `公司`, explain: `解读`, red: `加红`, jpush: `推送`, remind: `提醒`, fund: `基金`, hk: `港股` },
+    l = (e) => s(o(i, { children: [e.content ? a(i, { children: e.content }) : null, e.images?.length ? o(i, { children: [a(`br`, {}), e.images.map((e) => a(`img`, { src: e }, e))] }) : null] })),
+    u = {
+        path: `/telegraph/:category?`,
+        categories: [`finance`],
+        example: `/cls/telegraph`,
+        parameters: { category: `分类，见下表，默认为全部` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`cls.cn/telegraph`, `cls.cn/`], target: `/telegraph` }],
+        name: `电报`,
+        maintainers: [`nczitzk`],
+        handler: d,
+        url: `cls.cn/telegraph`,
+        description: `| 看盘  | 公司         | 解读    | 加红 | 推送  | 提醒   | 基金 | 港股 |
+| ----- | ------------ | ------- | ---- | ----- | ------ | ---- | ---- |
+| watch | announcement | explain | red  | jpush | remind | fund | hk   |`,
+    };
+async function d(i) {
+    let a = i.req.param(`category`) ?? ``,
+        o = i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`)) : 50,
+        s = `${n}/nodeapi/updateTelegraphList`;
+    a && (s = `${n}/v1/roll/get_roll_list`);
+    let u = `${n}/telegraph`,
+        d = (await t({ method: `get`, url: s, searchParams: r({ category: a, hasFirstVipArticle: 1 }) })).data.data.roll_data
+            .slice(0, o)
+            .map((t) => ({ title: t.title || t.content, link: t.shareurl, description: l(t), pubDate: e(t.ctime * 1e3), category: t.subjects?.map((e) => e.subject_name) }));
+    return { title: `财联社 - 电报${a === `` ? `` : ` - ${c[a]}`}`, link: u, item: d };
+}
+export { u as route };

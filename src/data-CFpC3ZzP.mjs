@@ -1,0 +1,56 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import { t } from './invalid-parameter-DGZgOgO2.mjs';
+import { t as n } from './utils-C7cqoLmu.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { renderToString as o } from 'hono/jsx/dom/server';
+const s = { path: `/news/coronavirus/data/:province?/:city?`, name: `Unknown`, maintainers: [`CaoMeiYouRen`], handler: c };
+async function c(s) {
+    let c = s.req.param(`province`) || ``,
+        l = s.req.param(`city`) || ``,
+        u = `https://news.qq.com/zt2020/page/feiyan.htm#/`,
+        d = [],
+        { lastUpdateTime: f, areaTree: p } = (await n([`diseaseh5Shelf`]))?.data?.diseaseh5Shelf || {},
+        m = p?.[0],
+        h = m?.children,
+        g = 0,
+        _ = 0,
+        v = 0,
+        y = 0,
+        b = {},
+        x = ``;
+    if ((!c || c === `中国` || c === `全国` ? ((b = m), (x = `中国`)) : ((b = h?.find((e) => e.name === c)), (x = c), l && ((b = b?.children?.find((e) => e.name === l)), b && (x = `${c}-${l}`))), !b))
+        throw new t(`未找到 ${x} 的疫情数据，请检查输入的省市名称是否正确`);
+    ((g = b.today?.confirm), (_ = b.total?.nowConfirm), (v = b.total?.confirm), (y = b.total?.dead));
+    let S = e(b.total?.mtime || f),
+        C = `${x} - 腾讯新闻 - 新型冠状病毒肺炎疫情实时追踪`,
+        w = {
+            title: `${x} - 疫情数据`,
+            description: o(
+                a(r, {
+                    children: [
+                        i(`p`, { children: `新增确诊：` }),
+                        i(`p`, { children: `+${g}` }),
+                        i(`br`, {}),
+                        i(`p`, { children: `现有确诊：` }),
+                        i(`p`, { children: _ }),
+                        i(`br`, {}),
+                        i(`p`, { children: `累计确诊：` }),
+                        i(`p`, { children: v }),
+                        i(`br`, {}),
+                        i(`p`, { children: `累计死亡：` }),
+                        i(`p`, { children: y }),
+                        i(`br`, {}),
+                    ],
+                })
+            ),
+            pubDate: S,
+            guid: `${u}${x}?pubDate=${S.toISOString()}`,
+        };
+    return (d.push(w), { title: C, link: u, item: d });
+}
+export { s as route };

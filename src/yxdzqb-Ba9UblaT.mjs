@@ -1,0 +1,43 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { Fragment as t, jsx as n, jsxs as r } from 'hono/jsx/jsx-runtime';
+import { load as i } from 'cheerio';
+import { renderToString as a } from 'hono/jsx/dom/server';
+import { raw as o } from 'hono/html';
+const s = { new: `index_discount.html`, hot: `index_popular.html`, hot_chinese: `index_popular_cn.html`, low: `index_low.html`, low_chinese: `index_low_cn.html` },
+    c = {
+        path: `/:type`,
+        categories: [`game`],
+        example: `/yxdzqb/popular_cn`,
+        parameters: { type: `折扣类型` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`yxdzqb.com/`] }],
+        name: `游戏折扣`,
+        maintainers: [`LogicJake`, `nczitzk`],
+        handler: l,
+        url: `yxdzqb.com/`,
+        description: `| Steam 最新折扣 | Steam 热门游戏折扣 | Steam 热门中文游戏折扣 | Steam 历史低价 | Steam 中文游戏历史低价 |
+| -------------- | ------------------ | ---------------------- | -------------- | ---------------------- |
+| discount       | popular            | popular_cn            | low            | low_cn                |`,
+    };
+async function l(t) {
+    let r = t.req.param(`type`),
+        o = `https://www.yxdzqb.com/${Object.hasOwn(s, r) ? s[r] : `index_${r}.html`}`,
+        c = i((await e.get(o)).data),
+        l = c(`.btn-primary b`).text() || c(`.btn-danger b`).text() || c(`.btn-info b`).text(),
+        d = c(`tr.bg-none`)
+            .toArray()
+            .map((e) => {
+                e = c(e);
+                let t = e.find(`div table:nth-child(1) tr td:nth-child(1)`).text(),
+                    r = a(n(u, { src: e.find(`table.cell_tabs > tbody > tr > td:nth-child(1) > img`).attr(`src`), description: e.find(`div.collapse`).html() })),
+                    i = e.find(`div.collapse table.cell_tabs > tbody > tr > td:nth-child(1) > a`).attr(`href`);
+                return { title: t, description: r, link: i, guid: i + e.find(`div.cell_price span:nth-child(2)`).text() };
+            });
+    return { title: `${l}-游戏打折情报`, link: o, item: d };
+}
+const u = ({ src: e, description: i }) => r(t, { children: [n(`img`, { src: e }), i ? o(i) : null] });
+export { c as route };

@@ -1,0 +1,43 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { n, t as r } from './utils-Dz-9q79D.mjs';
+import * as i from 'cheerio';
+const a = {
+    path: `/magazine/:magazine`,
+    categories: [`traditional-media`],
+    example: `/qstheory/magazine/qs`,
+    parameters: { magazine: '刊物，`qs` 为求是，`hqwglist` 为红旗文稿' },
+    radar: [{ source: [`www.qstheory.cn/:magazine/mulu.htm`] }],
+    name: `在线读刊`,
+    maintainers: [`TonyRL`, `cscnk52`],
+    handler: o,
+};
+async function o(a) {
+    let { magazine: o } = a.req.param(),
+        s = `${r}/${o}/mulu.htm`,
+        c = await e(s),
+        l = i.load(c),
+        u = await e(
+            l(`.booktitle a`)
+                .toArray()
+                .map((e) => {
+                    let t = l(e);
+                    return { title: t.text(), link: new URL(t.attr(`href`), r).href };
+                })[0].link
+        ),
+        d = i.load(u),
+        f = d(`.highlight a`)
+            .toArray()
+            .map((e) => {
+                let t = d(e);
+                return { title: t.text(), link: t.attr(`href`) };
+            })
+            .toReversed()
+            .filter((e) => e.title),
+        p = await Promise.all(f.map((e) => t.tryGet(e.link, () => n(e))));
+    return { title: l(`head title`).text(), link: s, image: new URL(l(`.book img`).attr(`src`), s).href, item: p };
+}
+export { a as route };

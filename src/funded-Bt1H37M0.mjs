@@ -1,0 +1,29 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import t from 'markdown-it';
+const n = {
+    path: `/funded/:username/:repo`,
+    categories: [`programming`],
+    example: `/issuehunt/funded/DIYgod/RSSHub`,
+    parameters: { username: `Github user/org`, repo: `Repository name` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `Project Funded`,
+    maintainers: [`running-grass`],
+    handler: r,
+};
+async function r(n) {
+    let { username: r, repo: i } = n.req.param(),
+        { issues: a } = (await e(`https://issuehunt.io/apis/pages/repos/show?repositoryOwnerName=${r}&repositoryName=${i}`)).data;
+    if (a === void 0) throw Error(`没有获取到数据`);
+    let o = t({ html: !0 });
+    return {
+        title: `Issue Hunt 的悬赏 -- ${r}/${i}`,
+        link: `https://issuehunt.io/r/${r}/${i}`,
+        description: ``,
+        item: a.map((e) => ({ title: e.title, description: o.render(e.body), pubDate: e.fundedAt, link: `https://issuehunt.io/r/${r}/${i}/issues/${e.number}`, author: e.userName })),
+    };
+}
+export { n as route };

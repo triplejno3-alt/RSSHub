@@ -1,0 +1,75 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { Fragment as n, jsx as r, jsxs as i } from 'hono/jsx/jsx-runtime';
+import { renderToString as a } from 'hono/jsx/dom/server';
+async function o() {
+    return await e(`https://hyperdash.info/api/hyperdash/top-traders-cached`, {
+        headers: { 'x-api-key': `hyperdash_public_7vN3mK8pQ4wX2cL9hF5tR1bY6gS0jD`, 'User-Agent': `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36` },
+    });
+}
+function s(e) {
+    return e == null ? `N/A` : Math.abs(e) >= 1e6 ? `$${(e / 1e6).toFixed(2)}M` : Math.abs(e) >= 1e3 ? `$${(e / 1e3).toFixed(2)}K` : `$${e.toFixed(2)}`;
+}
+function c(e) {
+    if (e == null) return `N/A`;
+    let t = s(e);
+    return e >= 0 ? `+${t}` : t;
+}
+const l = {
+    path: `/top-traders`,
+    categories: [`finance`],
+    example: `/hyperdash/top-traders`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`hyperdash.info/`] }],
+    name: `Top Traders`,
+    maintainers: [`pseudoyu`],
+    handler: u,
+    description: `Get the latest top traders data from HyperDash`,
+};
+async function u() {
+    return {
+        title: `HyperDash Top Traders`,
+        link: `https://hyperdash.info/`,
+        description: `Top performing traders on HyperDash - real-time cryptocurrency derivatives trading analytics`,
+        item: (await o()).map((e, o) => {
+            let l = o + 1,
+                u = e.address,
+                d = s(e.account_value),
+                f = { coin: e.main_position.coin, value: s(e.main_position.value), side: e.main_position.side },
+                p = e.direction_bias !== null && e.direction_bias !== void 0 ? e.direction_bias.toFixed(2) + `%` : `N/A`,
+                m = { day: c(e.perp_day_pnl), week: c(e.perp_week_pnl), month: c(e.perp_month_pnl), alltime: c(e.perp_alltime_pnl) },
+                h = a(
+                    i(n, {
+                        children: [
+                            i(`h3`, { children: [`Trader #`, l] }),
+                            i(`p`, { children: [r(`strong`, { children: `Address:` }), ` `, r(`code`, { children: e.address })] }),
+                            i(`p`, { children: [r(`strong`, { children: `Account Value:` }), ` `, d] }),
+                            r(`h4`, { children: `Main Position` }),
+                            i(`p`, { children: [r(`strong`, { children: `Coin:` }), ` `, f.coin] }),
+                            i(`p`, { children: [r(`strong`, { children: `Position Value:` }), ` `, f.value] }),
+                            i(`p`, { children: [r(`strong`, { children: `Side:` }), ` `, f.side] }),
+                            i(`p`, { children: [r(`strong`, { children: `Direction Bias:` }), ` `, p] }),
+                            r(`h4`, { children: `PnL Performance` }),
+                            i(`table`, {
+                                children: [
+                                    i(`tr`, { children: [r(`th`, { children: `Period` }), r(`th`, { children: `PnL` })] }),
+                                    i(`tr`, { children: [r(`td`, { children: `Day` }), r(`td`, { children: m.day })] }),
+                                    i(`tr`, { children: [r(`td`, { children: `Week` }), r(`td`, { children: m.week })] }),
+                                    i(`tr`, { children: [r(`td`, { children: `Month` }), r(`td`, { children: m.month })] }),
+                                    i(`tr`, { children: [r(`td`, { children: `All-time` }), r(`td`, { children: m.alltime })] }),
+                                ],
+                            }),
+                        ],
+                    })
+                ),
+                g = new Date(),
+                _ = new Date(g.getTime() - o * 1e3);
+            return { title: u, description: h, link: `https://hyperdash.info/trader/${e.address}`, pubDate: t(_.toISOString()), guid: e.address };
+        }),
+        language: `en`,
+    };
+}
+export { l as route };

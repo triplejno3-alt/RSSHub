@@ -1,0 +1,30 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+const n = {
+    path: `/flash`,
+    categories: [`new-media`],
+    example: `/egsea/flash`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`egsea.com/news/flash`] }],
+    name: `快讯`,
+    maintainers: [`hillerliao`],
+    handler: r,
+    url: `egsea.com/news/flash`,
+};
+async function r() {
+    return {
+        title: `快讯 - e 公司`,
+        link: `https://www.egsea.com/news/flash`,
+        item: (await t({ method: `get`, url: `https://www.egsea.com/news/flash-list?per-page=30` })).data.data.map((t) => {
+            let n = e(t.pageTime, `X`),
+                r = t.url;
+            return { title: t.title, link: r, pubDate: n, description: t.content, category: t.tags?.map((e) => e.name) };
+        }),
+    };
+}
+export { n as route };

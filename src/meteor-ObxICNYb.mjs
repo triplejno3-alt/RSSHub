@@ -1,0 +1,35 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { n as r, r as i, t as a } from './utils-DKfMvKcK.mjs';
+const o = {
+    path: `/:board?`,
+    categories: [`bbs`],
+    example: `/meteor/all`,
+    parameters: { board: '看板 ID 或簡稱，可在 URL 或下方路由找到，預設為 `all`' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `看板`,
+    maintainers: [`TonyRL`],
+    handler: s,
+};
+async function s(o) {
+    let { board: s = `all` } = o.req.param(),
+        c = await r(e.tryGet),
+        l;
+    s !== `all` && ((l = c.find((e) => e.id === s || e.alias === s)), (s = l.id));
+    let { data: u } = await n.post(`${a}/article/get_new_articles`, { json: { boardId: s, isCollege: !1, page: 0, pageSize: o.req.query(`limit`) ? Number(o.req.query(`limit`)) : 30 } }),
+        d = JSON.parse(decodeURIComponent(u.result)),
+        f = await Promise.all(d.map((n) => e.tryGet(`meteor:${n.id}`, () => ({ title: n.title, description: i(n.content), link: `${a}/article/${n.shortId}`, author: n.authorAlias, pubDate: t(n.createdAt) }))));
+    return {
+        title: `${s === `all` ? `全部看板` : l.title} | Meteor 學生社群`,
+        description: s === `all` ? null : l.feedDescription,
+        image: s === `all` || l.imgUrl === `not_set` ? null : l.imgUrl,
+        link: `${s === `all` ? `${a}/board/all` : l.link}/new`,
+        item: f,
+    };
+}
+export { o as route };

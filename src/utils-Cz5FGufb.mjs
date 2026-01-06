@@ -1,0 +1,2 @@
+var e = { host: `https://www.x-mol.com` };
+export { e as t };

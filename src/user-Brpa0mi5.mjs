@@ -1,0 +1,91 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+import { t as r } from './parse-date-DjdQS_Nt.mjs';
+import { t as i } from './types-Bl_lnefZ.mjs';
+import a from 'xxhash-wasm';
+const o = {
+        path: `/user/:id/:type?`,
+        categories: [`social-media`],
+        example: `/picnob.info/user/xlisa_olivex`,
+        parameters: {
+            id: `Instagram id`,
+            type: {
+                description: `Type of profile page`,
+                default: `posts`,
+                options: [
+                    { label: `Posts`, value: `posts` },
+                    { label: `Stories`, value: `stories` },
+                ],
+            },
+        },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `User Profile - Picnob`,
+        maintainers: [`TonyRL`],
+        handler: u,
+        view: i.Pictures,
+        url: `picnob.info`,
+    },
+    s = (e, t) => `<video controls poster="${t}"><source src="${e}" type="video/mp4"></video>`,
+    c = (e) => `<img src="${e}">`,
+    l = (e, t) => {
+        let n = ``;
+        switch (e) {
+            case `carousel`:
+                n = t.albumItems?.map((e) => (e.mediaType === `video` ? s(e.videoUrl, e.thumbnailImageUrl) : c(e.thumbnailImageUrl))).join(`<br>`);
+                break;
+            case `video`:
+                n = s(t.videoUrl, t.thumbnailImageUrl);
+                break;
+            default:
+                n = c(t.thumbnailImageUrl);
+        }
+        return `${n}<br>${
+            t.text?.replaceAll(
+                `
+`,
+                `<br>`
+            ) ?? ``
+        }`;
+    };
+async function u(i) {
+    let o = `https://picnob.info`,
+        s = i.req.param(`id`),
+        c = i.req.param(`type`) ?? `posts`,
+        u = `1263fd960207e2d481eff2c60feeae1541f6e90419283f7e674a36d8ac706462`,
+        { h64ToString: d } = await a();
+    if (c !== `posts` && c !== `stories`) throw Error(`Invalid type parameter. Allowed values are "posts" and "stories".`);
+    let f = await n.tryGet(
+        `picnob.info:pulls:${s}`,
+        async () => (await e(`${o}/api/v1/pulls`, { headers: { 'x-api-key': u }, method: `POST`, body: { account: s, type: `all`, isPrivate: !1 } })).request_hash,
+        t.cache.routeExpire,
+        !1
+    );
+    for (let t = 0; t < 10; t++) {
+        let n = await e(`${o}/api/v1/pulls/${f}/status`, { headers: { 'x-api-key': u } });
+        if (Array.isArray(n) && n.every((e) => e.status === `success`)) break;
+        t < 9 && (await new Promise((e) => setTimeout(e, 3e3)));
+    }
+    let p = await n.tryGet(`picnob.info:profile:${s}`, () => e(`${o}/api/v1/accounts/${s}/profile`, { headers: { 'x-api-key': u } }), t.cache.contentExpire),
+        m = (await n.tryGet(`picnob.info:${c}:${s}`, () => e(`${o}/api/v1/accounts/${s}/${c}`, { headers: { 'x-api-key': u } }), t.cache.routeExpire, !1)).map((e) => ({
+            title: e.text?.split(`
+`)[0],
+            guid: e.id ?? d(`${e.account_name}:${e.takenAt}:${e.thumbnailImageUrl}`),
+            author: e.account_name,
+            pubDate: r(e.takenAt),
+            description: l(e.postType ?? e.mediaType, e),
+        }));
+    return {
+        title: `${p.fullName} (@${s}) ${c === `stories` ? `story` : `public`} posts - Picnob`,
+        description: p.biography.replaceAll(
+            `
+`,
+            ` `
+        ),
+        link: `https://www.instagram.com/${s}/`,
+        image: p.profilePicHdImageId ?? p.profilePicImageId,
+        item: m,
+    };
+}
+export { o as route };

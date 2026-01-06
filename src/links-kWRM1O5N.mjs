@@ -1,0 +1,59 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { Fragment as n, jsx as r, jsxs as i } from 'hono/jsx/jsx-runtime';
+import { renderToString as a } from 'hono/jsx/dom/server';
+import { raw as o } from 'hono/html';
+const s = {
+    path: `/links/:name`,
+    categories: [`social-media`],
+    example: `/curius/links/yuu-yuu`,
+    parameters: { name: `Username, can be found in URL` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`curius.app/:name`] }],
+    name: `User`,
+    maintainers: [`Ovler-Young`],
+    handler: c,
+};
+async function c(n) {
+    let r = n.req.param(`name`),
+        i = (await t(`https://curius.app/api/users/${r}`, { headers: { Referer: `https://curius.app/${r}` } })).data,
+        a = i.user.id,
+        o = `${i.user.firstName} ${i.user.lastName}`,
+        s = (await t(`https://curius.app/api/users/${a}/links?page=0`, { headers: { Referer: `https://curius.app/${r}` } })).data.userSaved.map((t) => ({
+            title: t.title,
+            description: l(t),
+            link: t.link,
+            pubDate: e(t.createdDate),
+            guid: `curius:${r}:${t.id}`,
+        }));
+    return { title: `${o} - Curius`, link: `https://curius.app/${r}`, description: `${o} - Curius`, allowEmpty: !0, item: s };
+}
+const l = (e) => {
+    let t = e.metadata?.full_text ? e.metadata.full_text.replaceAll(/\n/gm, `<br>`) : ``,
+        s = e.comments?.length ? e.comments[0].text.slice(0, 100) : ``;
+    return a(
+        i(n, {
+            children: [
+                t ? i(n, { children: [`原文：`, o(t), r(`br`, {}), r(`br`, {})] }) : null,
+                s ? i(n, { children: [`评论：`, s, r(`br`, {}), r(`br`, {})] }) : null,
+                e.highlights?.length
+                    ? i(n, {
+                          children: [
+                              `评论：`,
+                              e.highlights.map((e, t) =>
+                                  e.comment
+                                      ? i(`span`, { children: [e.highlight, r(`br`, {}), `评论：`, e.comment.text, r(`br`, {})] }, `${e.highlight}-${t}`)
+                                      : i(`span`, { children: [r(`br`, {}), `标注：`, e.highlight, r(`br`, {})] }, `${e.highlight}-${t}`)
+                              ),
+                          ],
+                      })
+                    : null,
+            ],
+        })
+    );
+};
+export { s as route };

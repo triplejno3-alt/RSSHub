@@ -1,0 +1,84 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = new Map([
+        [0, `xwdt.htm`],
+        [1, `xs_ts.htm`],
+        [2, `yxfc.htm`],
+        [3, `tzgg/qb.htm`],
+        [4, `tzgg/zs.htm`],
+        [5, `tzgg/py.htm`],
+        [6, `tzgg/xw.htm`],
+        [7, `tzgg/zlyzyxw.htm`],
+        [8, `tzgg/zh.htm`],
+    ]),
+    a = {
+        path: `/gs/:type?`,
+        categories: [`university`],
+        example: `/whu/gs/0`,
+        parameters: { type: '分类，默认为 `0`，具体参数见下表' },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`gs.whu.edu.cn/index.htm`, `gs.whu.edu.cn/`], target: `/gs` }],
+        name: `研究生院`,
+        maintainers: [`Delreyaa`],
+        handler: o,
+        url: `gs.whu.edu.cn/index.htm`,
+        description: `| 公告类型 | 新闻动态 | 学术探索 | 院系风采 | 通知 (全部) | 通知 (招生) | 通知 (培养) | 通知 (学位) | 通知 (质量与专业学位) | 通知 (综合) |
+| -------- | -------- | -------- | -------- | ----------- | ----------- | ----------- | ----------- | --------------------- | ----------- |
+| 参数     | 0        | 1        | 2        | 3           | 4           | 5           | 6           | 7                     | 8           |`,
+    };
+async function o(a) {
+    let o = `https://gs.whu.edu.cn/`,
+        s = a.req.param(`type`),
+        c = s ? Number.parseInt(s) : 0,
+        l = r((await n(o + i.get(c))).data),
+        u = l(`div.location a`)
+            .slice(-2)
+            .toArray()
+            .map((e) => l(e).text())
+            .join(` > `),
+        d = l(`.list ul li`)
+            .toArray()
+            .map((e) => {
+                e = l(e);
+                let n = e.find(`a`).attr(`href`);
+                return { title: e.find(`p`).text(), link: n.startsWith(`http`) ? n : new URL(n, o).href, pubDate: t(e.find(`span`).text()) };
+            });
+    return (
+        (d = await Promise.all(
+            d.map((t) =>
+                e.tryGet(t.link, async () => {
+                    try {
+                        let e = r((await n(t.link)).data);
+                        return (
+                            e(`input`).remove(),
+                            e(`h1`).remove(),
+                            e(`h2`).remove(),
+                            e(`div.arc-tit h2`).remove(),
+                            e(`h4.information`).remove(),
+                            e(`div.arc-info`).remove(),
+                            e(`.con_xq`).remove(),
+                            e(`form[name=_newscontent_fromname] img`).each((e, t) => {
+                                ((t = l(t)), t.attr(`src`).startsWith(`/`) && t.attr(`src`, new URL(t.attr(`src`), o).href));
+                            }),
+                            e(`form[name=_newscontent_fromname] ul li a`).each((e, t) => {
+                                ((t = l(t)), t.attr(`href`).startsWith(`/`) && t.attr(`href`, new URL(t.attr(`href`), o).href));
+                            }),
+                            (t.description = e(`form[name=_newscontent_fromname]`).html()),
+                            t
+                        );
+                    } catch {
+                        return ((t.description = `NULL`), t);
+                    }
+                })
+            )
+        )),
+        { title: `武汉大学研究生院 - ${u}`, link: o + i.get(c), description: `武大研究生院`, item: d }
+    );
+}
+export { a as route };

@@ -1,0 +1,52 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+import i from 'p-map';
+const a = {
+    path: `/:category`,
+    categories: [`traditional-media`],
+    example: `/cts/real`,
+    parameters: { category: `类别` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`news.cts.com.tw/:category/index.html`] }],
+    name: `新聞`,
+    maintainers: [`miles170`],
+    handler: o,
+    description: `| 即時 | 氣象    | 政治     | 國際          | 社會    | 運動   | 生活 | 財經  | 台語      | 地方  | 產業 | 綜合    | 藝文 | 娛樂      |
+| ---- | ------- | -------- | ------------- | ------- | ------ | ---- | ----- | --------- | ----- | ---- | ------- | ---- | --------- |
+| real | weather | politics | international | society | sports | life | money | taiwanese | local | pr   | general | arts | entertain |`,
+};
+async function o(a) {
+    let o = `https://news.cts.com.tw/${a.req.param(`category`)}/index.html`,
+        s = r((await n(o)).data),
+        c = await i(
+            s(`#newslist-top a[title]`).slice(0, a.req.query(`limit`) ? Number.parseInt(a.req.query(`limit`)) : 20),
+            (i) => {
+                i = s(i);
+                let a = i.attr(`href`);
+                return e.tryGet(a, async () => {
+                    let e = r((await n(a)).data),
+                        o = e(`.artical-content p:eq(0)`).text().trim();
+                    return (
+                        e(`.artical-content p:eq(0), .artical-content .flexbox`).remove(),
+                        {
+                            title: i.attr(`title`),
+                            author: o,
+                            description: e(`.artical-content`).html(),
+                            category: e(`meta[property="article:section"]`).attr(`content`),
+                            pubDate: t(e(`meta[property="article:published_time"]`).attr(`content`)),
+                            link: a,
+                        }
+                    );
+                });
+            },
+            { concurrency: 5 }
+        );
+    return { title: s(`title`).text(), link: o, description: s(`meta[name="description"]`).attr(`content`), item: c };
+}
+export { a as route };

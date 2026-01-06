@@ -1,0 +1,56 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+import { decode as r } from 'iconv-lite';
+const i = {
+    path: `/volume/:id`,
+    categories: [`reading`],
+    example: `/wenku8/volume/1163`,
+    parameters: { id: `小说 id, 可在对应小说页 URL 中找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `最新卷`,
+    maintainers: [`huangliangshusheng`],
+    handler: a,
+};
+async function a(t) {
+    let r = Number.parseInt(t.req.param(`id`)),
+        i = `https://www.wenku8.net/novel/${Math.floor(r / 1e3)}/${r}/index.htm`,
+        a = n(await o(i)),
+        s = a(`.vcss`).last().parent().next().find(`a`)[0].attribs.href.replace(`.htm`, ``),
+        c = `https://dl.wenku8.com/packtxt.php?aid=${r}&vid=${s}&charset=gbk`,
+        l = a(`.vcss`)
+            .last()
+            .parent()
+            .nextAll()
+            .find(`a`)
+            .toArray()
+            .map((e) => ({ link: e.attribs.href }));
+    return {
+        title: `轻小说文库 ${a(`#title`).text()} 最新卷`,
+        link: i,
+        item: await e.tryGet(c, async () =>
+            [...(await o(c)).matchAll(/\s{2}(\S.*)\r?\n([\S\s]+?)\r?\n\r?\n/g)]
+                .map((e, t) => ({
+                    title: e[1],
+                    description: e[2]
+                        .split(
+                            `\r
+`
+                        )
+                        .filter((e) => e.trim())
+                        .map((e) => `<p>${e.trim()}</p>`)
+                        .join(``),
+                    guid: Buffer.from(`${s}${e[1]}`).toString(`base64`),
+                    link: l[t]?.link,
+                }))
+                .filter((e) => e.description)
+                .toReversed()
+        ),
+    };
+}
+const o = async (e) => r(await t(e).buffer(), `gbk`);
+export { i as route };

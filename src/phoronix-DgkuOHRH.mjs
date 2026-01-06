@@ -1,0 +1,181 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './rss-parser-CKuAfhVS.mjs';
+import { load as i } from 'cheerio';
+import a from 'dayjs';
+import o from 'dayjs/plugin/timezone.js';
+import s from 'dayjs/plugin/utc.js';
+(a.extend(s), a.extend(o));
+const c = `phoronix:web-articles`,
+    l = `https://www.phoronix.com`,
+    u = `${l}/rss.php`,
+    d = async () => {
+        let t = await e(u),
+            n = await r.parseString(t);
+        return {
+            title: n.title,
+            link: n.link,
+            description: n.description,
+            item: n.items,
+            language: n.language,
+            icon: `https://www.phoronix.com/android-chrome-192x192.png`,
+            image: `https://www.phoronix.com/android-chrome-192x192.png`,
+            logo: `https://www.phoronix.com/phxcms7-css/phoronix.png`,
+            category: [
+                `Linux Hardware Reviews`,
+                `Linux hardware benchmarks`,
+                `Linux Hardware`,
+                `Linux benchmarking`,
+                `Desktop Linux`,
+                `GNU/Linux benchmarks`,
+                `Open Source AMD`,
+                `Linux How To`,
+                `X.Org drivers`,
+                `Ubuntu hardware`,
+                `Phoronix Test Suite`,
+            ],
+        };
+    },
+    f = (e) => {
+        let t = i(e.body);
+        return {
+            title: t(`title`).text(),
+            link: e.url,
+            description: t(`meta[name="Description"]`).attr(`content`),
+            item: [
+                ...new Set(
+                    t(`#main a`)
+                        .toArray()
+                        .map((e) => e.attribs.href)
+                ),
+            ]
+                .filter((e) => e && (e.startsWith(`/review/`) || e.startsWith(`/news/`)))
+                .map((e) => ({ link: `${l}${e}` })),
+            language: `en-us`,
+            icon: `https://www.phoronix.com/android-chrome-192x192.png`,
+            image: `https://www.phoronix.com/android-chrome-192x192.png`,
+            logo: `https://www.phoronix.com/phxcms7-css/phoronix.png`,
+            category: t(`meta[name="keywords"]`).attr(`content`).split(`, `),
+        };
+    },
+    p = (e) =>
+        t.tryGet(`${c}:${e}`, async () => {
+            try {
+                return f(await n(e));
+            } catch (e) {
+                if ((e.name === `HTTPError` || e.name === `FetchError`) && e.response.statusCode === 404) return `404`;
+                throw e;
+            }
+        }),
+    m = async (e, r) => {
+        let i = new URL(`/scan.php`, l);
+        (i.searchParams.set(`page`, e), r && (e === `category` ? i.searchParams.set(`item`, r) : i.searchParams.set(`q`, r)));
+        let a,
+            o = await t.tryGet(`phoronix:redirect:${i.toString()}`, async () => ((a = await n(i.toString())), a.url));
+        if (a) {
+            let e = f(a);
+            return (t.set(`${c}:${o}`, e), e);
+        }
+        return await p(o);
+    },
+    h = async (e, t) => {
+        let n = await p(t ? `${l}/${e}/${t}` : `${l}/${e}`);
+        return (n === `404` && (n = await m(e, t)), n);
+    },
+    g = {
+        path: `/:category?/:topic?`,
+        categories: [`new-media`],
+        example: `/phoronix/linux/KDE`,
+        parameters: {
+            category: `Category`,
+            topic: 'Topic. You may find available parameters from their navigator links. E.g. to subscribe to `https://www.phoronix.com/reviews/Operating+Systems`, fill in the path `/phoronix/reviews/Operating+Systems`',
+        },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`phoronix.com/:category?/:topic?`] }],
+        name: `News & Reviews`,
+        maintainers: [`oppliate`, `Rongronggg9`],
+        handler: _,
+    };
+async function _(e) {
+    let { category: r, topic: o } = e.req.param(),
+        s;
+    switch (r) {
+        case `category`:
+        case `news_topic`:
+            s = await m(r, o);
+            break;
+        case `rss`:
+            s = await d();
+            break;
+        default:
+            s = r ? await h(r, o) : await d();
+            break;
+    }
+    return (
+        (s.item = await Promise.all(
+            s.item.map((e) =>
+                t.tryGet(`phoronix:articles:${e.link}`, async () => {
+                    let r = (await n(e.link)).body,
+                        o = i(r),
+                        s = o(`.content`),
+                        c = o(`.author > a`),
+                        u = c
+                            .slice(0, -2)
+                            .toArray()
+                            .map((e) => o(e).text()),
+                        d = [];
+                    e.link.includes(`/news/`) ? d.push(`News`) : e.link.includes(`/review/`) && d.push(`Review`);
+                    let f = c.eq(-2);
+                    f.length && d.push(f.text());
+                    let p;
+                    if (!e.pubDate) {
+                        let e = f.length && f[0].nextSibling?.nodeValue;
+                        e && ((e = e.replaceAll(/on|at|\./g, ``).trim()), (p = /\d{4}$/.test(e) ? a.utc(`${e} 08:00 UTC`).tz(`America/Indiana/Indianapolis`, !0) : a(e)), p.isValid() || (p = e));
+                    }
+                    let m = o(`.pagination > a`)
+                        .toArray()
+                        .map((e) => `${l}${e.attribs.href}`)
+                        .slice(0, -1);
+                    if (m.length) {
+                        let e = await Promise.all(
+                            m.map((e) =>
+                                t.tryGet(e, async () => {
+                                    let t = (await n(e)).data;
+                                    return i(t)(`.content`).html();
+                                })
+                            )
+                        );
+                        s.append(e);
+                    }
+                    let h = s.find(`img`),
+                        g = h.first();
+                    if (g.attr(`src`)?.startsWith(`/assets/categories/`)) {
+                        let e = g.parent();
+                        e.text().trim() ? g.remove() : e.remove();
+                    }
+                    return (
+                        h.each((e, t) => {
+                            t.attribs.src = t.attribs.src.replace(/_med$/, ``);
+                        }),
+                        {
+                            title: e.title || o(`article h1`).text(),
+                            pubDate: e.pubDate || p,
+                            author: u.join(`, `),
+                            link: e.link,
+                            summary: o(`meta[name="twitter:description"]`).attr(`content`),
+                            description: s.html(),
+                            image: o(`meta[name="twitter:image"]`).attr(`content`),
+                            category: e.category || d,
+                        }
+                    );
+                })
+            )
+        )),
+        s
+    );
+}
+export { g as route };

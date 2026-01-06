@@ -1,0 +1,59 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import './puppeteer-BbZGb8cd.mjs';
+import { r as t } from './utils-Bu8-ZFdB.mjs';
+import { t as n } from './cache-BV7o58Cb.mjs';
+const r = {
+    path: `/live/search/:key/:order`,
+    categories: [`live`],
+    example: `/bilibili/live/search/dota/online`,
+    parameters: { key: `搜索关键字`, order: `排序方式, live_time 开播时间, online 人气` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `直播搜索`,
+    maintainers: [`Qixingchen`],
+    handler: i,
+};
+async function i(r) {
+    let i = r.req.param(`key`),
+        a = r.req.param(`order`),
+        o = encodeURIComponent(i),
+        s = ``;
+    switch (a) {
+        case `live_time`:
+            s = `最新开播`;
+            break;
+        case `online`:
+            s = `人气直播`;
+            break;
+    }
+    let c = await n.getWbiVerifyString(),
+        l = `__refresh__=true&_extra=&context=&page=1&page_size=42&order=${a}&duration=&from_source=&from_spmid=333.337&platform=pc&highlight=1&single_column=0&keyword=${o}&ad_resource=&source_tag=3&gaia_vtoken=&category_id=&search_type=live&dynamic_offset=0&web_location=1430654`;
+    l = t.addWbiVerifyInfo(l, c);
+    let u = (
+        await e({
+            method: `get`,
+            url: `https://api.bilibili.com/x/web-interface/wbi/search/type?${l}`,
+            headers: { Referer: `https://search.bilibili.com/live?keyword=${o}&from_source=webtop_search&spm_id_from=444.7&search_source=3&search_type=live_room`, Cookie: await n.getCookie() },
+        })
+    ).data.data.result.live_room;
+    return {
+        title: `哔哩哔哩直播-${i}-${s}`,
+        link: `https://search.bilibili.com/live?keyword=${o}&order=${a}&coverType=user_cover&page=1&search_type=live`,
+        description: `哔哩哔哩直播-${i}-${s}`,
+        item:
+            u &&
+            u.map((e) => ({
+                title: `${e.uname} ${e.title} (${e.cate_name}-${e.live_time})`,
+                description: `${e.uname} ${e.title} (${e.cate_name}-${e.live_time})`,
+                pubDate: new Date(e.live_time.replace(` `, `T`) + `+08:00`).toUTCString(),
+                guid: `https://live.bilibili.com/${e.roomid} ${e.live_time}`,
+                link: `https://live.bilibili.com/${e.roomid}`,
+            })),
+    };
+}
+export { r as route };

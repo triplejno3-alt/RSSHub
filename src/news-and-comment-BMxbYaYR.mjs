@@ -1,0 +1,25 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { i as t, n, r, t as i } from './utils-DAZORnRC.mjs';
+import { load as a } from 'cheerio';
+const o = {
+    path: `/news-and-comment/:journal?`,
+    radar: [{ source: [`nature.com/latest-news`, `nature.com/news`, `nature.com/`], target: `/news` }],
+    name: `Unknown`,
+    maintainers: [`y9c`, `TonyRL`],
+    handler: s,
+    url: `nature.com/latest-news`,
+};
+async function s(o) {
+    let s = `${i}/${o.req.param(`journal`)}/news-and-comment`,
+        c = a((await e(s, { cookieJar: n })).data),
+        l = c(`meta[name=description]`).attr(`content`) || `Nature, a nature research journal`,
+        u = t(c);
+    return ((u = await Promise.all(u.map((e) => r(e)))), { title: c(`title`).text(), description: l, link: s, item: u });
+}
+export { o as route };

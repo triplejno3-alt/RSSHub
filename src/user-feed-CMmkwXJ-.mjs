@@ -1,0 +1,36 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './utils-DVKCoSoJ.mjs';
+import r from 'markdown-it';
+const i = r(),
+    a = {
+        path: `/user/feed/:uid`,
+        categories: [`programming`],
+        example: `/luogu/user/feed/1`,
+        parameters: { uid: `用户 UID` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`luogu.com/user/:uid`] }, { source: [`luogu.com.cn/user/:uid`] }],
+        name: `用户动态`,
+        maintainers: [`solstice23`],
+        handler: o,
+    };
+async function o(r) {
+    let a = r.req.param(`uid`),
+        o = await n(a),
+        { data: s } = await t(`https://www.luogu.com.cn/api/feed/list?user=${a}`),
+        c = s.feeds.result;
+    return {
+        title: `${o.name} 的洛谷动态`,
+        description: o.description,
+        image: o.avatar,
+        link: `https://www.luogu.com.cn/user/${a}#activity`,
+        allowEmpty: !0,
+        item: c.map((t) => ({ title: t.content, description: i.render(t.content), pubDate: e(t.time, `X`), author: o.name, link: `https://www.luogu.com.cn/user/${a}#activity`, guid: t.id })),
+    };
+}
+export { a as route };

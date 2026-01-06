@@ -1,0 +1,63 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import { t } from './logger-_vmdpChp.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './invalid-parameter-DGZgOgO2.mjs';
+const i = `https://baselang.com`,
+    a = `${i}/wp-json/wp/v2`,
+    o = {
+        'advanced-grammar': 5,
+        'basic-grammar': 4,
+        company: 8,
+        confidence: 9,
+        french: 24,
+        humor: 15,
+        medellin: 23,
+        motivation: 6,
+        pronunciation: 11,
+        'study-tips': 7,
+        'success-stories': 14,
+        travel: 13,
+        uncategorized: 1,
+        vocabulary: 12,
+    },
+    s = {
+        path: `/blog/:category?`,
+        categories: [`blog`],
+        example: `/baselang/blog`,
+        parameters: { category: { description: `Optional category filter`, options: Object.keys(o).map((e) => ({ label: e, value: e })) } },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`baselang.com/blog`, `baselang.com/blog/:category`], target: `/blog/:category` }],
+        name: `Blog`,
+        maintainers: [`johan456789`],
+        handler: c,
+    };
+async function c(s) {
+    let c = (s.req.param(`category`) ?? ``).toLowerCase();
+    if ((t.debug(`BaseLang: received request, category='${c || `all`}'`), c && !Object.hasOwn(o, c)))
+        throw (t.debug(`BaseLang: invalid category '${c}'`), new r(`Invalid category: ${c}. Valid categories are: ${Object.keys(o).join(`, `)}`));
+    let l = [`per_page=20`, `_embed=author,wp:term`];
+    if (c) {
+        let e = o[c];
+        l.push(`categories=${e}`);
+    }
+    let u = await e(`${a}/posts?${l.join(`&`)}`);
+    t.debug(`BaseLang: fetched ${u.length} posts`);
+    let d = u.map((e) => ({
+            title: e.title?.rendered,
+            description: e.content?.rendered ?? e.excerpt?.rendered ?? ``,
+            link: e.link,
+            pubDate: n(e.date_gmt ?? e.date),
+            author: e._embedded?.author?.[0]?.name,
+            category: Array.isArray(e._embedded?.[`wp:term`])
+                ? e._embedded[`wp:term`]
+                      .flat()
+                      .map((e) => e?.name)
+                      .filter(Boolean)
+                : void 0,
+        })),
+        f = c ? ` - ${c}` : ``,
+        p = c ? `${i}/blog/${c}/` : `${i}/blog/`;
+    return { title: `BaseLang Blog${f}`, link: p, language: `en`, item: d };
+}
+export { s as route };

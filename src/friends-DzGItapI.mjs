@@ -1,0 +1,75 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './config-not-found-DGyG6Tbz.mjs';
+import './puppeteer-BbZGb8cd.mjs';
+import { n as i, t as a } from './readable-social--hCfpJhv.mjs';
+import { t as o } from './utils-CU9nJ7uH.mjs';
+import s from 'node:querystring';
+const c = {
+    path: `/friends/:routeParams?`,
+    categories: [`social-media`],
+    example: `/weibo/friends`,
+    parameters: { routeParams: `额外参数；请参阅上面的说明和表格` },
+    features: { requireConfig: [{ name: `WEIBO_COOKIES`, optional: !0, description: `` }], requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`weibo.com/`], target: `/friends` }],
+    name: `最新关注时间线`,
+    maintainers: [`CaoMeiYouRen`],
+    handler: l,
+    url: `weibo.com/`,
+    description: `::: warning
+  此方案必须使用用户\`Cookie\`进行抓取
+
+  因微博 cookies 的过期与更新方案未经验证，部署一次 Cookie 的有效时长未知
+
+  微博用户 Cookie 的配置可参照部署文档
+:::`,
+};
+async function l(c) {
+    if (!e.weibo.cookies) throw new r(`Weibo Friends Timeline is not available due to the absense of [Weibo Cookies]. Check <a href="https://docs.rsshub.app/deploy/config#route-specific-configurations">relevant config tutorial</a>`);
+    let l = `1`,
+        u = `0`,
+        d = `0`;
+    if (c.req.param(`routeParams`))
+        if (c.req.param(`routeParams`) === `1` || c.req.param(`routeParams`) === `0`) l = c.req.param(`routeParams`);
+        else {
+            let e = s.parse(c.req.param(`routeParams`));
+            ((l = a(void 0, i(e.displayVideo), !0) ? `1` : `0`), (u = a(void 0, i(e.displayArticle), !1) ? `1` : `0`), (d = a(void 0, i(e.displayComments), !1) ? `1` : `0`));
+        }
+    let f = await t.tryGet(
+            `weibo:friends:login-user`,
+            async () => (await n({ method: `get`, url: `https://m.weibo.cn/api/config`, headers: { Referer: `https://m.weibo.cn/`, Cookie: e.weibo.cookies, ...o.apiHeaders } })).data.data.uid,
+            e.cache.routeExpire,
+            !1
+        ),
+        p = `${(await t.tryGet(`weibo:user:index:${f}`, async () => (await n({ method: `get`, url: `https://m.weibo.cn/api/container/getIndex?type=uid&value=${f}`, headers: { Referer: `https://m.weibo.cn/u/${f}`, Cookie: e.weibo.cookies, ...o.apiHeaders } })).data, e.cache.routeExpire, !1)).data.userInfo.screen_name} 的 最新关注时间线`,
+        m = await t.tryGet(
+            `weibo:friends:index:${f}`,
+            async () => (await n({ method: `get`, url: `https://m.weibo.cn/feed/friends`, headers: { Referer: `https://m.weibo.cn/`, Cookie: e.weibo.cookies, ...o.apiHeaders } })).data.data,
+            e.cache.routeExpire,
+            !1
+        ),
+        h = await Promise.all(
+            m.statuses.map(async (e) => {
+                let n = e.retweeted_status;
+                if (n && n.isLongText) {
+                    let r = await t.tryGet(`weibo:retweeted:${n.user.id}:${n.bid}`, () => o.getShowData(n.user.id, n.bid));
+                    r !== void 0 && r.text && (e.retweeted_status.text = r.text);
+                }
+                let r = o.formatExtended(c, e),
+                    i = r.description;
+                return (
+                    l === `1` && (i = e.retweeted_status ? o.formatVideo(i, e.retweeted_status) : o.formatVideo(i, e)),
+                    d === `1` && (i = await o.formatComments(c, i, e, `0`)),
+                    u === `1` && (i = await (e.retweeted_status ? o.formatArticle(c, i, e.retweeted_status) : o.formatArticle(c, i, e))),
+                    { ...r, description: i }
+                );
+            })
+        );
+    return o.sinaimgTvax({ title: p, link: `https://weibo.com`, item: h });
+}
+export { c as route };

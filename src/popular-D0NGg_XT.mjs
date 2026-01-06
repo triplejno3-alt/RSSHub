@@ -1,0 +1,36 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { n, r, t as i } from './const-BIMMuJCo.mjs';
+import { load as a } from 'cheerio';
+const o = {
+    path: `/popular/:period`,
+    categories: [`picture`],
+    example: `/cosplaytele/popular/3`,
+    parameters: { period: `Days` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+    radar: [{ source: [`cosplaytele.com/:period`], target: `/popular/:period` }],
+    name: `Popular`,
+    maintainers: [`AiraNadih`],
+    handler: c,
+    url: `cosplaytele.com/`,
+};
+function s(e) {
+    return e === `1` ? { url: `${n}24-hours/`, range: `daily`, title: `${i} - Top views in 24 hours` } : { url: `${n}${e}-day/`, range: `last${e}days`, title: `${i} - Top views in ${e} days` };
+}
+async function c(i) {
+    let o = Number.parseInt(i.req.query(`limit`)) || 20,
+        { url: c, range: l, title: u } = s(i.req.param(`period`)),
+        { data: d } = await t.post(`${n}wp-json/wordpress-popular-posts/v2/widget`, { json: { limit: o, range: l, order_by: `views` } }),
+        f = a(d.widget),
+        p = f(`.wpp-list li`)
+            .toArray()
+            .map((e) => f(e).find(`.wpp-post-title`).attr(`href`))
+            .filter((e) => e !== void 0);
+    return { title: u, link: c, item: await Promise.all(p.map((t) => e.tryGet(t, () => r(t)))) };
+}
+export { o as route };

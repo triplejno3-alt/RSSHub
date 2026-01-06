@@ -1,0 +1,33 @@
+import { t as e } from './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { load as i } from 'cheerio';
+const a = `https://today.line.me`,
+    o = (e) => e.map((e) => ({ title: e.title, link: e.url.url, pubDate: n(e.publishTimeUnix), hash: e.url.hash, category: e.categoryName })),
+    s = (n) =>
+        Promise.all(
+            n.map((n) =>
+                t.tryGet(n.link, async () => {
+                    let t = n.link.match(/today\.line\.me\/(\w+?)\/v[23]\/.*$/)[1],
+                        o;
+                    try {
+                        o = (await r(`${a}/webapi/portal/page/setting/article`, { searchParams: { country: t, hash: n.hash, group: `NA` } })).data;
+                    } catch (t) {
+                        if ((t.name === `HTTPError` || t.name === `FetchError`) && t.response.statusCode === 404) return (e.error(`Error parsing article ${n.link}: ${t.message}`), n);
+                        throw t;
+                    }
+                    let s = i(o.data.content, null, !1);
+                    return (
+                        s(`img`).each((e, t) => {
+                            (delete t.attribs[`data-hashid`], (t.attribs.src = t.attribs.src.replace(/\/w\d+$/, ``)));
+                        }),
+                        (n.description = s.html()),
+                        (n.author = o.data.author),
+                        (n.category = [...new Set([n.category, ...o.data.exploreLinks.map((e) => e.name)])]),
+                        n
+                    );
+                })
+            )
+        );
+export { s as n, o as r, a as t };

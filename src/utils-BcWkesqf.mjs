@@ -1,0 +1,86 @@
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './config-not-found-DGyG6Tbz.mjs';
+const a = [`mastodon.social`, `pawoo.net`, `fosstodon.org`, e.mastodon.apiHost].filter(Boolean),
+    o = (t) => {
+        let { accessToken: n, apiHost: r } = e.mastodon;
+        return n && t === r ? { Authorization: `Bearer ${n}` } : {};
+    },
+    s = (e) =>
+        e
+            .map((e) => {
+                let t = e.remote_url ?? e.url,
+                    n = e.description ?? ``;
+                switch (e.type) {
+                    case `gifv`:
+                        return `<br><video src="${t}" autoplay loop>gif ${n}</video>`;
+                    case `video`:
+                        return `<br><video src="${t}" controls loop>video ${n}</video>`;
+                    case `image`:
+                        return `<br><img src="${t}" alt="image ${n}">`;
+                    case `audio`:
+                        return `<br><audio controls src="${t}">audio ${n}</audio>`;
+                    case `unknown`:
+                    default:
+                        return `<br><a href="${t}">media ${n}</a>`;
+                }
+            })
+            .join(``),
+    c = (e) =>
+        e.map((e) => {
+            let t = e.reblog ? e.account : null;
+            e = e.reblog ?? e;
+            let r = e.content ? e.content.replaceAll(/<span.*?>|<\/span.*?>/gm, ``) : ``,
+                i = r.replaceAll(
+                    /<(?:.|\n)*?>/gm,
+                    `
+`
+                ),
+                a = `${e.account.display_name} (@${e.account.acct})`,
+                o = e.url,
+                c = s(e.media_attachments);
+            return {
+                title: `${t ? `Re @${t.username}` : `@${e.account.username}`}: "${e.sensitive === !0 ? `(CW) ${e.spoiler_text}` : i}"`,
+                author: a,
+                description: e.spoiler_text + `<hr />` + r + c,
+                pubDate: n(e.created_at),
+                link: o,
+                guid: e.uri,
+            };
+        });
+async function l(e, t, n) {
+    let i = (await r({ method: `get`, url: `https://${e}/api/v1/accounts/${t}/statuses?only_media=${n}`, headers: o(e) })).data,
+        a;
+    return ((a = i.length !== 0 && i[0].account !== null ? i[0].account : (await r({ method: `get`, url: `https://${e}/api/v1/accounts/${t}`, headers: o(e) })).data), { account_data: a, data: i });
+}
+async function u(n) {
+    let s = e.mastodon,
+        c = n.split(`@`).filter(Boolean)[1],
+        l = s.apiHost || c,
+        u = s.acctDomain || c;
+    if (!(l && u)) throw new i(`Mastodon RSS is disabled due to the lack of <a href="https://docs.rsshub.app/deploy/config#route-specific-configurations">relevant config</a>`);
+    if (!e.feature.allow_user_supply_unsafe_domain && !a.includes(l)) throw new i(`RSS for this domain is disabled unless 'ALLOW_USER_SUPPLY_UNSAFE_DOMAIN' is set to 'true' or 'MASTODON_API_HOST' is set.`);
+    let d = `https://${l}/api/v2/search`,
+        f = `mastodon_acct_id/${l}/${n}`;
+    return {
+        site: l,
+        account_id: await t.tryGet(
+            f,
+            async () => {
+                let e = await r({ method: `get`, url: d, headers: o(l), searchParams: { q: n, type: `accounts` } }),
+                    [t, i] = n.split(`@`).filter(Boolean),
+                    a;
+                a = i ? (i === u ? t : t + `@` + i) : t;
+                let s = e.data.accounts.filter((e) => e.acct === a);
+                if (s.length === 0) throw Error(`acct ${n} not found`);
+                return s[0].id;
+            },
+            e.cache.contentExpire,
+            !1
+        ),
+    };
+}
+var d = { apiHeaders: o, parseStatuses: c, getAccountStatuses: l, getAccountIdByAcct: u, allowSiteList: a };
+export { d as t };

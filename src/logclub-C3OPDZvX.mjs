@@ -1,0 +1,94 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './description-Be7LtyKO.mjs';
+import { load as i } from 'cheerio';
+const a = { path: `/:category{.+}?`, name: `Unknown`, maintainers: [], handler: o };
+async function o(a) {
+    let { category: o = `news` } = a.req.param(),
+        s = a.req.query(`limit`) ? Number.parseInt(a.req.query(`limit`), 10) : 11,
+        c = `https://www.logclub.com`,
+        l = new URL(o, c).href,
+        { data: u } = await n(l),
+        d = i(u),
+        f = d(`li.layui-row, li.layui-timeline-item`)
+            .slice(0, s)
+            .toArray()
+            .map((e) => {
+                e = d(e);
+                let t = e.find(`div.newslist-txt h3 a, a.article_title`).first(),
+                    n = e.find(`img.img-hover`).prop(`src`)?.split(/\?/)[0] ?? void 0;
+                return { title: t.text(), link: new URL(t.prop(`href`), c).href, description: r({ image: { src: n, alt: t.text() }, intro: e.find(`p.newslist-intro, div.newslist-info-intro`).text() }), itunes_item_image: n };
+            });
+    f = await Promise.all(
+        f.map((a) =>
+            e.tryGet(a.link, async () => {
+                let { data: e } = await n(a.link),
+                    o = i(e);
+                return (
+                    o(`a.dl_file`).each((e, t) => {
+                        ((t = o(t)), t.parent().remove());
+                    }),
+                    o(`img`).each((e, t) => {
+                        ((t = o(t)), t.replaceWith(r({ image: { src: t.prop(`src`)?.split(/\?/)[0] ?? void 0, alt: t.prop(`title`) } })));
+                    }),
+                    (a.title = o(`h1, div.current_video_title`).first().text()),
+                    (a.enclosure_url = o(`video#ref_video`).prop(`src`)),
+                    a.enclosure_url && (a.enclosure_type = `video/${a.enclosure_url.split(/\./).pop()}`),
+                    (a.description += r({ video: { poster: a.itunes_item_image, src: a.enclosure_url, type: a.enclosure_type }, description: o(`div.article-cont`).html() })),
+                    (a.author = o(`div.article-info-r a`)
+                        .toArray()
+                        .map((e) => o(e).text())
+                        .join(`/`)),
+                    (a.category = [
+                        ...new Set([
+                            ...o(`div.article-label-r a.label`)
+                                .toArray()
+                                .map((e) => o(e).text()),
+                            ...(o(`meta[name="keywords"]`)
+                                .prop(`content`)
+                                ?.split(/\s?,\s?/) ?? []),
+                        ]),
+                    ].filter(Boolean)),
+                    (a.pubDate =
+                        o(`span.aritlceIn-time`).length === 0
+                            ? t(
+                                  o(
+                                      o(`div.video_info_item, div.lc-infos div`)
+                                          .toArray()
+                                          .findLast((e) => /\d{4}-\d{2}-\d{2}/.test(o(e).text()))
+                                  )
+                                      .text()
+                                      .split(/：/)
+                                      .pop()
+                                      .trim()
+                              )
+                            : t(o(`span.aritlceIn-time`).text().trim())),
+                    a
+                );
+            })
+        )
+    );
+    let p = new URL(d(`link[rel="shortcut icon"]`).prop(`href`), c).href,
+        m = d(`meta[name="keywords"]`).prop(`content`),
+        h = m.split(/,/)[0];
+    return {
+        item: f,
+        title: d(`title`).text().split(/-/)[0].trim(),
+        link: l,
+        description: d(`meta[name="description"]`).prop(`content`),
+        language: `zh`,
+        image: new URL(d(`div.logo_img img`).prop(`src`), c).href,
+        icon: p,
+        logo: p,
+        subtitle: m.replaceAll(`,`, ``),
+        author: h,
+        itunes_author: h,
+        itunes_category: `News`,
+    };
+}
+export { a as route };

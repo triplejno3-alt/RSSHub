@@ -1,0 +1,60 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './timezone-CrV-DT8S.mjs';
+import { t as a } from './config-not-found-DGyG6Tbz.mjs';
+import { t as o } from './utils-Br3UwJrQ.mjs';
+import { load as s } from 'cheerio';
+const c = {
+    path: `/haowen/fenlei/:name/:sort?`,
+    categories: [`shopping`],
+    example: `/smzdm/haowen/fenlei/shenghuodianqi`,
+    parameters: { name: `分类名，可在 URL 中查看`, sort: `排序方式，默认为最新` },
+    features: { requireConfig: [{ name: `SMZDM_COOKIE`, description: `什么值得买登录后的 Cookie 值` }], requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`post.smzdm.com/fenlei/:name`], target: `/haowen/fenlei/:name` }],
+    name: `好文分类`,
+    maintainers: [`LogicJake`],
+    handler: l,
+    description: `| 最新 | 周排行 | 月排行 |
+| ---- | ------ | ------ |
+| 0    | 7      | 30     |`,
+};
+async function l(c) {
+    if (!e.smzdm.cookie) throw new a(`什么值得买排行榜 is disabled due to the lack of SMZDM_COOKIE`);
+    let l = c.req.param(`name`),
+        u = c.req.param(`sort`) || `0`,
+        d = u === `0` ? `https://post.smzdm.com/fenlei/${l}/` : `https://post.smzdm.com/fenlei/${l}/hot_${u}/`,
+        f = s((await r.get(d, { headers: o() })).data),
+        p = f(`div.crumbs.nav-crumbs`).text().split(`>`).pop(),
+        m = f(`div.list.post-list`)
+            .toArray()
+            .map(
+                (e) => (
+                    (e = f(e)),
+                    {
+                        title: e.find(`h2.item-name a`).text(),
+                        link: e.find(`h2.item-name a`).attr(`href`),
+                        description: e.find(`.item-info`).html(),
+                        author: e.find(`.nickname`).text(),
+                        pubDate: i(n(e.find(`span.time`).text(), [`HH:mm`, `MM-DD HH:mm`, `YYYY-MM-DD HH:mm`]), 8),
+                    }
+                )
+            ),
+        h = await Promise.all(
+            m.map((e) =>
+                t.tryGet(e.link, async () => {
+                    try {
+                        let t = s((await r(e.link, { headers: o() })).data);
+                        ((e.description = t(`article`).html()), (e.pubDate = i(n(t(`meta[property="og:release_date"]`).attr(`content`)), 8)), (e.author = t(`meta[property="og:author"]`).attr(`content`)));
+                    } catch {}
+                    return e;
+                })
+            )
+        );
+    return { title: `${p}- 什么值得买好文分类`, link: d, item: h };
+}
+export { c as route };

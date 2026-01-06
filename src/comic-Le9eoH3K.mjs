@@ -1,0 +1,70 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+import { t as r } from './parse-date-DjdQS_Nt.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+import l from 'p-map';
+const u = {
+    path: `/comic/:id/:chapterCnt?`,
+    categories: [`anime`],
+    example: `/copymanga/comic/dianjuren/5`,
+    parameters: { id: `漫画ID`, chapterCnt: '返回章节的数量，默认为 `10`' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+    name: `漫画更新`,
+    maintainers: [`btdwv`, `marvolo666`],
+    handler: d,
+};
+async function d(i) {
+    let a = i.req.param(`id`),
+        o = Number(i.req.param(`chapterCnt`) || 10),
+        c = `www.mangacopy.com`,
+        u = `https://${c}`,
+        d = `https://${c}`,
+        p = `${d}/api/v3/comic/${a}/group/default/chapters`,
+        m = await n.tryGet(
+            p,
+            async () => {
+                let t = !1,
+                    n = [],
+                    i = 0;
+                do {
+                    t = !1;
+                    let { code: r, results: a } = await e(p, { headers: { platform: `` }, query: { limit: 500, offset: i } });
+                    if (r !== 200) break;
+                    (a.limit + a.offset < a.total && (t = !0), (i += 500), (n = [...n, ...a.list]));
+                } while (t);
+                return (
+                    (n = n
+                        .map(({ comic_path_word: e, uuid: t, name: n, size: i, datetime_created: a, ordered: o }) => ({
+                            link: `${u}/comic/${e}/chapter/${t}`,
+                            guid: `https://copymanga.site/comic/${e}/chapter/${t}`,
+                            uuid: t,
+                            title: n,
+                            size: i,
+                            pubDate: r(a, `YYYY-MM-DD`),
+                            ordered: o,
+                        }))
+                        .toSorted((e, t) => t.ordered - e.ordered)),
+                    n
+                );
+            },
+            t.cache.routeExpire,
+            !1
+        ),
+        { bookTitle: h, bookIntro: g } = await n.tryGet(`${u}/comic/${a}`, async () => {
+            let t = s(await e(`${u}/comic/${a}`));
+            return { bookTitle: t(`.comicParticulars-title-right > ul > li > h6`).text(), bookIntro: t(`.intro`).text() };
+        }),
+        _ = async (t) => {
+            let { code: n, results: r } = await e(`${d}/api/v3/comic/${a}/chapter/${t.uuid}`, { headers: { webp: `1` } }),
+                i = n === 210 ? [] : r.chapter.contents.map((e) => ({ url: e.url.replace(`.c800x.`, `.c1500x.`) }));
+            return { link: t.link, guid: t.guid, title: t.title, description: f(t.size, i), pubDate: t.pubDate };
+        },
+        v = [...(await l(m.slice(0, o), (e) => n.tryGet(e.link, () => _(e)), { concurrency: 3 })), ...m.slice(o)];
+    return { title: `拷贝漫画 - ${h}`, link: `${u}/comic/${a}`, description: g, item: v };
+}
+const f = (e, t) => c(o(i, { children: [o(`h1`, { children: [e, `p`] }), a(`br`, {}), t.map((e, t) => a(`img`, { src: e.url }, `${e.url}-${t}`))] }));
+export { u as route };

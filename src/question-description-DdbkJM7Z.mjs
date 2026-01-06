@@ -1,0 +1,5 @@
+import { jsx as e, jsxs as t } from 'hono/jsx/jsx-runtime';
+import { renderToString as n } from 'hono/jsx/dom/server';
+const r = ({ question: n }) => t(`div`, { children: [n.difficulty, ` `, n.date, e(`br`, {}), e(`br`, {}), n.tags, e(`br`, {}), e(`br`, {})] }),
+    i = (t) => n(e(r, { ...t }));
+export { i as t };

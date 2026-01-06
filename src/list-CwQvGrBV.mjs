@@ -1,0 +1,102 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './types-Bl_lnefZ.mjs';
+import { jsx as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+const c = async (i) => {
+        let { id: c = `datalist` } = i.req.param(),
+            l = Number.parseInt(i.req.query(`limit`) ?? `30`, 10),
+            u = new URL(c.endsWith(`/`) ? c : `${c}/`, `http://www.fangchan.com`).href,
+            d = new URL(`api/${c.endsWith(`/`) ? c.replace(/\/$/, ``) : c}.json`, `http://news.fangchan.com`).href,
+            f = o(await e(u)),
+            p = f(`html`).attr(`lang`) ?? `zh-CN`,
+            m = await e(d, { query: { pagesize: l, page: 1 } }),
+            h = [];
+        ((h = m.data.slice(0, l).map((e) => {
+            let t = e.title,
+                r = s(e.zhaiyao ? a(`blockquote`, { children: e.zhaiyao }) : null),
+                i = e.createtime,
+                o = e.url,
+                c = [...new Set([e.topcolumn, e.subcolumn, ...(e.keyword?.split(/,/) ?? [])].filter(Boolean))],
+                l = e.pic,
+                u = e.createtime;
+            return { title: t, description: r, pubDate: i ? n(i, `X`) : void 0, link: o, id: c, content: { html: r, text: e.zhaiyao ?? r }, image: l, banner: l, updated: u ? n(u, `X`) : void 0, language: p };
+        })),
+            (h = (
+                await Promise.all(
+                    h.map((i) =>
+                        i.link
+                            ? t.tryGet(i.link, async () => {
+                                  let t = o(await e(i.link)),
+                                      a = t(`div.summary-text h`).text(),
+                                      s = (i.description ?? ``) + (t(`div.top-info`).html() ?? ``) + (t(`div.summary-text-p`).html() ?? ``),
+                                      c = t(`span.news-date`)
+                                          .text()
+                                          .match(/\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}/)?.[1],
+                                      l = t(`a.news-column, div.label span`).toArray(),
+                                      u = [...new Set([...i.id, ...l.map((e) => t(e).text()).filter(Boolean)].filter(Boolean))],
+                                      d = t(`span.news-date`)
+                                          .text()
+                                          ?.split(/\d{4}-\d{2}-\d{2}/)?.[0]
+                                          ?.trim()
+                                          ?.split(/\s/)
+                                          ?.map((e) => ({ name: e })),
+                                      f = c,
+                                      m = { title: a, description: s, pubDate: c ? r(n(c), 8) : i.pubDate, id: u, author: d, content: { html: s, text: s }, updated: f ? r(n(f), 8) : i.updated, language: p },
+                                      h = t(`ul.xgxw-ul li a`)
+                                          .toArray()
+                                          .map((e) => {
+                                              let n = t(e);
+                                              return { url: n.attr(`href`), type: `related`, content_html: n.text() };
+                                          })
+                                          .filter((e) => !0);
+                                  return (h && (m = { ...m, _extra: { links: h } }), { ...i, ...m });
+                              })
+                            : i
+                    )
+                )
+            ).filter((e) => !0)));
+        let g = `中房网`;
+        return { title: `${g} - ${f(`div.curmbs a`).text()}`, description: f(`meta[name="description"]`).attr(`content`), link: u, item: h, allowEmpty: !0, author: g, language: p };
+    },
+    l = {
+        path: `/list/:id?`,
+        name: `列表`,
+        url: `www.fangchan.com`,
+        maintainers: [`nczitzk`],
+        handler: c,
+        example: `/fangchan/list/datalist`,
+        parameters: {
+            id: {
+                description: '分类，默认为 `datalist`，即数据研究，可在对应分类页 URL 中找到',
+                options: [
+                    { label: `数据研究`, value: `datalist` },
+                    { label: `行业测评`, value: `industrylist` },
+                    { label: `政策法规`, value: `policylist` },
+                ],
+            },
+        },
+        description:
+            '::: tip\n若订阅 [列表](https://www.fangchan.com/)，网址为 `https://www.fangchan.com/`，请截取 `https://www.fangchan.com/` 到末尾 `.html` 的部分 `datalist` 作为 `id` 参数填入，此时目标路由为 [`/fangchan/datalist`](https://rsshub.app/fangchan/datalist)。\n:::\n\n| [数据研究](https://www.fangchan.com/datalist)         | [行业测评](https://www.fangchan.com/industrylist)             | [政策法规](https://www.fangchan.com/policylist)           |\n| ----------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------- |\n| [datalist](https://rsshub.app/fangchan/list/datalist) | [industrylist](https://rsshub.app/fangchan/list/industrylist) | [policylist](https://rsshub.app/fangchan/list/policylist) |\n',
+        categories: [`new-media`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            {
+                source: [`www.fangchan.com/:id`],
+                target: (e) => {
+                    let t = e.id;
+                    return `/fangchan/list/${t ? `/${t}` : ``}`;
+                },
+            },
+            { title: `数据研究`, source: [`www.fangchan.com/datalist`], target: `/list/datalist` },
+            { title: `行业测评`, source: [`www.fangchan.com/industrylist`], target: `/list/industrylist` },
+            { title: `政策法规`, source: [`www.fangchan.com/policylist`], target: `/list/policylist` },
+        ],
+        view: i.Articles,
+    };
+export { c as handler, l as route };

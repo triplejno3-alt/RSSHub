@@ -1,0 +1,92 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { jsx as r, jsxs as i } from 'hono/jsx/jsx-runtime';
+import { renderToString as a } from 'hono/jsx/dom/server';
+import { raw as o } from 'hono/html';
+const s = (e) =>
+        a(
+            i(`div`, {
+                id: `job_list`,
+                children: [
+                    r(`p`, { children: `招聘职位：` }),
+                    i(`table`, {
+                        children: [
+                            i(`tr`, { children: [r(`th`, { children: `职位名称` }), r(`th`, { children: `职位月薪` }), r(`th`, { children: `工作地点` }), r(`th`, { children: `专业需求` }), r(`th`, { children: `应聘条件` })] }),
+                            e.map((e) =>
+                                i(`tr`, {
+                                    children: [
+                                        r(`td`, { width: `50`, children: e.zwmc }),
+                                        r(`td`, { width: `50`, children: `${e.yxmc}/月` }),
+                                        r(`td`, { width: `50`, children: e.gzdz }),
+                                        r(`td`, { width: `70`, children: e.zyyqmc }),
+                                        r(`td`, { width: `125`, children: e.zwms }),
+                                    ],
+                                })
+                            ),
+                        ],
+                    }),
+                ],
+            })
+        ),
+    c = (e) =>
+        a(
+            i(`div`, {
+                id: `description_box`,
+                children: [
+                    i(`div`, {
+                        id: `brief_description`,
+                        children: [
+                            r(`p`, { children: `招聘主题：${e.zpzt}` }),
+                            r(`p`, { children: `单位名称：${e.dwmc}` }),
+                            r(`p`, { children: `单位性质：${e.xzyjmc}` }),
+                            r(`p`, { children: `行业名称：${e.hyyjmc}（${e.hyejmc}）` }),
+                            r(`p`, { children: `公司规模：${e.rsgmmc}` }),
+                            r(`p`, { children: `工作地点：${e.szxmc} ${e.xxdz}` }),
+                            r(`p`, { children: `招聘截止日期：${e.zpjzrq}` }),
+                            r(`p`, { children: `简历投递邮箱：${e.jltdyx}` }),
+                            r(`p`, { children: `单位网站：${e.dwwz}` }),
+                        ],
+                    }),
+                    o(s(e.zwxxList)),
+                    r(`div`, { id: `company_introduction`, children: o(e.zpxxEditor) }),
+                ],
+            })
+        );
+var l = {
+    descpPage: (e, r) =>
+        r.tryGet(e, async () => {
+            let r = (await n({ method: `post`, url: e })).data.data;
+            return { title: `${r.dwmc}（${r.xzyjmc}）`, pubDate: t(String(r.fbrq)), description: c(r), link: String(e.replace(`data`, `view`)) };
+        }),
+    renderDetail: s,
+    renderDesc: c,
+};
+const u = `https://jiuye.swjtu.edu.cn/career`,
+    d = {
+        path: `/jyzpxx`,
+        categories: [`university`],
+        example: `/swjtu/jyzpxx`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`jiuye.swjtu.edu.cn/career`, `jiuye.swjtu.edu.cn/`] }],
+        name: `就业招聘信息`,
+        maintainers: [`qizidog`],
+        handler: f,
+        url: `jiuye.swjtu.edu.cn/career`,
+    };
+async function f(t) {
+    let r = (await n({ method: `post`, url: `${u}/zpxx/search/zpxx/1/${Math.min(t.req.query(`limit`) ?? 10, 50)}` })).data.data.list,
+        i = await Promise.all(
+            r.map((t) => {
+                let n = `${u}/zpxx/data/zpxx/${t.zpxxid}`;
+                return l.descpPage(n, e);
+            })
+        );
+    return { title: `西南交大-就业招聘信息`, link: `${u}/zpxx/zpxx`, item: i, allowEmpty: !0 };
+}
+export { d as route };

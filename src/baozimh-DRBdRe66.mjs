@@ -1,0 +1,58 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { Fragment as n, jsx as r } from 'hono/jsx/jsx-runtime';
+import { load as i } from 'cheerio';
+import { renderToString as a } from 'hono/jsx/dom/server';
+const o = `https://www.baozimh.com`,
+    s = {
+        path: `/comic/:name`,
+        categories: [`anime`],
+        example: `/baozimh/comic/guowangpaiming-shiricaofu`,
+        parameters: { name: '漫画名称，在漫画链接可以得到(`comic/` 后的那段)' },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`www.baozimh.com/comic/:name`] }],
+        name: `订阅漫画`,
+        maintainers: [`Fatpandac`],
+        handler: c,
+    };
+async function c(s) {
+    let c = `${o}/comic/${s.req.param(`name`)}`,
+        l = i((await t(c)).data),
+        u = l(`div > div.pure-u-1-1.pure-u-sm-2-3.pure-u-md-3-4 > div > h1`).text(),
+        d = l(`#chapter-items`)
+            .first()
+            .children()
+            .toArray()
+            .map((e) => ({ title: l(e).find(`span`).text(), link: o + l(e).find(`a`).attr(`href`) })),
+        f = l(`#chapters_other_list`)
+            .first()
+            .children()
+            .toArray()
+            .map((e) => ({ title: l(e).find(`span`).text(), link: o + l(e).find(`a`).attr(`href`) })),
+        p = [...d, ...f];
+    p.reverse();
+    let m = await Promise.all(
+        p.map((o) =>
+            e.tryGet(o.link, async () => {
+                let e = i((await t(o.link)).data);
+                return (
+                    (o.description = a(
+                        r(n, {
+                            children: e(`.comic-contain`)
+                                .find(`amp-img`)
+                                .toArray()
+                                .map((t) => r(`img`, { src: e(t).attr(`src`) })),
+                        })
+                    )),
+                    o
+                );
+            })
+        )
+    );
+    return { title: `包子漫画-${u}`, description: l(`.comics-detail__desc`).text(), link: c, item: m };
+}
+export { s as route };

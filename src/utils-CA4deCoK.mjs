@@ -1,0 +1,36 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { load as r } from 'cheerio';
+const i = `https://misskon.com/wp-json/wp/v2`,
+    a = async (a) => {
+        let o = new URL(`${i}/posts?${a}`);
+        return (
+            o.searchParams.append(`_embed`, `wp:term`),
+            (await e(o.href)).map((e) => {
+                let i = r(e.content.rendered);
+                return (
+                    i(`input`).each(function () {
+                        i(this).replaceWith(i(this).attr(`value`) || ``);
+                    }),
+                    i(`script`).remove(),
+                    {
+                        title: e.title.rendered,
+                        link: e.link,
+                        description: i.html(),
+                        pubDate: n(t(e.date_gmt), 0),
+                        category: e._embedded[`wp:term`]
+                            .flat()
+                            .filter((e) => e.taxonomy === `post_tag`)
+                            .map((e) => e.name),
+                    }
+                );
+            })
+        );
+    },
+    o = async (t) => {
+        let n = await e(`${i}/tags?slug=${t}`);
+        if (n.length === 0) throw Error(`Invalid tag slug: ${t}`);
+        return { id: n[0].id, name: n[0].name, link: n[0].link, description: n[0].description };
+    };
+export { a as n, o as r, i as t };

@@ -1,0 +1,65 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+import { raw as l } from 'hono/html';
+const u = {
+    path: `/news_web_easy`,
+    categories: [`traditional-media`],
+    example: `/nhk/news_web_easy`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`news.web.nhk/news/easy/`, `news.web.nhk/`] }],
+    name: `News Web Easy`,
+    maintainers: [`Andiedie`],
+    handler: d,
+    url: `news.web.nhk/news/easy/`,
+};
+async function d(u) {
+    let d = await e.raw(`https://news.web.nhk/tix/build_authorize`, {
+            query: { idp: `a-alaz`, profileType: `abroad`, redirect_uri: `https://news.web.nhk/news/easy/`, entity: `none`, area: `130`, pref: `13`, jisx0402: `13101`, postal: `1000001` },
+            redirect: `manual`,
+        }),
+        f = d.headers
+            .getSetCookie()
+            .map((e) => e.split(`;`)[0])
+            .join(`; `),
+        p = await e.raw(d.headers.get(`location`), { redirect: `manual` }),
+        m = (await e.raw(p.headers.get(`location`), { headers: { cookie: f }, redirect: `manual` })).headers
+            .getSetCookie()
+            .map((e) => e.split(`;`)[0])
+            .join(`; `),
+        h = (await e(`https://news.web.nhk/news/easy/news-list.json`, { headers: { cookie: f + `; ` + m } }))[0],
+        g = Object.values(h).flatMap((e) =>
+            e.map((e) => ({
+                title: e.title,
+                description: c(o(i, { children: [e.title_with_ruby ? a(`h1`, { children: l(e.title_with_ruby) }) : null, e.news_web_image_uri ? a(`img`, { src: e.news_web_image_uri }) : null, a(`br`, {})] })),
+                guid: e.news_id,
+                pubDate: r(n(e.news_prearranged_time), 9),
+                link: `https://news.web.nhk/news/easy/${e.news_id}/${e.news_id}.html`,
+            }))
+        );
+    return (
+        (g = g.toSorted((e, t) => t.pubDate - e.pubDate).slice(0, u.req.query(`limit`) ? Number(u.req.query(`limit`)) : 30)),
+        (g = await Promise.all(
+            g.map((n) =>
+                t.tryGet(n.link, async () => {
+                    let t = s(await e(n.link, { headers: { cookie: f + `; ` + m } }));
+                    return ((n.description += t(`.article-body`).html()), n);
+                })
+            )
+        )),
+        {
+            title: `NEWS WEB EASY`,
+            link: `https://news.web.nhk/news/easy/`,
+            description: `NEWS WEB EASYは、小学生・中学生の皆さんや、日本に住んでいる外国人のみなさんに、わかりやすいことば　でニュースを伝えるウェブサイトです。`,
+            item: g,
+        }
+    );
+}
+export { u as route };

@@ -1,0 +1,127 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+import { t as r } from './parse-date-DjdQS_Nt.mjs';
+import i from 'node:crypto';
+import a from 'sanitize-html';
+const o = (e) =>
+        i
+            .randomBytes(Math.ceil(e / 2))
+            .toString(`hex`)
+            .slice(0, e),
+    s = (e) => {
+        let t = [
+                183, 174, 108, 16, 131, 159, 250, 5, 239, 110, 193, 202, 153, 137, 251, 176, 119, 150, 47, 204, 97, 237, 1, 71, 177, 42, 88, 218, 166, 82, 87, 94, 14, 195, 69, 127, 215, 240, 225, 197, 238, 142, 123, 44, 219, 50, 190,
+                29, 181, 186, 169, 98, 139, 185, 152, 13, 141, 76, 6, 157, 200, 132, 182, 49, 20, 116, 136, 43, 155, 194, 101, 231, 162, 242, 151, 213, 53, 60, 26, 134, 211, 56, 28, 223, 107, 161, 199, 15, 229, 61, 96, 41, 66, 158,
+                254, 21, 165, 253, 103, 89, 3, 168, 40, 246, 81, 95, 58, 31, 172, 78, 99, 45, 148, 187, 222, 124, 55, 203, 235, 64, 68, 149, 180, 35, 113, 207, 118, 111, 91, 38, 247, 214, 7, 212, 209, 189, 241, 18, 115, 173, 25, 236,
+                121, 249, 75, 57, 216, 10, 175, 112, 234, 164, 70, 206, 198, 255, 140, 230, 12, 32, 83, 46, 245, 0, 62, 227, 72, 191, 156, 138, 248, 114, 220, 90, 84, 170, 128, 19, 24, 122, 146, 80, 39, 37, 8, 34, 22, 11, 93, 130,
+                63, 154, 244, 160, 144, 79, 23, 133, 92, 54, 102, 210, 65, 67, 27, 196, 201, 106, 143, 52, 74, 100, 217, 179, 48, 233, 126, 117, 184, 226, 85, 171, 167, 86, 2, 147, 17, 135, 228, 252, 105, 30, 192, 129, 178, 120, 36,
+                145, 51, 163, 77, 205, 73, 4, 188, 125, 232, 33, 243, 109, 224, 104, 208, 221, 59, 9,
+            ],
+            n = [204, 53, 135, 197, 39, 73, 58, 160, 79, 24, 12, 83, 180, 250, 101, 60, 206, 30, 10, 227, 36, 95, 161, 16, 135, 150, 235, 116, 242, 116, 165, 171],
+            r = `=`.repeat((4 - (e.length % 4)) % 4),
+            i = Buffer.from(e.replace(`_`, `/`).replace(`-`, `+`) + r, `base64`);
+        if (i.length < 16) return e;
+        let a = i.subarray(0, -16),
+            o = i.subarray(-16),
+            s = new Uint8Array(a);
+        for (let e = 0; e < s.length; e++) s[e] = t[s[e]];
+        for (let e = 0; e < s.length; e += 16) {
+            let t = s.subarray(e, e + 16);
+            for (let [n, r] of t.entries()) s[e + n] = r ^ o[n];
+        }
+        for (let e = 0; e < s.length; e += 32) {
+            let t = s.subarray(e, e + 32);
+            for (let [r, i] of t.entries()) s[e + r] = i ^ n[r];
+        }
+        return Buffer.from(s).toString(`utf8`);
+    },
+    c = `https://www.ximalaya.com`,
+    l = { 人文: `Society & Culture`, 历史: `History`, 头条: `News`, 娱乐: `Leisure`, 音乐: `Music`, IT科技: `Technology` };
+function u(t) {
+    return n.tryGet(`ximalaya:albumInfo:${t}`, async () => (await e(`${c}/revision/album/v1/simple`, { query: { albumId: t }, parseResponse: JSON.parse })).data.albumPageMainInfo);
+}
+function d(e, ...t) {
+    if (!e) return !1;
+    if (((e = e.toLowerCase()), e === `true` || e === `1`)) return !0;
+    for (let n of t) if (e === n) return !0;
+    return !1;
+}
+const f = {
+    path: [`/:type/:id/:all/:shownote?`],
+    categories: [`multimedia`],
+    example: `/ximalaya/album/299146`,
+    parameters: { type: '专辑类型, 通常可以使用 `album`，可在对应专辑页面的 URL 中找到', id: `专辑 id, 可在对应专辑页面的 URL 中找到`, all: '是否需要获取全部节目，填入 `1`、`true`、`all` 视为获取所有节目，填入其他则不获取。' },
+    features: { requireConfig: [{ name: `XIMALAYA_TOKEN`, description: `` }], requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !0, supportScihub: !1 },
+    name: `专辑`,
+    maintainers: [`lengthmin`, `jjeejj`, `prnake`],
+    handler: p,
+    description: `目前喜马拉雅的 API 只能一集一集的获取各节目上的 ShowNote，会极大的占用系统资源，所以默认为不获取节目的 ShowNote。
+
+::: warning
+  专辑类型即 url 中的分类拼音，使用通用分类 \`album\` 通常是可行的，专辑 id 是跟在**分类拼音**后的那个 id, 不要输成某集的 id 了
+
+  **付费内容需要配置好已购买账户的 token 才能收听，详情见部署页面的配置模块**
+:::`,
+};
+async function p(i) {
+    let f = i.req.param(`type`),
+        p = i.req.param(`id`),
+        m = d(i.req.param(`all`), `all`),
+        h = d(i.req.param(`shownote`), `shownote`),
+        g = m ? 200 : 30,
+        _ = await u(p),
+        v = _.isPaid,
+        y = _.anchorName,
+        b = _.albumTitle,
+        x = `https:` + _.cover,
+        S = a(_.detailRichIntro, { allowedTags: [], allowedAttributes: {} }),
+        C = _.categoryTitle,
+        w = `https://mobile.ximalaya.com/mobile/v1/album/track/?albumId=${p}&pageSize=${g}&pageId=`,
+        T = await e(w + `1`, { parseResponse: JSON.parse }),
+        E = T.data.maxPageId,
+        D = T.data.list;
+    if (m) {
+        let t = [];
+        for (let n = 2; n <= E; n++) t.push(e(w + n, { parseResponse: JSON.parse }));
+        let n = await Promise.all(t);
+        for (let e of n) D = [...D, ...e.data.list];
+    }
+    await Promise.all(
+        D.map(async (t) => {
+            t.desc = await n.tryGet(`ximalaya:trackRichInfo:${t.trackId}:${h.toString()}`, async () => {
+                let n = ``;
+                return (h && (n = (await e(`https://mobile.ximalaya.com/mobile-track/richIntro?trackId=${t.trackId}`)).richIntro), (n ||= t.intro), n);
+            });
+        })
+    );
+    let O = t.ximalaya.token;
+    if (v && O) {
+        let t = o(8) + `-` + o(4) + `-` + o(4) + `-` + o(4) + `-` + o(12);
+        await Promise.all(
+            D.map(async (r) => {
+                let i = `https://www.ximalaya.com/mobile-playpage/track/v3/baseInfo/${Math.floor(Date.now())}?device=www2&trackQualityLevel=2&trackId=${r.trackId}`,
+                    a = await n.tryGet(`ximalaya:trackPayInfo` + i, async () => {
+                        let n = (await e(i, { headers: { 'user-agent': `ting_6.7.9(GM1900,Android29)`, cookie: `1&_device=android&${t}&6.7.9;1&_token=${O}` } })).trackInfo,
+                            r = {};
+                        return (n.isAuthorized && (r.playPathAacv224 = s(n.playUrlList[0].url)), r);
+                    });
+                (a.playPathAacv224 && (r.playPathAacv224 = a.playPathAacv224), a.desc && (r.desc = a.desc));
+            })
+        );
+    }
+    let k = D.map((e) => {
+        let t = e.title,
+            n = e.trackId,
+            i = e.coverLarge.split(`!`)[0] ?? x,
+            a = `${c}/sound/${n}`,
+            o = r(e.createdAt, `x`),
+            s = e.duration,
+            l = e.playPathAacv224 || e.playPathAacv164,
+            u = { title: t, link: a, description: e.desc || ``, pubDate: o, itunes_item_image: i };
+        return (l ? (v && (u.description = `[该内容需付费] ` + u.description), (u = { ...u, enclosure_url: l, itunes_duration: s, enclosure_type: `audio/x-m4a` })) : (u.description = `[该内容需付费] ` + u.description), u);
+    });
+    return { title: b, link: `${c}/${f}/${p}`, description: S, image: x, itunes_author: y, itunes_category: l[C] || C, item: k };
+}
+export { f as route };

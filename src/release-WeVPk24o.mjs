@@ -1,0 +1,69 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { load as i } from 'cheerio';
+const a = async (r) => {
+        let a = Number.parseInt(r.req.query(`limit`) ?? `30`, 10),
+            o = new URL(`downloads`, `https://www.python.org`).href,
+            s = i(await e(o)),
+            c = s(`html`).attr(`lang`) ?? `en`,
+            l = [];
+        return (
+            (l = s(`div.active-release-list-widget ol.list-row-container li`)
+                .slice(0, a)
+                .toArray()
+                .map((e) => {
+                    let t = s(e),
+                        r = t.find(`span.release-version`).text(),
+                        i = t
+                            .find(`span.release-start`)
+                            .text()
+                            ?.match(/(\d{4}-\d{2}-\d{2})/)?.[1],
+                        a = t.find(`span.release-pep a`).attr(`href`),
+                        o = i;
+                    return { title: r, pubDate: i ? n(i) : void 0, link: a, updated: o ? n(o) : void 0, language: c };
+                })),
+            (l = await Promise.all(
+                l.map((n) =>
+                    n.link
+                        ? t.tryGet(n.link, async () => {
+                              let t = i(await e(n.link)),
+                                  r = t(`h1.page-title`).text(),
+                                  a = t(`section#pep-content`).html(),
+                                  o = t(`meta[property="og:image"]`).attr(`content`),
+                                  s = { title: r, description: a, content: { html: a, text: a }, image: o, banner: o, language: c };
+                              return { ...n, ...s };
+                          })
+                        : n
+                )
+            )),
+            {
+                title: s(`div.active-release-list-widget h2.widget-title`).text(),
+                description: s(`meta[property="og:description"]`).attr(`content`),
+                link: o,
+                item: l,
+                allowEmpty: !0,
+                image: s(`meta[property="og:image"]`).attr(`content`),
+                language: c,
+                id: s(`meta[property="og:url"]`).attr(`content`),
+            }
+        );
+    },
+    o = {
+        path: `/release`,
+        name: `Active Python Releases`,
+        url: `www.python.org`,
+        maintainers: [`nczitzk`],
+        handler: a,
+        example: `/python/release`,
+        parameters: void 0,
+        description: void 0,
+        categories: [`programming`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`www.python.org`, `www.python.org/downloads`], target: `/release` }],
+        view: r.Articles,
+    };
+export { a as handler, o as route };

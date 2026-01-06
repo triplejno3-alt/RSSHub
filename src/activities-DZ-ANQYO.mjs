@@ -1,0 +1,102 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { n as r, r as i, t as a } from './utils-CAAmnNMo.mjs';
+import o from 'sanitize-html';
+const s = {
+    path: `/people/activities/:id`,
+    categories: [`social-media`],
+    view: n.Articles,
+    example: `/zhihu/people/activities/diygod`,
+    parameters: { id: `作者 id，可在用户主页 URL 中找到` },
+    features: { requireConfig: [{ name: `ZHIHU_COOKIES`, description: ``, optional: !0 }], requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.zhihu.com/people/:id`] }],
+    name: `用户动态`,
+    maintainers: [`DIYgod`],
+    handler: c,
+};
+async function c(n) {
+    let s = n.req.param(`id`),
+        c = `/api/v3/moments/${s}/activities?limit=5&desktop=true&ws_qiangzhisafe=0`,
+        l = await a(`https://www.zhihu.com/people/${s}`, c),
+        u = (await t(`https://www.zhihu.com${c}`, { headers: { ...r, ...l, Referer: `https://www.zhihu.com/people/${s}` } })).data.data;
+    return {
+        title: `${u[0].actor.name}的知乎动态`,
+        link: `https://www.zhihu.com/people/${s}/activities`,
+        image: u[0].actor.avatar_url,
+        description: u[0].actor.headline || u[0].actor.description,
+        item: u.map((t) => {
+            let n = t.target,
+                r,
+                a,
+                s,
+                c = [],
+                l = ``,
+                d = ``,
+                f = ``;
+            switch (t.target.type) {
+                case `answer`:
+                    ((r = n.question.title), (f = n.author.name), (a = i(n.content)), (s = `https://www.zhihu.com/question/${n.question.id}/answer/${n.id}`));
+                    break;
+                case `article`:
+                    ((r = n.title), (f = n.author.name), (a = i(n.content)), (s = `https://zhuanlan.zhihu.com/p/${n.id}`));
+                    break;
+                case `pin`:
+                    ((r = o(n.excerpt_title)), (f = n.author.name));
+                    for (let e of n.content)
+                        switch (e.type) {
+                            case `text`:
+                                l = `<p>${e.own_text}</p>`;
+                                break;
+                            case `image`:
+                                c.push(`<p><img src="${e.url.replace(`xl`, `r`)}"/></p>`);
+                                break;
+                            case `link`:
+                                d = `<p><a href="${e.url}" target="_blank">${e.title}</a></p>`;
+                                break;
+                            case `video`:
+                                d = `<p><video
+                                controls="controls"
+                                width="${e.playlist[1].width}"
+                                height="${e.playlist[1].height}"
+                                src="${e.playlist[1].url}"></video></p>`;
+                                break;
+                            case `link_card`:
+                                d = `<p><a href="${e.url.split(`?`)[0]}" target="_blank"></a></p>`;
+                                break;
+                            default:
+                                throw Error(`Unknown type: ${e.type}`);
+                        }
+                    ((a = `${l}${d}${c.join(``)}`), (s = `https://www.zhihu.com/pin/${n.id}`));
+                    break;
+                case `question`:
+                    ((r = n.title), (f = n.author.name), (a = i(n.detail)), (s = `https://www.zhihu.com/question/${n.id}`));
+                    break;
+                case `collection`:
+                    ((r = n.title), (s = `https://www.zhihu.com/collection/${n.id}`));
+                    break;
+                case `column`:
+                    ((r = n.title), (a = `<p>${n.intro}</p><p><img src="${n.image_url}"/></p>`), (s = `https://zhuanlan.zhihu.com/${n.id}`));
+                    break;
+                case `topic`:
+                    ((r = n.name), (a = `<p>${n.introduction}</p><p>话题关注者人数：${n.followers_count}</p>`), (s = `https://www.zhihu.com/topic/${n.id}`));
+                    break;
+                case `live`:
+                    ((r = n.subject), (a = n.description.replaceAll(/\n|\r/g, `<br>`)), (s = `https://www.zhihu.com/lives/${n.id}`));
+                    break;
+                case `roundtable`:
+                    ((r = n.name), (a = n.description), (s = `https://www.zhihu.com/roundtable/${n.id}`));
+                    break;
+                default:
+                    a = `未知类型 ${t.target.type}，请点击<a href="https://github.com/DIYgod/RSSHub/issues">链接</a>提交issue`;
+            }
+            return { title: `${u[0].actor.name}${t.action_text}: ${r}`, author: f, description: a, pubDate: e(t.created_time * 1e3), link: s };
+        }),
+    };
+}
+export { s as route };

@@ -1,0 +1,50 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { Fragment as n, jsx as r, jsxs as i } from 'hono/jsx/jsx-runtime';
+import { load as a } from 'cheerio';
+import { renderToString as o } from 'hono/jsx/dom/server';
+const s = (e, t) =>
+        o(
+            i(n, {
+                children: [
+                    e ? r(`img`, { src: `https://assets.nintendo.com/image/upload/${e}` }) : null,
+                    t?.length ? t.map((e, t) => (e.nodeType === `paragraph` ? r(`p`, { children: (e.content ?? []).map((e) => e.value).join(``) }, `${e.nodeType}-${t}`) : null)) : null,
+                ],
+            })
+        ),
+    c = {
+        path: `/direct`,
+        categories: [`game`],
+        example: `/nintendo/direct`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`nintendo.com/nintendo-direct/archive`, `nintendo.com/`] }],
+        name: `Nintendo Direct`,
+        maintainers: [`HFO4`],
+        handler: l,
+        url: `nintendo.com/nintendo-direct/archive`,
+    };
+async function l() {
+    let n = (await t(`https://www.nintendo.com/nintendo-direct/archive/`)).data,
+        r = a(n),
+        i = JSON.parse(r(`script#__NEXT_DATA__`).text());
+    return (
+        delete i.props.pageProps.initialApolloState.ROOT_QUERY,
+        {
+            title: `Nintendo Direct（任天堂直面会）`,
+            link: `https://www.nintendo.com/nintendo-direct/archive/`,
+            description: `最新的任天堂直面会日程信息`,
+            item: Object.values(i.props.pageProps.initialApolloState).map((t) => ({
+                title: t.name,
+                pubDate: e(t.startDate),
+                link: `https://www.nintendo.com/nintendo-direct/${t.slug}/`,
+                description: s(t.thumbnail.publicId, t.description.json.content),
+            })),
+        }
+    );
+}
+export { c as route };

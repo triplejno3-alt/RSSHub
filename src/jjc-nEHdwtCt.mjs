@@ -1,0 +1,47 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/jjc`,
+    categories: [`university`],
+    example: `/nju/jjc`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`jjc.nju.edu.cn/main.htm`, `jjc.nju.edu.cn/`] }],
+    name: `基建处`,
+    maintainers: [`ret-1`],
+    handler: a,
+    url: `jjc.nju.edu.cn/main.htm`,
+};
+async function a() {
+    let i = { cgxx: `采购信息`, cjgg: `成交公告`, cfgg: `处罚公告` },
+        a = await Promise.all(
+            Object.keys(i).map(async (a) => {
+                let o = (await t(`https://jjc.nju.edu.cn/${a}/list.htm`)).data,
+                    s = r(o);
+                return s(`#wp_news_w6`)
+                    .children()
+                    .children()
+                    .children()
+                    .map(
+                        (t, r) => (
+                            (r = s(r)),
+                            {
+                                title: r.find(`a`).attr(`title`),
+                                description: r.find(`a`).attr(`title`),
+                                link: `https://jjc.nju.edu.cn` + r.find(`a`).attr(`href`),
+                                pubDate: n(e(r.find(`td`).last().text(), `YYYY-MM-DD`), 8),
+                                category: i[a],
+                            }
+                        )
+                    );
+            })
+        );
+    return { title: `南京大学基建处`, link: `https://jjc.nju.edu.cn/main.htm`, item: [...a[0], ...a[1], ...a[2]] };
+}
+export { i as route };

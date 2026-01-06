@@ -1,0 +1,35 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/author/:author`,
+    categories: [`programming`],
+    example: `/secrss/author/网络安全威胁和漏洞信息共享平台`,
+    parameters: { author: `N` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `作者`,
+    maintainers: [`XinRoom`, `SunBK201`],
+    handler: a,
+};
+async function a(i) {
+    let a = i.req.param(`author`),
+        o = (await n(`https://www.secrss.com/api/articles/group?author=${a}`)).data.data.list,
+        s = await Promise.all(
+            o.map((i) => {
+                let a = `https://www.secrss.com${i.url}`;
+                return e.tryGet(a, async () => {
+                    let e = r((await n(a)).data)(`.article-body`)
+                        .html()
+                        .trim();
+                    return { title: i.title, link: a, pubDate: t(i.original_timestamp, `X`), description: e, category: i.tag };
+                });
+            })
+        );
+    return { title: `安全内参-${a}`, link: `https://www.secrss.com`, item: s };
+}
+export { i as route };

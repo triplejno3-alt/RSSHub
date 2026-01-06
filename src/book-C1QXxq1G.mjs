@@ -1,0 +1,58 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import * as n from 'cheerio';
+const r = () =>
+        t.tryGet(`freexcomic:getLatestAddress`, async () => {
+            let t = await e(`https://www.freexcomic.com`),
+                r = n.load(t),
+                i = await e(new URL(r(`.alert-btn`).attr(`href`)).href.replace(`http:`, `https:`)),
+                a = n.load(i);
+            return a(`p.ta-c.mb10 a`)
+                .toArray()
+                .map((e) => a(e).attr(`href`));
+        }),
+    i = {
+        path: `/book/:id`,
+        example: `/freexcomic/book/90`,
+        parameters: { id: `漫画id，漫画主页的地址栏中` },
+        radar: [{ source: [`www.jjmhw.cc/book/:id`] }],
+        name: `漫画更新`,
+        maintainers: [`junfengP`],
+        handler: async (i) => {
+            let { id: a } = i.req.param(),
+                o = Number.parseInt(i.req.query(`limit`), 10) || 10,
+                s = await r(),
+                c = `${s[0]}book/${a}`,
+                l = await e(c),
+                u = n.load(l),
+                d = u(`#detail-list-select > li > a`)
+                    .toArray()
+                    .toReversed()
+                    .slice(0, o)
+                    .map((e) => {
+                        let t = u(e);
+                        return { title: t.text(), link: new URL(t.attr(`href`), s[Math.floor(Math.random() * s.length)]).href, guid: new URL(t.attr(`href`), `http://www.jjmhw.cc`).href };
+                    }),
+                f = await Promise.all(
+                    d.map((r) =>
+                        t.tryGet(r.link, async () => {
+                            let t = await e(r.link),
+                                i = n.load(t)(`.comicpage`);
+                            return (
+                                i.find(`img`).each((e, t) => {
+                                    t.attribs.src = t.attribs[`data-original`];
+                                }),
+                                (r.description = i.html()),
+                                r
+                            );
+                        })
+                    )
+                );
+            return { title: `漫小肆 ${u(`div.info > h1`).text()}`, link: c, description: `漫小肆 ${u(`div.info .content span span`).text()}`, image: u(`.banner_detail .cover img`).attr(`src`), item: f };
+        },
+        url: `www.jjmhw.cc`,
+        features: { nsfw: !0 },
+    };
+export { i as route };

@@ -1,0 +1,33 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { t } from './invalid-parameter-DGZgOgO2.mjs';
+import { t as n } from './valid-host-Bsy2BS2p.mjs';
+import { i as r, n as i, r as a } from './utils-cMJuIYwm.mjs';
+import { load as o } from 'cheerio';
+const s = {
+    path: `/users/:username/:language?`,
+    categories: [`multimedia`],
+    example: `/pornhub/users/pornhubmodels`,
+    parameters: { language: `language, see below`, username: 'username, part of the url e.g. `pornhub.com/users/pornhubmodels`' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+    radar: i(`/users/:username`),
+    name: `Users`,
+    maintainers: [`I2IMk`, `queensferryme`],
+    handler: c,
+};
+async function c(i) {
+    let { language: s = `www`, username: c } = i.req.param(),
+        l = `https://${s}.pornhub.com/users/${c}/videos`;
+    if (!n(s)) throw new t(`Invalid language`);
+    let { data: u } = await e(l, { headers: a }),
+        d = o(u),
+        f = d(`.videoUList .videoBox`)
+            .toArray()
+            .map((e) => r(d(e)));
+    return { title: d(`.profileUserName a`).text(), description: d(`.aboutMeText`).text().trim(), link: l, image: d(`#getAvatar`).attr(`src`), language: d(`html`).attr(`lang`), allowEmpty: !0, item: f };
+}
+export { s as route };

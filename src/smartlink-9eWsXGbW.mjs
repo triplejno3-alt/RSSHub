@@ -1,0 +1,45 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { i as t } from './common-utils-uYpL50sT.mjs';
+function n(e) {
+    try {
+        let n = new URL(e).pathname.split(`/`).filter((e) => e.length > 0),
+            r = /^\d{4}-\d{2}-\d{2}$/,
+            i = n.findIndex((e) => r.test(e));
+        return t((i !== -1 && i < n.length - 1 ? n[i + 1] : n.at(-1) || ``).replaceAll(`-`, ` `));
+    } catch {
+        return e.split(`?`)[0];
+    }
+}
+function r(e) {
+    try {
+        let t = new URL(e).hostname.toLowerCase();
+        return t === `youtube.com` || t === `www.youtube.com` || t === `m.youtube.com` || t === `youtu.be`;
+    } catch {
+        return !1;
+    }
+}
+function i(e) {
+    return r(e.smartlink) ? e.smartlink.split(`?`)[0] : n(e.smartlink);
+}
+const a = {
+    path: `/:site`,
+    categories: [`social-media`],
+    example: `/smartlink/bloombergpursuits`,
+    parameters: { site: `the site attached to smartlink.bio/` },
+    radar: [{ source: [`smartlink.bio/`] }],
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `Posts`,
+    maintainers: [`nickyfoto`],
+    handler: o,
+    description: `smartlink.bio link in bio takes your audience from Instagram and TikTok to your website in one easy step.`,
+};
+async function o(t) {
+    let n = t.req.param(`site`),
+        r = await e(`https://smartlink.bio/api/instagram/${n}/posts`),
+        a = JSON.parse(r).map((e) => ({ title: i(e), link: e.smartlink.split(`?`)[0], description: `<p><img src="${e.imageUrl}"></p>`, pubDate: e.created, guid: e.id }));
+    return { title: `@${n} SmartLink`, link: `https://smartlink.bio/${n}`, item: a };
+}
+export { a as route };

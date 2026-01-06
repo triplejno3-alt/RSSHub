@@ -1,0 +1,57 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = `http://www.nifd.cn`,
+    a = {
+        '7a6a826d-b525-42aa-b550-4236e524227f': `周报`,
+        '128d602c-7041-4546-beff-83e605f8a370': `双周报`,
+        '0712e220-fa3b-44d4-9226-bc3d57944e19': `月报`,
+        'b66aa691-87ee-4bfe-ac6b-2460386166ee': `季报`,
+        'c714853a-f09e-4510-8835-30a448fff7e3': `年报`,
+        '17d0b29b-7912-498a-b9c3-d30508220158': `课题报告`,
+        'e6a6d3a5-4bda-4739-9765-e4e41c900bcc': `学术报告`,
+        '3d23ba0e-4f46-44c2-9d21-6b38df4cdd70': `工作论文`,
+        '3333d2af-91d6-429b-be83-28b92f31b6d7': `研究评价`,
+        '6363bdc7-3e1b-4771-a904-6162cd3a3143': `其他报告`,
+    },
+    o = {
+        path: `/research/:categoryGuid?`,
+        categories: [`finance`],
+        example: `/nifd/research/3333d2af-91d6-429b-be83-28b92f31b6d7`,
+        parameters: { categoryGuid: `资讯类型，默认为周报` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `研究`,
+        maintainers: [`Fatpandac`],
+        handler: s,
+        description: '资讯类型可以从网址中获取，如：\n\n  `http://www.nifd.cn/Research?categoryGuid=7a6a826d-b525-42aa-b550-4236e524227f` 对应 `/nifd/research/7a6a826d-b525-42aa-b550-4236e524227f`',
+    };
+async function s(o) {
+    let s = o.req.param(`categoryGuid`) ?? `7a6a826d-b525-42aa-b550-4236e524227f`,
+        c = `${i}/Research?categoryGuid=${s}`,
+        l = r((await n.get(c)).data),
+        u = l(`div.qr-main-item`)
+            .toArray()
+            .map((e) => ({ title: l(e).find(`h2`).text(), link: i + l(e).find(`a`).attr(`href`), author: l(e).find(`p > span:nth-child(2)`).text(), pubDate: t(l(e).find(`p > span:nth-child(1)`).text(), `YYYY-MM-DD`) })),
+        d = await Promise.all(
+            u.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = r((await n.get(t.link)).data);
+                    t.description = e(`div.qrd-content`).html();
+                    let a = e(`div.report-bottom a`).first(),
+                        o = a.attr(`href`);
+                    if (o) {
+                        let e = { enclosure_url: new URL(o, i).href, enclosure_type: `application/${o.split(/\./).pop() ?? `pdf`}`, enclosure_title: a.prev().text() };
+                        t = { ...t, ...e };
+                    }
+                    return t;
+                })
+            )
+        );
+    return { title: `国家金融与发展实验室 - ${a[s]}`, link: c, item: d };
+}
+export { o as route };

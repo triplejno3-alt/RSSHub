@@ -1,0 +1,37 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './rss-parser-CKuAfhVS.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/blog/:user`,
+    categories: [`blog`],
+    example: `/csdn/blog/csdngeeknews`,
+    parameters: { user: '`user` is the username of a CSDN blog which can be found in the url of the home page' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`blog.csdn.net/:user`] }],
+    name: `User Feed`,
+    maintainers: [`Jkker`],
+    handler: a,
+};
+async function a(i) {
+    let a = `https://rss.csdn.net/${i.req.param(`user`)}/rss/map`,
+        o = await n.parseURL(a),
+        s = await Promise.all(
+            o.items.map((n) =>
+                e.tryGet(n.link, async () => {
+                    try {
+                        let e = r((await t({ method: `get`, url: n.link })).data)(`#content_views`).html();
+                        return { ...n, description: e };
+                    } catch {
+                        return n;
+                    }
+                })
+            )
+        );
+    return { ...o, title: `${o.title} - CSDN博客`, item: s };
+}
+export { i as route };

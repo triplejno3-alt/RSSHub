@@ -1,0 +1,48 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = { 精选: ``, 链游: `aipysd`, 元宇宙: `arxgdo`, NFT: `dwhfpp`, DeFi: `gsqjtg`, 监管: `kohnph`, 央行数字货币: `loskks`, 波卡: `sxrabd`, 'Layer 2': `tdkreq`, DAO: `yyufxg`, 融资: `zahilv`, 活动: `zqives` },
+    a = {
+        path: `/profundity/:category?`,
+        categories: [`new-media`],
+        example: `/panewslab/profundity`,
+        parameters: { category: `分类，见下表，默认为精选` },
+        radar: [{ source: [`panewslab.com/`, `www.panewslab.com/zh/profundity/index.html`] }],
+        name: `深度`,
+        maintainers: [`nczitzk`],
+        handler: o,
+        url: `panewslab.com/`,
+        description: `| 精选 | 链游 | 元宇宙 | NFT | DeFi | 监管 | 央行数字货币 | 波卡 | Layer 2 | DAO | 融资 | 活动 |
+| ---- | ---- | ------ | --- | ---- | ---- | ------------ | ---- | ------- | --- | ---- | ---- |`,
+    };
+async function o(a) {
+    let o = a.req.param(`category`) ?? `精选`,
+        s = `https://panewslab.com`,
+        c = `${s}/webapi/depth/list?LId=1&Rn=${a.req.query(`limit`) ?? 25}&TagId=${i[o]}&tw=0`,
+        l = `${s}/zh/profundity/index.html`,
+        u = (await n({ method: `get`, url: c })).data.data.map((e) => ({
+            title: e.title,
+            author: e.author.name,
+            pubDate: t(e.publishTime * 1e3),
+            link: `${s}/zh/articledetails/${e.id}.html`,
+            description: `<blockquote>${e.desc}</blockquote>`,
+            category: e.tags,
+        }));
+    return (
+        (u = await Promise.all(
+            u.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = r((await n({ method: `get`, url: t.link })).data);
+                    return ((t.description += e(`#txtinfo`).html()), t);
+                })
+            )
+        )),
+        { title: `PANews - ${o}`, link: l, item: u }
+    );
+}
+export { a as route };

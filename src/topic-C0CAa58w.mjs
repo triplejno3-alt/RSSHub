@@ -1,0 +1,64 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/topic/:topic`,
+    categories: [`traditional-media`],
+    example: `/thehindu/topic/rains`,
+    parameters: { topic: `Topic slug, can be found in URL.` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`thehindu.com/topic/:topic`] }],
+    name: `Topic`,
+    maintainers: [`TonyRL`],
+    handler: a,
+};
+async function a(i) {
+    let a = `https://www.thehindu.com`,
+        o = i.req.param(`topic`),
+        s = `${a}/topic/${o}/`,
+        c = `${a}/topic/${o}/fragment/showmoreTag`,
+        { data: l } = await n(s),
+        { data: u } = await n(c),
+        d = r(l),
+        f = r(u),
+        p = d(`.element`)
+            .toArray()
+            .map((e) => {
+                e = f(e);
+                let t = e.find(`.title a`);
+                return { title: t.text().trim(), link: t.attr(`href`), author: e.find(`.author-name`).text() };
+            }),
+        m = await Promise.all(
+            p.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let { data: e } = await n(i.link),
+                        a = r(e);
+                    return (
+                        a(`.position-relative, .articleblock-container, .article-ad, .comments-shares`).remove(),
+                        (i.description = a(`.sub-title`).prop(`outerHTML`) + a(`div.article-picture`).html() + a(`div[itemprop="articleBody"]`).html()),
+                        (i.pubDate = t(a(`meta[itemprop="datePublished"]`).attr(`content`))),
+                        (i.updated = t(a(`meta[itemprop="dateModified"]`).attr(`content`))),
+                        (i.category = a(`meta[property="article:tag"]`)
+                            .toArray()
+                            .map((e) => a(e).attr(`content`))),
+                        i
+                    );
+                })
+            )
+        );
+    return {
+        title: d(`head title`).text().trim(),
+        link: `${a}/topic/${o}/`,
+        image: d(`meta[property="og:image"]`).attr(`content`),
+        logo: d(`link[rel="apple-touch-icon"]`).attr(`href`),
+        icon: d(`link[rel="icon"]`).attr(`href`),
+        language: `en`,
+        item: m,
+    };
+}
+export { i as route };

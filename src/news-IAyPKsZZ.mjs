@@ -1,0 +1,88 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './types-Bl_lnefZ.mjs';
+import { Fragment as a, jsx as o, jsxs as s } from 'hono/jsx/jsx-runtime';
+import { load as c } from 'cheerio';
+import { renderToString as l } from 'hono/jsx/dom/server';
+import { raw as u } from 'hono/html';
+const d = ({ images: e, intro: t, description: n }) =>
+        l(s(a, { children: [e?.map((e) => (e?.src ? o(`figure`, { children: o(`img`, { src: e.src, alt: e.alt ?? void 0 }) }) : null)), t ? o(`blockquote`, { children: t }) : null, n ? o(a, { children: u(n) }) : null] })),
+    f = async (i) => {
+        let a = Number.parseInt(i.req.query(`limit`) ?? `10`, 10),
+            o = `https://musikguru.de`,
+            s = new URL(`news/`, o).href,
+            l = c(await e(s)),
+            u = l(`html`).attr(`lang`) ?? `de`,
+            f = [];
+        return (
+            (f = l(`section`)
+                .eq(1)
+                .find(`div.card`)
+                .slice(0, a)
+                .toArray()
+                .map((e) => {
+                    let t = l(e),
+                        n = t.find(`h5.card-title`).text(),
+                        r = t.find(`img`).attr(`src`),
+                        i = d({ images: r ? [{ src: r, alt: n }] : void 0, intro: t.find(`p.card-text`).text() }),
+                        a = t.find(`a`).first().attr(`href`);
+                    return { title: n, description: i, link: a ? new URL(a, o).href : void 0, content: { html: i, text: i }, image: r, banner: r, language: u };
+                })),
+            (f = await Promise.all(
+                f.map((i) =>
+                    i.link
+                        ? t.tryGet(i.link, async () => {
+                              let t = c(await e(i.link)),
+                                  a = t(`div.article h1`).text(),
+                                  o = (t(`p.lead`).html() ?? ``) + (t(`div.lead`).html() ?? ``),
+                                  s = i.description + d({ description: o || void 0 }),
+                                  l = t(`div.article div.text-muted`).text().split(/\sUhr/)?.[0],
+                                  f = t(`div.article img`).first().attr(`src`),
+                                  p = l,
+                                  m = {
+                                      title: a,
+                                      description: s,
+                                      pubDate: l ? r(n(l, `DD.MM.YYYY HH:mm`), 1) : i.pubDate,
+                                      content: { html: s, text: s },
+                                      image: f,
+                                      banner: f,
+                                      updated: p ? r(n(p, `DD.MM.YYYY HH:mm`), 1) : i.updated,
+                                      language: u,
+                                  };
+                              return { ...i, ...m };
+                          })
+                        : i
+                )
+            )),
+            {
+                title: l(`title`).text(),
+                description: l(`meta[name="description"]`).attr(`content`),
+                link: s,
+                item: f,
+                allowEmpty: !0,
+                image: l(`a.navbar-brand img`).attr(`src`) ? new URL(l(`a.navbar-brand img`).attr(`src`), o).href : void 0,
+                author: l(`a.navbar-brand img`).attr(`alt`),
+                language: u,
+                id: s,
+            }
+        );
+    },
+    p = {
+        path: `/news`,
+        name: `News`,
+        url: `musikguru.de`,
+        maintainers: [`nczitzk`],
+        handler: f,
+        example: `/musikguru/news`,
+        parameters: void 0,
+        description: void 0,
+        categories: [`multimedia`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`musikguru.de/news`], target: `news` }],
+        view: i.Articles,
+    };
+export { f as handler, p as route };

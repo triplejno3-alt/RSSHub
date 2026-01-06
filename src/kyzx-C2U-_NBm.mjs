@@ -1,0 +1,59 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = `https://yz.chsi.com.cn`,
+    o = {
+        path: `/kyzx/:type`,
+        categories: [`study`],
+        example: `/chsi/kyzx/fstj`,
+        parameters: { type: ` type 见下表，亦可在网站 URL 找到` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`yz.chsi.com.cn/kyzx/:type`] }],
+        name: `考研资讯`,
+        maintainers: [`yanbot-team`],
+        handler: s,
+        description: `| \`:type\` | 专题名称 |
+| ------- | -------- |
+| fstj    | 复试调剂 |
+| kydt    | 考研动态 |
+| zcdh    | 政策导航 |
+| kyrw    | 考研人物 |
+| jyxd    | 经验心得 |`,
+    };
+async function s(o) {
+    let { type: s } = o.req.param(),
+        c = i((await n(`${a}/kyzx/${s}`)).data),
+        l = c(`.bread-nav .location a`).last().text() || `考研资讯`,
+        u = c(`ul.news-list`).children(),
+        d = await Promise.all(
+            u.map((o, s) => {
+                s = c(s);
+                let l = s.find(`a`).text(),
+                    u = s.find(`.span-time`).text(),
+                    d = s.find(`a`).attr(`href`),
+                    f = ``;
+                return (
+                    (f = d.startsWith(`http`) ? d : a + d),
+                    e.tryGet(f, async () => {
+                        let e = ``;
+                        return (
+                            (e = f
+                                ? i((await n(f)).data)(`#article_dnull`)
+                                      .html()
+                                      .trim()
+                                : l),
+                            { title: l, link: f, pubDate: r(t(u), 8), description: e }
+                        );
+                    })
+                );
+            })
+        );
+    return { title: `中国研究生招生信息网 - ${l}`, link: `${a}/kyzx/${s}/`, description: `中国研究生招生信息网 - ${l}`, item: d };
+}
+export { o as route };

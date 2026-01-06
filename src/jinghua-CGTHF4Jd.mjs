@@ -1,0 +1,77 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+import { raw as c } from 'hono/html';
+const l = ({ image: e, headImage: t, author: n, question: o, description: s }) => {
+        let l = e?.height ?? e?.width ?? e?.alt;
+        return a(r, {
+            children: [
+                e?.src ? i(`figure`, { children: i(`img`, { src: e.src, alt: l }) }) : null,
+                t ? a(`figure`, { children: [i(`img`, { src: t }), n ? i(`figcaption`, { children: n }) : null] }) : null,
+                o ? i(`blockquote`, { children: o }) : null,
+                s ? i(r, { children: c(s) }) : null,
+            ],
+        });
+    },
+    u = (e) => s(i(l, { ...e })),
+    d = {
+        path: `/ask/jinghua`,
+        categories: [`new-media`],
+        example: `/imiker/ask/jinghua`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`imiker.com/explore/find`] }],
+        name: `米课圈精华`,
+        maintainers: [`nczitzk`],
+        handler: f,
+        url: `imiker.com/explore/find`,
+    };
+async function f(r) {
+    let i = r.req.query(`limit`) ? Number.parseInt(r.req.query(`limit`), 10) : 50,
+        a = `https://ask.imiker.com`,
+        s = new URL(`explore/main/list/`, a).href,
+        c = new URL(``, a).href,
+        { data: l } = await n(s, { searchParams: { page: 1, page_size: i, type: `jinghua`, types: `json` } }),
+        d = l
+            .slice(0, i)
+            .map((e) => ({
+                title: e.question_content,
+                link: new URL(`question/${e.id}`, a).href,
+                description: u({ headImage: e.headimage, author: e.nick_name, question: e.question_detail }),
+                author: e.nick_name,
+                guid: `imiker-${e.id}`,
+                pubDate: t(e.add_time_timestamp * 1e3),
+                upvotes: e.count?.vote_count ?? 0,
+                comments: e.count?.answer_count ?? 0,
+            }));
+    d = await Promise.all(
+        d.map((t) =>
+            e.tryGet(t.link, async () => {
+                let { data: e } = await n(t.link),
+                    r = o(e);
+                return (
+                    r(`h5.img-for-lazyload`).each((e, t) => {
+                        let n = r(t).find(`img`);
+                        r(t).replaceWith(u({ image: { src: n.prop(`data-original`), alt: n.prop(`alt`), width: n.prop(`data-width`), height: n.prop(`data-height`) } }));
+                    }),
+                    (t.title = r(`div.title h1`).text()),
+                    (t.description += u({ description: r(`div#warp`).html() })),
+                    (t.author = r(`div.name`).text()),
+                    t
+                );
+            })
+        )
+    );
+    let f = `米课圈`,
+        p = `精华`,
+        m = new URL(`favicon.ico`, a).href;
+    return { item: d, title: `${f} - ${p}`, link: c, description: p, language: `zh`, icon: m, logo: m, subtitle: p, author: f, allowEmpty: !0 };
+}
+export { d as route };

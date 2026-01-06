@@ -1,0 +1,57 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = (e) => {
+        let t = i(e),
+            n = t(`.detail_main_content > h1`)
+                .contents()
+                .filter((e, t) => t.nodeType === 3)
+                .toArray()
+                .map((e) => t(e).text().trim()),
+            r = t(`[id^="vsb_content"]`);
+        return (
+            t(`form > div > ul a`).each(function () {
+                (t(this).appendTo(r), t(`<br>`).appendTo(r));
+            }),
+            { author: n[0] || `教务处`, description: r.html() }
+        );
+    },
+    o = {
+        path: `/dean/:subpath{.+}`,
+        name: `教务处`,
+        maintainers: [`hoilc`],
+        example: `/xjtu/dean/jxxx/jxtz2`,
+        description: '打开一个类似 <https://dean.xjtu.edu.cn/jxxx/jxtz2.htm> 的网址，在 `.cn` 后的内容就是 subpath，此例中是 `jxxx/jxtz2`',
+        handler: s,
+    };
+async function s(o) {
+    let s = `http://dean.xjtu.edu.cn/${o.req.param(`subpath`).replaceAll(`.htm`, ``)}.htm`,
+        c = s.split(`/`).slice(0, -1).join(`/`),
+        l = i(await e(s)),
+        u = l(`#ny-main > div.ny-tit > div > span`)
+            .toArray()
+            .map((e) => l(e).text())
+            .join(` - `),
+        d = l(`#ny-main > div.ny.wp > ul > li`)
+            .toArray()
+            .map((e) => ((e = l(e)), { title: e.find(`a`).text(), link: new URL(e.find(`a`).attr(`href`), c).href, pubDate: r(n(e.find(`span`).text(), `YYYY-MM-DD`), 8) })),
+        f = await Promise.all(
+            d.map((n) =>
+                t.tryGet(n.link, async () => {
+                    try {
+                        let t = a(await e(n.link));
+                        ((n.description = t.description ?? void 0), (n.author = t.author));
+                    } catch {
+                        return n;
+                    }
+                    return n;
+                })
+            )
+        );
+    return { title: `西安交大教务处 - ${u}`, link: s, item: f.filter((e) => e !== ``) };
+}
+export { o as route };

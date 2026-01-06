@@ -1,0 +1,86 @@
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import { t } from './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+import { t as r } from './parse-date-DjdQS_Nt.mjs';
+import { t as i } from './invalid-parameter-DGZgOgO2.mjs';
+import { n as a } from './puppeteer-BbZGb8cd.mjs';
+import { n as o, t as s } from './readable-social--hCfpJhv.mjs';
+import { i as c, n as l, r as u, t as d } from './utils-Bohv02os.mjs';
+const f = {
+    path: `/user/:uid/:routeParams?`,
+    categories: [`social-media`],
+    example: `/douyin/user/MS4wLjABAAAARcAHmmF9mAG3JEixq_CdP72APhBlGlLVbN-1eBcPqao`,
+    parameters: { uid: `uid，可在用户页面 URL 中找到`, routeParams: `额外参数，query string 格式，请参阅上面的表格` },
+    features: { requireConfig: !1, requirePuppeteer: !0, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`douyin.com/user/:uid`], target: `/user/:uid` }],
+    name: `博主`,
+    maintainers: [`Max-Tortoise`, `Rongronggg9`],
+    handler: p,
+};
+async function p(f) {
+    let p = f.req.param(`uid`);
+    if (!p.startsWith(`MS4wLjABAAAA`)) throw new i(`Invalid UID. UID should start with <b>MS4wLjABAAAA</b>.`);
+    let m = Object.fromEntries(new URLSearchParams(f.req.param(`routeParams`))),
+        h = s(void 0, o(m.embed), !1),
+        g = s(void 0, o(m.iframe), !1),
+        _ = u(m.relay, !0, !0),
+        v = `https://www.douyin.com/user/${p}`,
+        y = await n.tryGet(
+            `douyin:user:${p}`,
+            async () => {
+                let e,
+                    n = await a(),
+                    r = await n.newPage();
+                if (
+                    (await r.setRequestInterception(!0),
+                    r.on(`request`, (e) => {
+                        e.resourceType() === `document` || e.resourceType() === `script` || e.resourceType() === `xhr` ? e.continue() : e.abort();
+                    }),
+                    r.on(`response`, async (t) => {
+                        t.request().url().includes(`/web/aweme/post`) && !e && (e = await t.json());
+                    }),
+                    t.http(`Requesting ${v}`),
+                    await r.goto(v, { waitUntil: `networkidle2` }),
+                    await n.close(),
+                    !e)
+                )
+                    throw Error(`Empty post data. The request may be filtered by WAF.`);
+                return e;
+            },
+            e.cache.routeExpire,
+            !1
+        );
+    if (!y.aweme_list?.length) throw Error(`Empty post data. The request may be filtered by WAF.`);
+    let b = y.aweme_list[0].author;
+    return {
+        title: b.nickname,
+        image: d(b.avatar_thumb.url_list.at(-1)),
+        link: v,
+        item: y.aweme_list.map((e) => {
+            let t = e.video?.bit_rate?.map((e) => u(e.play_addr.url_list.at(-1)));
+            _ && (t = t.map((e) => l(e, _)));
+            let n = e.video?.duration;
+            n &&= n / 1e3;
+            let i;
+            ((i = i || e.video?.cover?.url_list.at(-1) || e.video?.origin_cover?.url_list.at(-1)), (i &&= u(i)));
+            let a = e.desc?.replaceAll(
+                    `
+`,
+                    `<br>`
+                ),
+                o = (h && t ? c.embed : c.cover)({ img: i, videoList: t, duration: n });
+            o = h && t && g ? c.iframe({ content: o }) : o;
+            let s = c.desc({ desc: a, media: o });
+            return {
+                title: e.desc.split(`
+`)[0],
+                description: s,
+                link: `https://www.douyin.com/video/${e.aweme_id}`,
+                pubDate: r(e.create_time * 1e3),
+                category: e.video_tag.map((e) => e.tag_name),
+            };
+        }),
+    };
+}
+export { f as route };

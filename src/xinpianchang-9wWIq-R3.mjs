@@ -1,0 +1,29 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import { n as t, r as n, t as r } from './util-DZpdstlX.mjs';
+const i = {
+    path: [`/discover/:params?`, `/:params?`],
+    categories: [`new-media`],
+    example: `/xinpianchang/discover`,
+    parameters: { params: '参数，可在对应分类页 URL 中找到，默认为 `article-0-0-all-all-0-0-score` ，即全部' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `发现`,
+    maintainers: [`nczitzk`],
+    handler: a,
+    description:
+        '::: tip\n  跳转到欲订阅的分类页，将 URL 的 `/discover` 到末尾的部分填入 `params` 参数。\n\n  如 [全部原创视频作品](https://www.xinpianchang.com/discover/article-0-0-all-all-0-0-score) 的 URL 为 `https://www.xinpianchang.com/discover/article-0-0-all-all-0-0-score`，其 `/discover` 到末尾的部分为 `article-0-0-all-all-0-0-score`，所以对应的路由为 [/xinpianchang/discover/article-0-0-all-all-0-0-score](https://rsshub.app/xinpianchang/discover/article-0-0-all-all-0-0-score)。\n:::',
+};
+async function a(i) {
+    let { params: a = `article-0-0-all-all-0-0-score` } = i.req.param(),
+        o = i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`), 10) : 60,
+        s = new URL(`discover/${a}`, n).href,
+        { data: c, response: l } = await r(s, e.tryGet),
+        u = JSON.parse(l.match(/"list":(\[.*?]),"total"/)[1]);
+    return ((u = await t(u.slice(0, o), e.tryGet)), { ...c, item: u });
+}
+export { i as route };

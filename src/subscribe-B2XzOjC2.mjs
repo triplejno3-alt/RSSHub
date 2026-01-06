@@ -1,0 +1,51 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { n as t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './config-not-found-DGyG6Tbz.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+const l = `https://www.manhuagui.com/user/book/shelf/1`,
+    u = {
+        path: `/subscribe`,
+        categories: [`anime`],
+        example: `/manhuagui/subscribe`,
+        parameters: {},
+        features: { requireConfig: [{ name: `MHGUI_COOKIE`, description: `` }], requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+        radar: [{ source: [`www.mhgui.com/user/book/shelf`] }],
+        name: `漫画个人订阅`,
+        maintainers: [`shininome`],
+        handler: d,
+        url: `www.mhgui.com/user/book/shelf`,
+        description: `::: tip
+  个人订阅需要自建
+  环境变量需要添加 MHGUI_COOKIE
+:::`,
+    };
+async function d() {
+    if (!e.manhuagui || !e.manhuagui.cookie) throw new r(`manhuagui RSS is disabled due to the lack of <a href="https://docs.rsshub.app/deploy/config#route-specific-configurations">relevant config</a>`);
+    let u = e.manhuagui.cookie,
+        d = s((await n({ method: `get`, url: l, headers: { Cookie: u } })).data),
+        f = d(`.avatar-box`).find(`h3`).text();
+    return {
+        title: `${f} 的 漫画订阅`,
+        link: l,
+        description: `${f} 的 漫画订阅`,
+        item: d(`.dy_content_li`)
+            .toArray()
+            .map((e) => {
+                let n = d(e).find(`img`).attr(`src`),
+                    r = d(e).find(`.co_1.c_space`).first().text();
+                return {
+                    title: d(e).find(`img`).attr(`alt`),
+                    link: d(e).find(`.co_1.c_space`).first().children().attr(`href`),
+                    description: c(o(i, { children: [a(`h1`, { children: r }), a(`img`, { src: n })] })),
+                    pubDate: t(d(e).find(`.co_1.c_space`).first().next().text()),
+                };
+            }),
+    };
+}
+export { u as route };

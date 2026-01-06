@@ -1,0 +1,44 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { Fragment as t, jsx as n, jsxs as r } from 'hono/jsx/jsx-runtime';
+import { load as i } from 'cheerio';
+import { renderToString as a } from 'hono/jsx/dom/server';
+const o = {
+    path: `/explore`,
+    categories: [`social-media`],
+    example: `/douban/explore`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `浏览发现`,
+    maintainers: [`clarkzsd`],
+    handler: s,
+};
+async function s() {
+    let t = (await e({ method: `get`, url: `https://www.douban.com/explore` })).data,
+        n = i(t);
+    return {
+        title: `豆瓣-浏览发现`,
+        link: `https://www.douban.com/explore`,
+        item: n(`div.item`)
+            .toArray()
+            .map((e) => {
+                e = n(e);
+                let t = e.find(`.title a`).first().text() ?? `#` + e.find(`.icon-topic`).text(),
+                    r = e.find(`.content p`).text(),
+                    i = e.find(`a.cover`).attr(`style`)
+                        ? e
+                              .find(`a.cover`)
+                              .attr(`style`)
+                              .match(/\('(.*?)'\)/)[1]
+                        : ``,
+                    a = e.find(`.usr-pic a`).last().text(),
+                    o = e.find(`.title a`).attr(`href`) ?? e.find(`.icon-topic a`).attr(`href`);
+                return { title: t, author: a, description: c({ author: a, desc: r, itemPic: i }), link: o };
+            }),
+    };
+}
+const c = ({ author: e, desc: i, itemPic: o }) => a(r(t, { children: [`作者：`, e, n(`br`, {}), `描述：`, i, n(`br`, {}), o ? n(`img`, { src: o }) : null] }));
+export { o as route };

@@ -1,0 +1,34 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+async function r() {
+    let { data: r } = await t(`https://www.cs.cmu.edu/~pavlo/blog/index.html`),
+        i = n(r);
+    return i(`.row.mb-3`)
+        .toArray()
+        .map((t) => {
+            let n = i(t),
+                r = n.find(`h4 a`),
+                a = n.find(`.text-muted`),
+                o = n.find(`p`);
+            return { title: r.text().trim(), link: r.attr(`href`), description: o.text().trim(), pubDate: e(a.attr(`title`)), guid: r.attr(`href`) };
+        });
+}
+const i = {
+    path: `/andypavlo/blog`,
+    categories: [`blog`],
+    example: `/cmu/andypavlo/blog`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `Andy Pavlo Blog`,
+    maintainers: [`mocusez`],
+    handler: a,
+};
+async function a() {
+    return { title: `Andy Pavlo - Carnegie Mellon University`, link: `https://www.cs.cmu.edu/~pavlo/blog/index.html`, item: await r() };
+}
+export { i as route };

@@ -1,0 +1,41 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { r, t as i } from './utils-Byd41C0b.mjs';
+const a = {
+    path: `/navigation/:path{.+}`,
+    categories: [`traditional-media`],
+    example: `/afr/navigation/markets`,
+    parameters: { path: `Navigation path, can be found in the URL of the page` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.afr.com/path*`] }],
+    name: `Navigation`,
+    maintainers: [`TonyRL`],
+    handler: o,
+    url: `www.afr.com`,
+};
+async function o(a) {
+    let { path: o } = a.req.param(),
+        s = Number.parseInt(a.req.query(`limit`) ?? `10`),
+        c = await e(`https://api.afr.com/api/content-audience/afr/graphql`, {
+            query: { query: r, operationName: `pageByNavigationPath`, variables: { input: { brandKey: `afr`, navigationPath: `/${o}`, renderName: `web` }, firstStories: s, afterStories: `` } },
+        }),
+        l = c.data.pageByNavigationPath.page.latestStoriesConnection.edges.map(({ node: e }) => ({
+            title: e.headlines.headline,
+            description: e.overview.about,
+            link: `https://www.afr.com${e.urls.canonical.path}`,
+            pubDate: n(e.dates.firstPublished),
+            updated: n(e.dates.modified),
+            author: e.byline
+                .filter((e) => e.type === `AUTHOR`)
+                .map((e) => e.author.name)
+                .join(`, `),
+            category: [e.tags.primary.displayName, ...e.tags.secondary.map((e) => e.displayName)],
+            image: e.images && `https://static.ffx.io/images/${e.images.landscape16x9.mediaId}`,
+        })),
+        u = await Promise.all(l.map((e) => t.tryGet(e.link, () => i(e))));
+    return { title: c.data.pageByNavigationPath.page.seo.title, description: c.data.pageByNavigationPath.page.seo.description, image: `https://www.afr.com/apple-touch-icon-1024x1024.png`, link: `https://www.afr.com/${o}`, item: u };
+}
+export { a as route };

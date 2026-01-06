@@ -1,0 +1,41 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import './puppeteer-BbZGb8cd.mjs';
+import { n as r } from './util-D4gWpswK.mjs';
+const i = {
+    path: `/board/:board_id`,
+    categories: [`social-media`],
+    example: `/xiaohongshu/board/5db6f79200000000020032df`,
+    parameters: { board_id: `专辑 ID` },
+    features: { requireConfig: !1, requirePuppeteer: !0, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`xiaohongshu.com/board/:board_id`] }],
+    name: `专辑`,
+    maintainers: [`lotosbin`],
+    handler: a,
+};
+async function a(i) {
+    let a = `https://www.xiaohongshu.com/board/${i.req.param(`board_id`)}`,
+        o = await r(a, e),
+        s = o.albumInfo,
+        c = s.name,
+        l = s.desc;
+    return {
+        title: c,
+        link: a,
+        image: s.user.images.split(`?imageView2`)[0],
+        item: o.notesDetail.map((e) => ({
+            title: e.title,
+            link: `https://www.xiaohongshu.com/discovery/item/${e.id}`,
+            description: `<img src ="${e.cover.url.split(`?imageView2`)[0]}"><br>${e.title}`,
+            author: e.user.nickname,
+            pubDate: n(t(e.time), 8),
+        })),
+        description: l,
+    };
+}
+export { i as route };

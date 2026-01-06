@@ -1,0 +1,41 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { r as n } from './common-utils-uYpL50sT.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './timezone-CrV-DT8S.mjs';
+import { t as a } from './description-CyHYUnnG.mjs';
+import { load as o } from 'cheerio';
+const s = { path: `/cmse/*`, name: `Unknown`, maintainers: [], handler: c };
+async function c(s) {
+    let c = n(s).replaceAll(/(^\/cmse|\/$)/g, ``),
+        l = `http://www.cmse.gov.cn${c === `` ? `/xwzx/zhxw/` : `${c}/`}`,
+        u = o((await r({ method: `get`, url: l })).data),
+        d = u(`#list li a`)
+            .slice(0, s.req.query(`limit`) ? Number.parseInt(s.req.query(`limit`)) : 15)
+            .toArray()
+            .map((e) => {
+                e = u(e);
+                let n = e.next().text(),
+                    r = new URL(e.attr(`href`), l).href;
+                return { title: e.text(), pubDate: t(n), link: /\.html$/.test(r) ? r : `${r}#${n}` };
+            });
+    return (
+        (d = await Promise.all(
+            d.map((n) =>
+                e.tryGet(n.link, async () => {
+                    let e = await r({ method: `get`, url: n.link }),
+                        s = o(e.data);
+                    s(`.share`).remove();
+                    let c = e.data.match(/__\$pubtime='(.*?)';var/);
+                    return ((n.pubDate = c ? i(t(c[1]), 8) : n.pubDate), (n.description = a({ video: s(`#con_video`).html(), description: s(`.TRS_Editor, #content`).html() })), n);
+                })
+            )
+        )),
+        { title: u(`title`).text(), link: l, item: d }
+    );
+}
+export { s as route };

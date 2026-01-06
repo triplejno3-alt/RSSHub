@@ -1,0 +1,41 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { t } from './const-u94s3ec2.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/apps/:handle/reviews/:page?`,
+    example: `/shopify/apps/flow/reviews`,
+    parameters: { handle: `例如一个 App 的链接 https://apps.shopify.com/flow，其中 flow 就是指的是 handle` },
+    name: `App reviews`,
+    maintainers: [`PrintNow`],
+    handler: i,
+    radar: [{ source: [`apps.shopify.com/:handle`] }],
+};
+async function i(r) {
+    let { handle: i = ``, page: a = `1` } = r.req.param(),
+        o = (await e.get(`${t}/${i}/reviews`, { searchParams: { sort_by: `newest`, page: a }, headers: { accept: `text/html, application/xhtml+xml`, 'accept-language': `en-US;q=0.9`, referer: t, dnt: `1` } })).data,
+        s = n(o),
+        c = s(`div[data-merchant-review]`)
+            .toArray()
+            .map((e) => {
+                let t = s(e),
+                    n = t.attr(`data-review-content-id`),
+                    r = t.find(`div:nth-child(1)`),
+                    i = t.find(`div:nth-child(2)`),
+                    a = t.find(`div[data-truncate-review] div[data-truncate-content-copy] p`).html() || ``,
+                    o = i.find(`div.tw-text-fg-primary`).text().trim();
+                return {
+                    guid: n,
+                    title: a,
+                    author: o,
+                    pubDate: new Date(r.find(`div[aria-label] + div`).text().trim()),
+                    description: a,
+                    _extra: { ratting_value: Number(r.find(`div[role="img"]`).attr(`aria-label`)?.slice(0, 1)), location: i.find(`div.tw-text-fg-primary + div`).text().trim(), author: o },
+                };
+            });
+    return { title: `Reviews handle:${i} page:${a} – Shopify App Store`, link: `${t}/${i}/reviews`, allowEmpty: !0, language: `en-us`, item: c };
+}
+export { r as route };

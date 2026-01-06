@@ -1,0 +1,23 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = `https://yjs.xmut.edu.cn`,
+    a = { path: `/jwc/yjjw/:category?`, name: `Unknown`, maintainers: [], handler: o };
+async function o(a) {
+    let { category: o = `yjsc` } = a.req.param(),
+        s = `${i}/index/${o}.htm`,
+        c = r((await n(s, { headers: { referer: i }, https: { rejectUnauthorized: !1 } })).data),
+        l = c(`.mainWrap .main_con .main_conR ul li`)
+            .toArray()
+            .map((e) => ((e = c(e)), { title: e.find(`em`).text(), link: `${i}/` + e.find(`a`).attr(`href`), pubDate: t(e.find(`span`).text()) })),
+        u = await Promise.all(
+            l.map((t) => e.tryGet(t.link, async () => ((t.description = r((await n(t.link, { headers: { referer: i }, https: { rejectUnauthorized: !1 } })).data)(`body .mainWrap .main_content .v_news_content`).html()), t)))
+        );
+    return { title: c(`title`).text(), link: s, item: u };
+}
+export { a as route };

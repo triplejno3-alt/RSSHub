@@ -1,0 +1,43 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import * as n from 'cheerio';
+const r = `https://api-docs.deepseek.com/zh-cn`,
+    i = `.theme-doc-markdown > div > div`,
+    a = i + ` > h1`,
+    o = async (t) => {
+        let r = await e(t);
+        return n.load(r);
+    },
+    s = (e, t) => {
+        let n = e(i),
+            r = e(a).text();
+        return (e(a).remove(), { title: r, content: n.html(), pageURL: t });
+    },
+    c = (e) => new Date(e).toUTCString(),
+    l = (e, n) => {
+        let i = n(e),
+            a = i.find(`a`).attr(`href`),
+            l = i.find(`a`).text().split(` `).at(-1),
+            u = new URL(a || ``, r).href;
+        return t.tryGet(u, async () => {
+            let { title: e, content: t } = s(await o(u), u);
+            return { title: e, link: u, pubDate: c(l), description: t || void 0 };
+        });
+    },
+    u = {
+        path: `/news`,
+        categories: [`programming`],
+        example: `/deepseek/news`,
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`api-docs.deepseek.com`], target: `/news` }],
+        name: `新闻`,
+        maintainers: [`1837634311`],
+        handler: async () => {
+            let e = await o(r),
+                t = e(`ul.menu__list > li:nth-child(2) ul > li.theme-doc-sidebar-item-link`);
+            return { title: `DeepSeek 新闻`, link: r, item: await Promise.all(t.toArray().map((t) => l(t, e))), allowEmpty: !0 };
+        },
+    };
+export { u as route };

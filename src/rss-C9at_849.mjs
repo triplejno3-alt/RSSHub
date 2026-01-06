@@ -1,0 +1,35 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './rss-parser-CKuAfhVS.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/rss`,
+    categories: [`traditional-media`],
+    example: `/foreignaffairs/rss`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `RSS`,
+    maintainers: [`dzx-dzx`],
+    handler: a,
+};
+async function a() {
+    let i = `https://www.foreignaffairs.com/rss.xml`,
+        a = await n.parseURL(i);
+    return {
+        title: `Foreign Affairs - RSS`,
+        link: i,
+        item: await Promise.all(
+            a.items.map((n) =>
+                e.tryGet(n.link, async () => {
+                    let e = r((await t({ method: `get`, url: n.link })).data);
+                    return (e(`.paywall`).remove(), e(`.loading-indicator`).remove(), (n.description = e(`.article-dropcap`).html()), (n.author = n.creator), n);
+                })
+            )
+        ),
+    };
+}
+export { i as route };

@@ -1,0 +1,52 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/:category?`,
+    categories: [`new-media`],
+    example: `/appleinsider`,
+    parameters: { category: `Category, see below, News by default` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`appleinsider.com/:category`, `appleinsider.com/`], target: `/:category` }],
+    name: `Category`,
+    maintainers: [`nczitzk`],
+    handler: a,
+    description: `| News | Reviews | How-tos |
+| ---- | ------- | ------- |
+|      | reviews | how-to  |`,
+};
+async function a(i) {
+    let a = i.req.param(`category`) ?? ``,
+        o = `https://appleinsider.com${a ? `/${a}` : ``}`,
+        s = r((await n({ method: `get`, url: o })).data),
+        c = s(`${a === `` ? `#news-river ` : ``}.river`)
+            .slice(0, i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`)) : 30)
+            .toArray()
+            .map((e) => ((e = s(e).find(`a`).first()), { title: e.text(), link: e.attr(`href`) }));
+    return (
+        (c = await Promise.all(
+            c.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let e = r((await n({ method: `get`, url: i.link })).data);
+                    return (
+                        e(`#article-social`).next().remove(),
+                        e(`#article-hero, #article-social`).remove(),
+                        e(`.deals-widget`).remove(),
+                        (i.title = e(`.h1-adjust`).text()),
+                        (i.author = e(`.avatar-link a`).attr(`title`)),
+                        (i.pubDate = t(e(`time`).first().attr(`datetime`))),
+                        (i.description = e(`header`).next(`.row`).html()),
+                        i
+                    );
+                })
+            )
+        )),
+        { title: s(`title`).text(), link: o, item: c }
+    );
+}
+export { i as route };

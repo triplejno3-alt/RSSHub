@@ -1,0 +1,32 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { n, t as r } from './utils-CAAmnNMo.mjs';
+const i = {
+    path: `/people/answers/:id`,
+    categories: [`social-media`],
+    example: `/zhihu/people/answers/diygod`,
+    parameters: { id: `作者 id，可在用户主页 URL 中找到` },
+    features: { requireConfig: [{ name: `ZHIHU_COOKIES`, description: ``, optional: !0 }], requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.zhihu.com/people/:id/answers`] }],
+    name: `用户回答`,
+    maintainers: [`DIYgod`, `prnake`],
+    handler: a,
+};
+async function a(i) {
+    let a = i.req.param(`id`),
+        o = `/api/v4/members/${a}/answers?limit=7&include=data[*].is_normal,content`,
+        s = await r(`https://www.zhihu.com/people/${a}`, o),
+        c = (await t(`https://www.zhihu.com${o}`, { headers: { ...n, ...s, Referer: `https://www.zhihu.com/people/${a}/activities` } })).data.data,
+        l = c.map((t) => {
+            let n = t.question.title,
+                r = `https://www.zhihu.com/question/${t.question.id}/answer/${t.id}`;
+            return { title: n, author: t.author.name, description: t.content, pubDate: e(t.created_time * 1e3), link: r };
+        });
+    return { title: `${c[0].author.name}的知乎回答`, link: `https://www.zhihu.com/people/${a}/answers`, item: l };
+}
+export { i as route };

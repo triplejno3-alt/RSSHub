@@ -1,0 +1,42 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './utils-CPfirWwl.mjs';
+import r from 'markdown-it';
+const i = {
+    path: `/courses/:sort/:tag`,
+    categories: [`programming`],
+    example: `/lanqiao/courses/latest/all`,
+    parameters: { sort: '排序规则 sort, 默认(`default`)、最新(`latest`)、最热(`hotest`)', tag: '课程标签 `tag`，可在该页面找到：https://www.lanqiao.cn/courses/' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `全站发布的课程`,
+    maintainers: [`huhuhang`],
+    handler: a,
+};
+async function a(i) {
+    let a = i.req.param(`sort`),
+        o = i.req.param(`tag`),
+        s = (await t({ method: `get`, url: `https://www.lanqiao.cn/api/v2/courses/?sort=${a}&tag=${o}&include=name,description,picture_url,id` })).data.results,
+        c = new r(),
+        l = { free: `免费课`, member: `会员课`, limit_free: `限时免费`, louplus: `楼+`, bootcamp: `训练营`, private: `私有课`, exam: `考试` },
+        u = await Promise.all(
+            s.map((r) =>
+                e.tryGet(`https://www.lanqiao.cn/api/v2/courses/${r.id}/`, async () => {
+                    let e = (await t({ method: `get`, url: `https://www.lanqiao.cn/api/v2/courses/${r.id}/` })).data;
+                    return (
+                        (r.title = `${e.name} [${l[e.fee_type]}]`),
+                        (r.description = n.courseDesc(e.picture_url, c.render(e.long_description))),
+                        (r.author = e.teacher.name),
+                        (r.link = `https://www.lanqiao.cn/courses/${e.id}/`),
+                        r
+                    );
+                })
+            )
+        ),
+        d = { latest: `最新`, hotest: `最热`, default: `默认` };
+    return { title: `蓝桥云课${d[a]}课程列表【${o}】`, link: `https://www.lanqiao.cn/courses/?sort=${a}&tag=${o}`, description: `蓝桥云课【${o}】标签下${d[a]}课程列表`, item: u };
+}
+export { i as route };

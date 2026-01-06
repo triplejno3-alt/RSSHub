@@ -1,0 +1,37 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { load as r } from 'cheerio';
+const i = `https://www.30secondsofcode.org`;
+async function a(e) {
+    return (
+        await Promise.allSettled(
+            e.map((e) => {
+                let t = r(e);
+                return o({ link: t(` article > h3 > a`).attr(`href`), date: t(` article > small > time`).attr(`datetime`) });
+            })
+        )
+    ).map((e) => (e.status === `fulfilled` ? e.value : { title: `Error Reading Item` }));
+}
+async function o({ link: a, date: o }) {
+    return await t.tryGet(`30secondsofcode:${a}`, async () => {
+        let t = `${i}${a}`,
+            s = r(await e(t)),
+            c = s
+                .root()
+                .find(`body > main > nav > ol > li:not(:first-child):not(:last-child)`)
+                .toArray()
+                .map((e) => s(e).find(`a`).text()),
+            l = s(`main > article`),
+            u = l.find(`h1`).text();
+        l.find(`img`).each((e, t) => {
+            let n = s(t),
+                r = n.attr(`src`);
+            r?.startsWith(`/`) && n.attr(`src`, `${i}${r}`);
+        });
+        let d = l.find(`img`).attr(`src`),
+            f = l.clone().find(`h1, script`).remove().end().html();
+        return { title: u, link: t, pubDate: n(o), description: f, author: `30 Seconds of Code`, category: c, image: `${i}${d}`, banner: `${i}${d}` };
+    });
+}
+export { i as n, a as t };

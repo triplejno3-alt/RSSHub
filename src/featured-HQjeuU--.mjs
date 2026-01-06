@@ -1,0 +1,55 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { jsx as t } from 'hono/jsx/jsx-runtime';
+import { load as n } from 'cheerio';
+import { renderToString as r } from 'hono/jsx/dom/server';
+const i = { today: `left`, newest: `right` },
+    a = {
+        path: `/featured/:category?`,
+        categories: [`other`],
+        example: `/tvtropes/featured/today`,
+        parameters: { category: `Category, see below, Today's Featured Trope by default` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `Featured`,
+        maintainers: [`nczitzk`],
+        handler: o,
+        description: `| Today's Featured Trope | Newest Trope |
+| ---------------------- | ------------ |
+| today                  | newest       |`,
+    };
+async function o(a) {
+    let { category: o = `today` } = a.req.param(),
+        s = `https://tvtropes.org`,
+        { data: c } = await e(s),
+        l = n(c),
+        u = l(`div#featured-tropes div.${i[o]}`),
+        d = new URL(u.find(`h2.entry-title a`).prop(`href`), s).href,
+        { data: f } = await e(d),
+        p = n(f);
+    (p(`div.folderlabel`).remove(),
+        p(`div.lazy_load_img_box`).each((e, n) => {
+            n = p(n);
+            let i = n.find(`img`);
+            n.replaceWith(r(t(`figure`, { children: t(`img`, { src: i.prop(`src`), alt: i.prop(`alt`), width: i.prop(`width`), height: i.prop(`height`) }) })));
+        }));
+    let m = [{ title: u.find(`h2.entry-title`).text(), link: d, description: p(`div#main-article`).html() }],
+        h = new URL(l(`img.logo-big`).prop(`src`), s).href,
+        g = l(`link[rel="shortcut icon"]`).prop(`href`);
+    return {
+        item: m,
+        title: `${l(`title`).text()} - ${u.find(`span.box-title`).text()}`,
+        link: s,
+        description: l(`meta[name="description"]`).prop(`content`),
+        language: l(`html`).prop(`lang`),
+        image: h,
+        icon: g,
+        logo: g,
+        subtitle: l(`meta[property="og:title"]`).prop(`content`),
+        author: l(`meta[property="og:site_name"]`).prop(`content`),
+        allowEmpty: !0,
+    };
+}
+export { a as route };

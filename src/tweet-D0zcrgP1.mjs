@@ -1,0 +1,49 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import './puppeteer-BbZGb8cd.mjs';
+import { n as t, t as n } from './readable-social--hCfpJhv.mjs';
+import { t as r } from './api-BlYmvzit.mjs';
+import { t as i } from './utils-DPcqKUMS.mjs';
+const a = {
+    path: `/tweet/:id/status/:status/:original?`,
+    categories: [`social-media`],
+    example: `/twitter/tweet/DIYgod/status/1650844643997646852`,
+    parameters: {
+        id: 'username; in particular, if starts with `+`, it will be recognized as a [unique ID](https://github.com/DIYgod/RSSHub/issues/12221), e.g. `+44196397`',
+        status: `tweet ID`,
+        original: 'extra parameters, data type of return, if the value is not `0`/`false` and `config.isPackage` is `true`, return the original data of twitter',
+    },
+    features: {
+        requireConfig: [
+            { name: `TWITTER_USERNAME`, description: `Please see above for details.` },
+            { name: `TWITTER_PASSWORD`, description: `Please see above for details.` },
+        ],
+        requirePuppeteer: !1,
+        antiCrawler: !1,
+        supportBT: !1,
+        supportPodcast: !1,
+        supportScihub: !1,
+    },
+    name: `Tweet Details`,
+    maintainers: [`LarchLiu`, `Rongronggg9`],
+    handler: o,
+};
+async function o(a) {
+    let o = a.req.param(`id`),
+        s = a.req.param(`status`),
+        c = n(void 0, t(new URLSearchParams(a.req.param(`original`)).get(`original`)), !1),
+        l = { focalTweetId: s, with_rux_injections: !1, includePromotedContent: !0, withCommunity: !0, withQuickPromoteEligibilityTweetFields: !0, withBirdwatchNotes: !0, withVoice: !0, withV2Timeline: !0 };
+    await r.init();
+    let u = await r.getUser(o),
+        d = await r.getUserTweet(o, l),
+        f = u.profile_image_url || u.profile_image_url_https,
+        p = c && e.isPackage ? d : i.ProcessFeed(a, { data: d });
+    return { title: `Twitter @${u.name}`, link: `https://x.com/${u.screen_name}/status/${s}`, image: f.replace(/_normal.jpg$/, `.jpg`), description: u.description, item: p };
+}
+export { a as route };

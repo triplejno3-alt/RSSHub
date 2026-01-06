@@ -1,0 +1,46 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/detail/:id`,
+    categories: [`reading`],
+    example: `/zongheng/detail/1366535`,
+    parameters: { id: `作品 ID` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.zongheng.org/detail/:id`] }],
+    name: `章节更新`,
+    maintainers: [`TonyRL`],
+    handler: a,
+    url: `www.zongheng.com`,
+};
+async function a(i) {
+    let { id: a } = i.req.param(),
+        o = `https://www.zongheng.com/detail/${a}`,
+        s = r(await e(o)),
+        c = JSON.parse(
+            s(`script:contains("window.__NUXT__")`)
+                .text()
+                .match(/description:(.*?),totalWords/)?.[1] || `""`
+        ).replaceAll(`<br>`, ` `),
+        l = s(`.book-info--tags span`)
+            .toArray()
+            .map((e) => s(e).text().trim()),
+        u = s(`.author-info--name`).text().trim(),
+        d = (
+            await e(`https://bookapi.zongheng.com/api/chapter/getChapterList`, { method: `POST`, headers: { 'Content-Type': `application/x-www-form-urlencoded` }, body: new URLSearchParams({ bookId: a }) })
+        ).result.chapterList.flatMap((e) =>
+            e.chapterViewList.map((r) => ({
+                title: `${e.tome.tomeName ? `${e.tome.tomeName} - ` : ``}${r.chapterName}`,
+                link: `https://read.zongheng.com/chapter/${a}/${r.chapterId}.html`,
+                pubDate: n(t(r.createTime), 8),
+                guid: `zongheng:${a}:${e.tome.tomeId}:${r.chapterId}`,
+                author: u,
+                category: l,
+            }))
+        );
+    return { title: `${s(`.book-info--title span`).text()}（${u}）- 纵横中文网`, description: `${s(`.book-info--nums`).text().trim()} ${c}`, link: o, allowEmpty: !0, image: s(`.book-info--coverImage-img`).attr(`src`), item: d };
+}
+export { i as route };

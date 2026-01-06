@@ -1,0 +1,45 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = `http://www.career.zju.edu.cn/jyxt/jygz/new/getContent.zf?minCount=0&maxCount=10&`,
+    i = new Map([
+        [1, { title: `浙大就业服务平台 -- 新闻动态`, id: `lmjdid=739BEBB72A072B25E0538713470A6C41&sjlmid=undefined&lmtype=2&lx=2` }],
+        [2, { title: `浙大就业服务平台 -- 活动通知`, id: `lmjdid=739BEBB72A0B2B25E0538713470A6C41&sjlmid=undefined&lmtype=2&lx=2` }],
+        [3, { title: `浙大就业服务平台 -- 学院动态`, id: `lmjdid=739BEBB72A0C2B25E0538713470A6C41&sjlmid=undefined&lmtype=2&lx=2` }],
+        [4, { title: `浙大就业服务平台 -- 告示通告`, id: `lmjdid=739BEBB72A252B25E0538713470A6C41&sjlmid=undefined&lmtype=2&lx=2` }],
+    ]),
+    a = {
+        path: `/career/:type`,
+        categories: [`university`],
+        example: `/zju/career/1`,
+        parameters: { type: `分类，见下表` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `就业服务平台`,
+        maintainers: [`Caicailiushui`],
+        handler: o,
+        description: `| 新闻动态 | 活动通知 | 学院通知 | 告示通知 |
+| -------- | -------- | -------- | -------- |
+| 1        | 2        | 3        | 4        |`,
+    };
+async function o(a) {
+    let o = Number.parseInt(a.req.param(`type`)),
+        s = i.get(o).id,
+        c = n((await t(`${r}${s}`)).data),
+        l = c(`.com-list li`)
+            .toArray()
+            .map((t) => {
+                t = c(t);
+                let n = t.find(`a`).eq(0);
+                return {
+                    title: t.find(`span`).eq(0).attr(`title`),
+                    pubDate: e(t.find(`.news-time`).text()),
+                    link: n.attr(`href`).startsWith(`http`) ? n.attr(`href`) : `http://www.career.zju.edu.cn/jyxt${n.attr(`data-src`)}xwid=${n.attr(`data-xwid`)}&lmtype=${n.attr(`data-lmtype`)}`,
+                };
+            });
+    return { title: i.get(o).title, link: `${r}${s}`, item: l };
+}
+export { a as route };

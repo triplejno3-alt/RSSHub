@@ -1,0 +1,135 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { load as n } from 'cheerio';
+const r = `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36`,
+    i = async (t, i) => {
+        let a = n(await e(t, { headers: { 'User-Agent': r, Referer: i, Accept: `application/json, text/plain, */*` } })),
+            o = ``;
+        return (
+            a(`script`).each((e, t) => {
+                let n = (a(t).html() || ``).match(/PAGE\s*=\s*{\s*id\s*:\s*(\d+)\s*}/);
+                n && (o = n[1]);
+            }),
+            o
+        );
+    },
+    a = async (n, i) => {
+        let a = await e(`${n}/api/top/${i}`, { headers: { 'User-Agent': r, Referer: n, Accept: `application/json, text/plain, */*` } }),
+            o = `热榜`;
+        switch (i) {
+            case `pic3days`:
+                o += ` - 3天内无聊图`;
+                break;
+            case `pic7days`:
+                o += ` - 7天内无聊图`;
+                break;
+            default:
+                o += ` - 4小时热门`;
+                break;
+        }
+        if (a.code === 0 && a.data && Array.isArray(a.data)) {
+            let e = a.data.map((e) => {
+                let r = e.content.replaceAll(/img src="(.*?)"/g, (e, t) => e.replace(t, t.replace(/^https?:\/\/(\w+)\.moyu\.im/, `https://$1.sinaimg.cn`)));
+                return { author: e.author, title: `${e.author}: ${r.replaceAll(/<[^>]+>/g, ``)}`, description: r, pubDate: t(e.date), link: `${n}/t/${e.id}` };
+            });
+            return { title: o, items: e };
+        }
+        return { title: o, items: [{ title: `获取失败: ${o}`, description: `未能获取热榜数据`, link: `${n}/top`, pubDate: new Date() }] };
+    },
+    o = async (n) => {
+        let a = `煎蛋 - 鱼塘`,
+            o = `${n}/bbs`;
+        try {
+            let s = await i(o, n);
+            if (!s) return { title: a, items: [{ title: `获取失败: ${a}`, description: `无法获取论坛ID`, link: o, pubDate: new Date() }] };
+            let c = await e(`${n}/api/forum/posts/${s}?page=1`, { headers: { 'User-Agent': r, Referer: o, Accept: `application/json, text/plain, */*` } });
+            return c.code === 0 && c.data && c.data.list && Array.isArray(c.data.list)
+                ? {
+                      title: a,
+                      items: c.data.list.map((e) => {
+                          let r = e.content.replaceAll(/img src="(.*?)"/g, (e, t) => e.replace(t, t.replace(/^https?:\/\/(\w+)\.moyu\.im/, `https://$1.sinaimg.cn`)));
+                          return {
+                              author: e.author_name,
+                              title: e.title || `${e.author_name}发表了新主题`,
+                              description: r,
+                              pubDate: t(e.update_time || e.create_time),
+                              link: `${n}/bbs#/topic/${e.post_id}`,
+                              category: e.reply_count > 0 ? [`${e.reply_count}条回复`] : void 0,
+                          };
+                      }),
+                  }
+                : { title: a, items: [{ title: `获取失败: ${a}`, description: `未能获取鱼塘数据`, link: o, pubDate: new Date() }] };
+        } catch (e) {
+            return { title: a, items: [{ title: `解析错误: 鱼塘`, description: `解析鱼塘页面时出错: ${e instanceof Error ? e.message : String(e)}`, link: o, pubDate: new Date() }] };
+        }
+    },
+    s = async (a, o) => {
+        let s = `${a}/${o}`;
+        try {
+            let c = await i(s, a),
+                l = n(await e(s, { headers: { 'User-Agent': r, Referer: a, Accept: `application/json, text/plain, */*` } })),
+                u = String(l(`title`).text().trim()) || `煎蛋 - ${o}`;
+            if (!c) return { title: u, items: [{ title: `无法解析: ${u}`, description: `无法从页面中获取到帖子ID，可能网站结构已变更`, link: s, pubDate: new Date() }] };
+            let d = await e(`${a}/api/comment/post/${c}?order=desc&page=1`, { headers: { 'User-Agent': r, Referer: s, Accept: `application/json, text/plain, */*` } });
+            return d.code === 0 && d.data && d.data.list && Array.isArray(d.data.list)
+                ? {
+                      title: u,
+                      items: d.data.list.map((e) => {
+                          let n = e.content.replaceAll(/img src="(.*?)"/g, (e, t) => e.replace(t, t.replace(/^https?:\/\/(\w+)\.moyu\.im/, `https://$1.sinaimg.cn`)));
+                          return { author: e.author, title: `${e.author}: ${n.replaceAll(/<[^>]+>/g, ``)}`, description: n, pubDate: t(e.date_gmt || e.date), link: `${a}/t/${e.id}` };
+                      }),
+                  }
+                : { title: u, items: [{ title: `暂无内容: ${u || o}`, description: `没有获取到内容，可能需要更新解析规则`, link: s, pubDate: new Date() }] };
+        } catch {
+            return { title: `煎蛋 - ${o}`, items: [{ title: `解析错误: ${o}`, description: `解析页面时出错`, link: s, pubDate: new Date() }] };
+        }
+    },
+    c = {
+        path: `/:category/:type?`,
+        example: `/jandan/top`,
+        name: `Section`,
+        maintainers: [`nczitzk`, `pseudoyu`],
+        parameters: {
+            category: {
+                description: `板块`,
+                options: [
+                    { label: `热榜`, value: `top` },
+                    { label: `问答`, value: `qa` },
+                    { label: `树洞`, value: `treehole` },
+                    { label: `随手拍`, value: `ooxx` },
+                    { label: `无聊图`, value: `pic` },
+                    { label: `鱼塘`, value: `bbs` },
+                ],
+            },
+            type: {
+                description: '热榜类型，仅当 category 选择 `top` 时有效',
+                default: `4hr`,
+                options: [
+                    { label: `4小时热门`, value: `4hr` },
+                    { label: `3天内无聊图`, value: `pic3days` },
+                    { label: `7天内无聊图`, value: `pic7days` },
+                ],
+            },
+        },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`i.jandan.net/:category`], target: `/jandan/:category?` }],
+        handler: l,
+    };
+async function l(e) {
+    let t = e.req.param(`category`) ?? `top`;
+    t = t.replace(/#.*$/, ``);
+    let n = e.req.param(`type`) ?? `4hr`,
+        r = `http://i.jandan.net`,
+        i = `${r}/${t}`,
+        c;
+    try {
+        c = t === `top` ? await a(r, n) : t === `bbs` ? await o(r) : await s(r, t);
+    } catch (e) {
+        let n = e instanceof Error ? e.message : String(e);
+        c = { title: `煎蛋 - ${t}`, items: [{ title: `抓取出错: ${t}`, description: `抓取 ${t} 分区时出现错误: ${n}`, link: i, pubDate: new Date() }] };
+    }
+    return { title: c.title, link: i, item: c.items };
+}
+export { c as route };

@@ -1,0 +1,108 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { n as t, t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './invalid-parameter-DGZgOgO2.mjs';
+import { n as i } from './readable-social--hCfpJhv.mjs';
+import { Fragment as a, jsx as o, jsxs as s } from 'hono/jsx/jsx-runtime';
+import { load as c } from 'cheerio';
+import { renderToString as l } from 'hono/jsx/dom/server';
+import { raw as u } from 'hono/html';
+var d = async (r, i) => {
+    let a = `https://bgm.tv/subject/${r}/comments`,
+        o = c(await e(a)),
+        s = o(`.nameSingle`).find(`a`).text(),
+        l = o(`.item`)
+            .toArray()
+            .map((e) => {
+                let r = o(e),
+                    i = r.find(`.starlight`),
+                    a = null;
+                i.length > 0 && (a = i.attr(`class`).match(/stars(\d)/)[1]);
+                let s = r.find(`small.grey`).text().slice(2),
+                    c = s.includes(`ago`) ? t(s) : n(s);
+                return { user: r.find(`.l`).text(), rate: a || `无`, content: r.find(`p`).text(), date: c };
+            })
+            .filter((e) => e.content.length >= i);
+    return { title: `${s}的 Bangumi 吐槽箱`, link: a, item: l.map((e) => ({ title: `${e.user}的吐槽`, description: `【评分：${e.rate}】  ${e.content}`, guid: `${a}#${e.user}`, pubDate: e.date, link: a })) };
+};
+const f = (e, t) => (t ? e.name || e.name_cn : e.name_cn || e.name);
+var p = async (t, r) => {
+        let i = await e(`https://api.bgm.tv/subject/${t}?responseGroup=large`),
+            c = i.eps.filter((e) => e.status === `Air`);
+        return {
+            title: f(i, r),
+            link: `https://bgm.tv/subject/${t}`,
+            description: i.summary,
+            item: c.map((e) => ({
+                title: `ep.${e.sort} ${f(e, r)}`,
+                description: l(
+                    s(a, {
+                        children: [
+                            o(`img`, { src: i.images.large || i.images.common, alt: `ep.${e.sort} ${e.name_cn || e.name}` }),
+                            o(`p`, {
+                                children: u(
+                                    e.desc.replaceAll(
+                                        `\r
+`,
+                                        `<br>`
+                                    )
+                                ),
+                            }),
+                        ],
+                    })
+                ),
+                pubDate: n(e.airdate),
+                link: e.url.replace(`http:`, `https:`),
+            })),
+        };
+    },
+    m = (t) => {
+        let r = { blog: { en: `reviews`, cn: `评论` }, topic: { en: `board`, cn: `讨论` } };
+        return async (i, a) => {
+            let o = await e(`https://api.bgm.tv/subject/${i}?responseGroup=large`);
+            return {
+                title: `${f(o, a)}的 Bangumi ${r[t].cn}`,
+                link: `https://bgm.tv/subject/${o.id}/${r[t].en}`,
+                item: o[t].map((e) => ({ title: `${e.user.nickname}：${e.title}`, description: e.summary || ``, link: e.url.replace(`http:`, `https:`), pubDate: n(e.timestamp, `X`), author: e.user.nickname })),
+            };
+        };
+    };
+const h = {
+    path: `/subject/:id/:type?/:showOriginalName?`,
+    categories: [`anime`],
+    example: `/bangumi.tv/subject/328609/ep/true`,
+    parameters: { id: `条目 id, 在条目页面的地址栏查看`, type: '条目类型，可选值为 `ep`, `comments`, `blogs`, `topics`，默认为 `ep`', showOriginalName: `显示番剧标题原名，可选值 0/1/false/true，默认为 false` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`bgm.tv/subject/:id`], target: `/tv/subject/:id` }],
+    name: `条目的通用路由格式`,
+    maintainers: [`JimenezLi`],
+    handler: g,
+    description: `::: warning
+  此通用路由仅用于对路由参数的描述，具体信息请查看下方与条目相关的路由
+:::`,
+};
+async function g(e) {
+    let t = e.req.param(`id`),
+        n = e.req.param(`type`) || `ep`,
+        a = i(e.req.param(`showOriginalName`)),
+        o;
+    switch (n) {
+        case `ep`:
+            o = await p(t, a);
+            break;
+        case `comments`:
+            o = await d(t, Number(e.req.query(`minLength`)) || 0);
+            break;
+        case `blogs`:
+            o = await m(`blog`)(t, a);
+            break;
+        case `topics`:
+            o = await m(`topic`)(t, a);
+            break;
+        default:
+            throw new r(`暂不支持对${n}的订阅`);
+    }
+    return o;
+}
+export { h as route };

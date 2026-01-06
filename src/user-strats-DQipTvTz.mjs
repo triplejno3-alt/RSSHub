@@ -1,0 +1,15 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { a as e, l as t, m as n, o as r, s as i, u as a } from './api-Dcvu7xdq.mjs';
+const o = { path: `/ff14risingstones/user-strats/:uid`, example: `/sdo/ff14risingstones/user-strats/10001226`, name: `用户攻略`, categories: [`bbs`], maintainers: [`KarasuShin`], features: { requireConfig: n }, handler: s };
+async function s(n) {
+    i();
+    let o = n.req.param(`uid`),
+        [s, c] = await Promise.all([r(o, 2), e(o)]);
+    return { title: `石之家 - ${c.character_name}@${c.group_name} 发布的攻略`, link: `${a}#/me/posts?uuid=${o}`, image: c.avatar, item: await t(s) };
+}
+export { o as route };

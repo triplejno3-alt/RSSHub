@@ -1,0 +1,4 @@
+var e = class extends Error {
+    name = `ConfigNotFoundError`;
+};
+export { e as t };

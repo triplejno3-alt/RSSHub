@@ -1,0 +1,48 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/main/:type?`,
+    categories: [`new-media`],
+    example: `/mpaypass/main/policy`,
+    parameters: { type: '新闻类型，类型可在URL中找到，类似`policy`，`eye`等，空或其他任意值展示最新新闻' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `分类`,
+    maintainers: [`zhuan-zhu`],
+    handler: o,
+};
+async function o(a) {
+    let { type: o = `` } = a.req.param(),
+        s = o ? `http://www.mpaypass.com.cn/${o}.html` : `http://www.mpaypass.com.cn`,
+        c = (await n({ method: `get`, url: s })).data,
+        l = i(c),
+        u = o ? l(`a[href="http://www.mpaypass.com.cn/${o}.html"]`).text() : `最新文章`,
+        d = l(`.newslist`)
+            .toArray()
+            .map((e) => ({
+                title: l(e).find(`#title`).text(),
+                link: l(e).find(`#title`).find(`a`).attr(`href`),
+                time: l(e).find(`#time`).text(),
+                category: l(e)
+                    .find(`#keywords`)
+                    .find(`a`)
+                    .toArray()
+                    .map((e) => l(e).text().trim()),
+            })),
+        f = await Promise.all(
+            d.map((a) =>
+                e.tryGet(a.link, async () => {
+                    let e = i((await n(a.link)).data)(`div.newsbody`).html();
+                    return { title: a.title, link: a.link, pubDate: r(t(a.time), 8), description: e, category: a.category };
+                })
+            )
+        );
+    return { title: `移动支付网-${u}`, link: s, item: f };
+}
+export { a as route };

@@ -1,0 +1,60 @@
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import { t } from './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+import { t as r } from './invalid-parameter-DGZgOgO2.mjs';
+import { n as i } from './puppeteer-BbZGb8cd.mjs';
+import { t as a } from './utils-Bohv02os.mjs';
+const o = {
+    path: `/live/:rid`,
+    categories: [`live`],
+    example: `/douyin/live/685317364746`,
+    parameters: { rid: `直播间 id, 可在主播直播间页 URL 中找到` },
+    features: { requireConfig: !1, requirePuppeteer: !0, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`live.douyin.com/:rid`] }],
+    name: `直播间开播`,
+    maintainers: [`TonyRL`],
+    handler: s,
+};
+async function s(o) {
+    let s = o.req.param(`rid`);
+    if (Number.isNaN(s)) throw new r(`Invalid room ID. Room ID should be a number.`);
+    let c = `https://live.douyin.com/${s}`,
+        l = await n.tryGet(
+            `douyin:live:${s}`,
+            async () => {
+                let e,
+                    n = await i(),
+                    r = await n.newPage();
+                return (
+                    await r.setRequestInterception(!0),
+                    r.on(`request`, (e) => {
+                        e.resourceType() === `document` || e.resourceType() === `stylesheet` || e.resourceType() === `script` || e.resourceType() === `xhr` ? e.continue() : e.abort();
+                    }),
+                    r.on(`response`, async (t) => {
+                        t.request().url().includes(`/webcast/room/web/enter`) && (e = await t.json());
+                    }),
+                    t.http(`Requesting ${c}`),
+                    await r.goto(c, { waitUntil: `networkidle2` }),
+                    await n.close(),
+                    e
+                );
+            },
+            e.cache.routeExpire,
+            !1
+        );
+    if (l.status_code !== 0) throw Error(`Status code ${l.status_code}`);
+    let u = l.data.data[0],
+        d = l.data.user,
+        f = d.nickname,
+        p = d.avatar_thumb.url_list[0],
+        m = [];
+    return (
+        u.id_str &&
+            (u.status === 2
+                ? m.push({ title: `开播：${u.title}`, description: `<img src="${u.cover.url_list[0]}">`, link: c, author: f, guid: u.id_str })
+                : u.status === 4 && m.push({ title: `当前直播已结束，期待下一场：${u.title}`, link: `https://www.douyin.com/user/${d.sec_uid}`, author: f, guid: u.id_str })),
+        { title: `${f}的抖音直播间 - 抖音直播`, description: `欢迎来到${f}的抖音直播间，${f}与大家一起记录美好生活 - 抖音直播`, image: a(p), link: c, item: m, allowEmpty: !0 }
+    );
+}
+export { o as route };

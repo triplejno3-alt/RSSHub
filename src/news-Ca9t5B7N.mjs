@@ -1,0 +1,57 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+        all: { name: `全部`, path: `cat/1.html` },
+        currentAffairs: { name: `时政`, path: `subcat/1.html` },
+        finance: { name: `财经`, path: `subcat/2.html` },
+        technology: { name: `科技`, path: `subcat/3.html` },
+        social: { name: `社会`, path: `subcat/4.html` },
+        sports: { name: `体娱`, path: `subcat/5.html` },
+        international: { name: `国际`, path: `subcat/6.html` },
+        usa: { name: `美国`, path: `subcat/7.html` },
+        cn: { name: `中国`, path: `subcat/8.html` },
+        europe: { name: `欧洲`, path: `subcat/9.html` },
+        comments: { name: `评论`, path: `subcat/14.html` },
+    },
+    a = {
+        path: `/news/:type?`,
+        categories: [`new-media`],
+        example: `/timednews/news`,
+        parameters: { type: `子分类，见下表，默认为全部` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `新闻`,
+        maintainers: [`linbuxiao`],
+        handler: o,
+        description: `子分类
+
+| 全部 | 时政           | 财经    | 科技       | 社会   | 体娱   | 国际          | 美国 | 中国 | 欧洲   | 评论     |
+| ---- | -------------- | ------- | ---------- | ------ | ------ | ------------- | ---- | ---- | ------ | -------- |
+| all  | currentAffairs | finance | technology | social | sports | international | usa  | cn   | europe | comments |`,
+    };
+async function o(a) {
+    let o = a.req.param(`type`) ?? `all`,
+        s = `https://www.timednews.com/topic/${i[o].path}`,
+        c = r((await n({ method: `get`, url: s })).data)(`#content li`)
+            .toArray()
+            .map((e) => {
+                let t = r(e);
+                return { title: t(`a`).text().trim(), link: t(`a`).attr(`href`) };
+            }),
+        l = await Promise.all(
+            c.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let e = r((await n({ method: `get`, url: i.link })).data, { decodeEntities: !1 });
+                    return (e(`.event .twitter`).remove(), (i.pubDate = t(e(`.datetime #publishdate`).text(), `YYYY-MM-DD`)), (i.author = e(`.datetime #author`).text()), (i.description = e(`.event`).html()), i);
+                })
+            )
+        ),
+        u = { title: `时刻新闻`, link: s, description: `时刻新闻 ${i[o].name}`, item: l };
+    return (a.set(`json`, u), u);
+}
+export { a as route };

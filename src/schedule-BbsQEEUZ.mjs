@@ -1,0 +1,49 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { t } from './invalid-parameter-DGZgOgO2.mjs';
+const n = {
+    path: `/schedule/:login`,
+    categories: [`live`],
+    example: `/twitch/schedule/riotgames`,
+    parameters: { login: `Twitch username` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.twitch.tv/:login/schedule`] }],
+    name: `Stream Schedule`,
+    maintainers: [`hoilc`],
+    handler: r,
+};
+async function r(n) {
+    let r = n.req.param(`login`),
+        i = new Date(),
+        a = new Date(i.getTime() + 864e5 * 7),
+        o = await e({
+            method: `post`,
+            url: `https://gql.twitch.tv/gql`,
+            headers: { Referer: `https://player.twitch.tv`, 'Client-ID': `kimne78kx3ncx6brgo4mv6wki5h1ko` },
+            json: [
+                { operationName: `ChannelShell`, extensions: { persistedQuery: { version: 1, sha256Hash: `c3ea5a669ec074a58df5c11ce3c27093fa38534c94286dc14b68a25d5adcbf55` } }, variables: { login: r, lcpVideosEnabled: !1 } },
+                {
+                    operationName: `StreamSchedule`,
+                    variables: { login: r, startingWeekday: `MONDAY`, utcOffsetMinutes: 480, startAt: i.toISOString(), endAt: a.toISOString() },
+                    extensions: { persistedQuery: { version: 1, sha256Hash: `01925339777a81111ffac469430bc4ea4773c18a3c1642f1b231e61e2278ea41` } },
+                },
+            ],
+        }),
+        s = o.data[0].data,
+        c = o.data[1].data;
+    if (!c.user.id) throw new t(`Username does not exist`);
+    let l = s.userOrError.displayName,
+        u = c.user.channel.schedule.segments?.map((e) => ({
+            title: e.title,
+            guid: e.id,
+            link: `https://www.twitch.tv/${r}`,
+            author: l,
+            description: `StartAt: ${e.startAt}</br>EndAt: ${e.endAt}`,
+            category: e.categories.map((e) => e.name),
+        }));
+    return { title: `Twitch - ${l} - Schedule`, link: `https://www.twitch.tv/${r}`, item: u, allowEmpty: !0 };
+}
+export { n as route };

@@ -1,0 +1,62 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/jwc/:type`,
+    categories: [`university`],
+    example: `/bupt/jwc/tzgg`,
+    parameters: { type: { type: `string`, optional: !1, description: `信息类型，可选值：tzgg（通知公告），xwzx（新闻资讯）` } },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [
+        { source: [`jwc.bupt.edu.cn/tzgg1.htm`], target: `/jwc/tzgg` },
+        { source: [`jwc.bupt.edu.cn/xwzx2.htm`], target: `/jwc/xwzx` },
+    ],
+    name: `教务处`,
+    maintainers: [`Yoruet`],
+    handler: o,
+    url: `jwc.bupt.edu.cn`,
+};
+async function o(a) {
+    let o = a.req.param(`type`);
+    o ||= `tzgg`;
+    let s = `https://jwc.bupt.edu.cn`,
+        c,
+        l;
+    if (o === `tzgg`) ((c = `${s}/tzgg1.htm`), (l = `通知公告`));
+    else if (o === `xwzx`) ((c = `${s}/xwzx2.htm`), (l = `新闻资讯`));
+    else throw Error(`Invalid type parameter`);
+    let u = i((await n({ method: `get`, url: c })).data),
+        d = u(`.txt-elise`)
+            .toArray()
+            .map((e) => {
+                let t = u(e).find(`a`);
+                return t.length === 0 || !t.attr(`href`) ? null : { title: t.text().trim(), link: s + `/` + t.attr(`href`) };
+            })
+            .filter(Boolean),
+        f = await Promise.all(
+            d.map((a) =>
+                e.tryGet(a.link, async () => {
+                    let e = i((await n({ method: `get`, url: a.link })).data),
+                        o = e(`.v_news_content`);
+                    return (
+                        o.find(`p, span, strong`).each(function () {
+                            let t = e(this),
+                                n = t.text().trim();
+                            n === `` ? t.remove() : t.replaceWith(n);
+                        }),
+                        (a.description = o.text().trim()),
+                        (a.pubDate = r(t(e(`.info`).text().replace(`发布时间：`, ``).trim()), 8)),
+                        a
+                    );
+                })
+            )
+        );
+    return { title: `北京邮电大学教务处 - ${l}`, link: c, item: f };
+}
+export { a as route };

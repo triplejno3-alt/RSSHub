@@ -1,0 +1,54 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { load as r } from 'cheerio';
+const i = async (n) => {
+        let i = Number.parseInt(n.req.query(`limit`) ?? `10`, 10),
+            a = new URL(`news/`, `https://www.trendforce.com`).href,
+            o = new URL(`wp-json/wp/v2/posts`, a).href,
+            s = await e(o, { query: { _embed: `true`, per_page: i } }),
+            c = r(await e(a)),
+            l = c(`html`).attr(`lang`) ?? `en`,
+            u = s.slice(0, i).map((e) => {
+                let n = e.title?.rendered ?? e.title,
+                    i = r(e.content.rendered);
+                i(`div.article_highlight-area-BG_wrap`).remove();
+                let a = i.html(),
+                    o = e.date_gmt,
+                    s = e.link,
+                    c = e._embedded?.[`wp:term`]?.flat().map((e) => e.name) ?? [],
+                    u = e._embedded?.author.map((e) => ({ name: e.name, url: e.url, avatar: void 0 })) ?? [],
+                    d = e.guid?.rendered ?? e.guid,
+                    f = e._embedded?.[`wp:featuredmedia`]?.[0].source_url ?? void 0,
+                    p = e.modified_gmt ?? o;
+                return { title: n, description: a, pubDate: o ? t(o) : void 0, link: s ?? d, category: c, author: u, guid: d, id: d, content: { html: a, text: a }, image: f, banner: f, updated: p ? t(p) : void 0, language: l };
+            });
+        return {
+            title: c(`title`).text(),
+            description: c(`meta[property="og:description"]`).attr(`content`),
+            link: a,
+            item: u,
+            allowEmpty: !0,
+            image: c(`meta[property="og:image"]`).attr(`content`),
+            author: c(`meta[property="og:site_name"]`).attr(`content`),
+            language: l,
+            id: a,
+        };
+    },
+    a = {
+        path: `/news`,
+        name: `News`,
+        url: `www.trendforce.com`,
+        maintainers: [`nczitzk`],
+        handler: i,
+        example: `/trendforce/news`,
+        parameters: void 0,
+        description: void 0,
+        categories: [`new-media`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`www.trendforce.com/news/`], target: `/news` }],
+        view: n.Articles,
+    };
+export { i as handler, a as route };

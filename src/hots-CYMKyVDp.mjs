@@ -1,0 +1,44 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import './puppeteer-BbZGb8cd.mjs';
+import { t as n } from './cookies-C-qW_A-K.mjs';
+import r from 'sanitize-html';
+import i from 'query-string';
+const a = {
+    path: `/hots`,
+    categories: [`finance`],
+    example: `/xueqiu/hots`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`xueqiu.com/`] }],
+    name: `热帖`,
+    maintainers: [`hillerliao`],
+    handler: o,
+    url: `xueqiu.com/`,
+};
+async function o() {
+    let a = await n(`https://xueqiu.com`);
+    return {
+        title: `热帖 - 雪球`,
+        link: `https://xueqiu.com/`,
+        description: `雪球热门帖子`,
+        item: (
+            await t({
+                method: `get`,
+                url: `https://xueqiu.com/statuses/hots.json`,
+                searchParams: i.stringify({ a: `1`, count: `10`, page: `1`, scope: `day`, type: `status`, meigu: `0` }),
+                headers: { Cookie: a, Referer: `https://xueqiu.com/` },
+            })
+        ).data.map((t) => {
+            let n = t.text;
+            return { title: t.title ?? r(n, { allowedTags: [], allowedAttributes: {} }), description: n, pubDate: e(t.created_at), link: `https://xueqiu.com${t.target}`, author: t.user.screen_name };
+        }),
+    };
+}
+export { a as route };

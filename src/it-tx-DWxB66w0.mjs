@@ -1,0 +1,47 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/it/tx/:id?`,
+    categories: [`university`],
+    example: `/ouc/it/tx/xwdt`,
+    parameters: { id: '默认为 `xwdt`，id过多，这里只举几个例' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`it.ouc.edu.cn/tx/:id/list.htm`], target: `/it/tx/:id` }],
+    name: `信息科学与工程学院团学工作`,
+    maintainers: [`3401797899`],
+    handler: a,
+    url: `it.ouc.edu.cn/`,
+    description: `| 新闻动态 | 学院活动 | 奖助工作获奖情况 |
+| -------- | -------- | ---------------- |
+| xwdt     | tzgg     | 21758            |`,
+};
+async function a(i) {
+    let a = `https://it.ouc.edu.cn`,
+        o = `${a}/tx/${i.req.param(`id`) || `xwdt`}/list.htm`,
+        s = r((await n(o)).data),
+        c = s(`span.Column_Anchor`).text(),
+        l = s(`li.col_title h2`).text(),
+        u = s(`ul.wp_article_list li`)
+            .toArray()
+            .map((e) => {
+                e = s(e);
+                let n = e.find(`a`);
+                return { title: n.attr(`title`), link: new URL(n.attr(`href`), a).href, pubDate: t(e.find(`span.Article_PublishDate`).text(), `YYYY-MM-DD`) };
+            }),
+        d = await Promise.all(
+            u.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = r((await n(t.link)).data);
+                    return ((t.author = `中国海洋大学信息科学与工程学院`), (t.description = e(`.wp_articlecontent`).html()), t);
+                })
+            )
+        );
+    return { title: `信息科学与工程学院团学工作 - ${c}${l === c ? `` : l}`, description: `中国海洋大学信息科学与工程学院团学工作`, link: o, item: d };
+}
+export { i as route };

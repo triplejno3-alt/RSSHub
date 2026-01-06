@@ -1,0 +1,69 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './timezone-CrV-DT8S.mjs';
+import { jsx as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+const c = (e) => s(a(`img`, { src: e.imglink })),
+    l = {
+        path: `/news/:abbr?/:category?/:option?`,
+        categories: [`anime`],
+        example: `/lovelive-anime/news`,
+        parameters: {
+            abbr: 'The path to the Love Live series of sub-projects on the official website is detailed in the table below, `abbr` is `detail` when crawling the full text',
+            category: 'The official website lists the Topics category, `category` is `detail` when crawling the full text, other categories see the following table for details',
+            option: 'Crawl full text when `option` is `detail`.',
+        },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`www.lovelive-anime.jp/`, `www.lovelive-anime.jp/news/`], target: `/news` }],
+        name: `News`,
+        maintainers: [`axojhf`, `zhaoweizhong`],
+        handler: u,
+        url: `www.lovelive-anime.jp/`,
+        description: `| Sub-project Name | All Projects | Lovelive!   | Lovelive! Sunshine!! | Lovelive! Nijigasaki High School Idol Club | Lovelive! Superstar!! | 蓮ノ空女学院 | イキヅライブ！ | 幻日のヨハネ | ラブライブ！スクールアイドルミュージカル |
+| -------------------------------- | -------------- | ----------- | -------------------- | ------------------------------------------ | --------------------- | ------------ | ------------ |  ------------ | ---------------------------------------- |
+| \`abbr\`parameter                  | <u>*No parameter*</u> | lovelive |     sunshine        | nijigasaki                                 | superstar              | hasunosora |  ikizulive  | yohane       | musical                                  |
+
+| Category Name       | 全てのニュース        | 音楽商品 | アニメ映像商品 | キャスト映像商品 | 劇場    | アニメ放送 / 配信 | キャスト配信 / ラジオ | ライブ / イベント | ブック | グッズ | ゲーム | メディア | ご当地情報 | キャンペーン | その他 |
+| ------------------- | --------------------- | -------- | -------------- | ---------------- | ------- | ----------------- | --------------------- | ----------------- | ------ | ------ | ------ | -------- | ---------- | ------ | ------------ |
+| \`category\`parameter | <u>*No parameter*</u> | music    | anime_movie   | cast_movie      | theater | onair             | radio                 | event             | books  | goods  | game   | media    | local      | campaign  | other   |`,
+    };
+async function u(a) {
+    let s = a.req.param(`abbr`),
+        l = a.req.param(`category`),
+        u = a.req.param(`option`),
+        d = s === `detail` || l === `detail` || u === `detail`,
+        f = ``,
+        p = ``;
+    s && s !== `detail` && ((f = s), l && l !== `detail` && (p = l));
+    let m = `https://www.lovelive-anime.jp/common/templates/api/article_list.php?limit=20&data=`,
+        h = { category: [`NEWS`] };
+    (f && (h.series = [f]), p && (h.subcategory = [p]), (m += encodeURIComponent(JSON.stringify(h))));
+    let g = (await e(m)).data.article_list.map((e) => ({
+            title: e.title,
+            link: e.url,
+            description: c({ imglink: `https://www.lovelive-anime.jp` + e.thumbnail }),
+            pubDate: i(n(e.dspdate), 9),
+            category: e.categories.subcategory.map((e) => e.name),
+        })),
+        _ = g;
+    return (
+        d &&
+            (_ = await Promise.all(
+                g.map((e) =>
+                    t.tryGet(e.link, async () => {
+                        let t = o((await r(e.link)).data)(`.p-article__content`);
+                        for (let e of t.find(`img`)) e.attribs.src = `https://www.lovelive-anime.jp` + e.attribs.src;
+                        return ((e.description = t.html()), e);
+                    })
+                )
+            )),
+        { title: `lovelive official website news`, link: `https://www.lovelive-anime.jp/news/`, item: _ }
+    );
+}
+export { l as route };

@@ -1,0 +1,52 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+import i from 'p-map';
+const a = {
+    path: `/realtime/:category?`,
+    categories: [`new-media`],
+    example: `/nextapple/realtime/latest`,
+    parameters: { category: `類別，見下表，默認為首頁` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`tw.nextapple.com/`, `tw.nextapple.com/realtime/:category`] }],
+    name: `最新新聞`,
+    maintainers: [`miles170`],
+    handler: o,
+    url: `tw.nextapple.com/`,
+    description: `| 首頁   | 焦點      | 熱門 | 娛樂          | 生活 | 女神     | 社會  |
+| ------ | --------- | ---- | ------------- | ---- | -------- | ----- |
+| latest | recommend | hit  | entertainment | life | gorgeous | local |
+
+| 政治     | 國際          | 財經    | 體育   | 旅遊美食  | 3C 車市 |
+| -------- | ------------- | ------- | ------ | --------- | ------- |
+| politics | international | finance | sports | lifestyle | gadget  |`,
+};
+async function o(a) {
+    let o = `https://tw.nextapple.com/realtime/${a.req.param(`category`) ?? `latest`}`,
+        s = r((await n(o)).data),
+        c = await i(
+            s(`article.infScroll`).toArray(),
+            (i) => {
+                let a = s(i).find(`.post-title`).attr(`href`);
+                return e.tryGet(a, async () => {
+                    let e = r((await n(a)).data),
+                        i = e(`#main-content`),
+                        o = i.find(`header h1`),
+                        s = o.text();
+                    o.remove();
+                    let c = i.find(`.post-meta`),
+                        l = c.find(`.category`).text(),
+                        u = t(c.find(`time`).attr(`datetime`));
+                    return (c.remove(), e(`.post-comments`).remove(), { title: s, description: i.html(), category: l, pubDate: u, link: a });
+                });
+            },
+            { concurrency: 5 }
+        );
+    return { title: s(`title`).text(), link: o, item: c };
+}
+export { a as route };

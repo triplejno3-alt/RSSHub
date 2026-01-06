@@ -1,0 +1,119 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { t as i } from './description-BoDJvvso.mjs';
+import { load as a } from 'cheerio';
+const o = async (r) => {
+        let { category: o = `latest` } = r.req.param(),
+            s = Number.parseInt(r.req.query(`limit`) ?? `30`, 10),
+            c = `https://www.oschina.net`,
+            l = new URL(`event?tab=${o}`, c).href,
+            u = new URL(`action/ajax/get_more_event_list`, c).href,
+            d = a(await e(u, { method: `post`, body: { tab: o } })),
+            f = a(await e(l)),
+            p = f(`html`).attr(`lang`) ?? `zh-CN`,
+            m = [];
+        return (
+            (m = d(`div.event-item`)
+                .slice(0, s)
+                .toArray()
+                .map((e) => {
+                    let t = d(e),
+                        r = t.find(`a.summary`).text(),
+                        a = t.find(`header.item-banner img`).attr(`data-delay`),
+                        o = i({ images: a ? [{ src: a, alt: r }] : void 0, description: t.html() }),
+                        s = t.find(`footer.when-where label`).first().text(),
+                        c = t.find(`a.summary`).attr(`href`),
+                        l = [t.find(`footer.when-where label`).last().text()],
+                        u = t
+                            .find(`div.sponsor`)
+                            .toArray()
+                            .map((e) => {
+                                let t = d(e);
+                                return { name: t.find(`span`).text(), avatar: t.find(`img`).attr(`data-delay`) };
+                            }),
+                        f = s;
+                    return { title: r, pubDate: s ? n(s) : void 0, link: c, category: l, author: u, content: { html: o, text: o }, image: a, banner: a, updated: f ? n(f) : void 0, language: p };
+                })),
+            (m = (
+                await Promise.all(
+                    m.map((r) =>
+                        r.link
+                            ? t.tryGet(r.link, async () => {
+                                  let t = a(await e(r.link)),
+                                      o = t(`h1`).text(),
+                                      s = t(`div.event-img img`).attr(`src`),
+                                      c = i({ images: s ? [{ src: s, alt: o }] : void 0, description: t(`div.event-detail`).html() }),
+                                      l = t(`span.box-fl`)
+                                          .filter((e, n) => t(n).text().includes(`时间`))
+                                          .next()
+                                          .text()
+                                          ?.split(`至`)[0]
+                                          ?.trim(),
+                                      u = t(`val[data-name="weixinUrl"]`).attr(`data-value`),
+                                      d = [...(r.category ?? []), t(`div.cost span.c`).text()].filter(Boolean),
+                                      f = t(`div.user-list div.box-aw`)
+                                          .toArray()
+                                          .map((e) => {
+                                              let n = t(e);
+                                              return { name: n.find(`h3`).text(), url: n.find(`a`).attr(`href`), avatar: n.prev().find(`img`).attr(`src`) };
+                                          }),
+                                      m = l,
+                                      h = {
+                                          title: o,
+                                          description: c,
+                                          pubDate: l ? n(l) : r.pubDate,
+                                          link: u ?? r.link,
+                                          category: d,
+                                          author: f,
+                                          content: { html: c, text: c },
+                                          image: s,
+                                          banner: s,
+                                          updated: m ? n(m) : r.updated,
+                                          language: p,
+                                      },
+                                      g = t(`div.aside-list ul li`)
+                                          .toArray()
+                                          .map((e) => {
+                                              let n = t(e);
+                                              return { url: n.find(`a.list-item`).attr(`href`), type: `related`, content_html: n.find(`a.list-item`).html() };
+                                          })
+                                          .filter((e) => !0);
+                                  return (g && (h = { ...h, _extra: { links: g } }), { ...r, ...h });
+                              })
+                            : r
+                    )
+                )
+            ).filter((e) => !0)),
+            { title: f(`title`).text(), description: f(`meta[name="description"]`).attr(`content`), link: l, item: m, allowEmpty: !0, language: p, id: l }
+        );
+    },
+    s = {
+        path: `/event/:category?`,
+        name: `活动`,
+        url: `www.oschina.net`,
+        maintainers: [`nczitzk`],
+        handler: o,
+        example: `/oschina/event`,
+        parameters: { category: '分类，默认为 `latest`，即最新活动，可在对应分类页 URL 中找到' },
+        description:
+            '::: tip\n若订阅 [强力推荐](https://www.oschina.net/event?tab=recommend)，网址为 `https://www.oschina.net/event?tab=recommend`，请截取 `https://www.oschina.net/event?tab=` 到末尾的部分 `recommend` 作为 `category` 参数填入，此时目标路由为 [`/oschina/event/recommend`](https://rsshub.app/oschina/event/recommend)。\n:::\n\n| 强力推荐  | 最新活动 |\n| --------- | -------- |\n| recommend | latest   |\n',
+        categories: [`programming`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            {
+                source: [`www.oschina.net`],
+                target: (e, t) => {
+                    let n = new URL(t).searchParams.get(`tab`) ?? void 0;
+                    return `/oschina/event${n ? `/${n}` : ``}`;
+                },
+            },
+            { title: `强力推荐`, source: [`www.oschina.net`], target: `/event/recommend` },
+            { title: `最新活动`, source: [`www.oschina.net`], target: `/event/latest` },
+        ],
+        view: r.Articles,
+    };
+export { o as handler, s as route };

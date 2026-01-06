@@ -1,0 +1,51 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { o as r, t as i } from './utils-DAZORnRC.mjs';
+import { load as a } from 'cheerio';
+import { CookieJar as o } from 'tough-cookie';
+const s = {
+    path: `/cover`,
+    categories: [`journal`],
+    example: `/nature/cover`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`nature.com/`] }],
+    name: `Cover Story`,
+    maintainers: [`y9c`, `pseudoyu`],
+    handler: c,
+    url: `nature.com/`,
+    description: `Subscribe to the cover images of the Nature journals, and get the latest publication updates in time.`,
+};
+async function c() {
+    let s = new o();
+    await n(`https://www.nature.com`, { cookieJar: s });
+    let c = r.items.filter((e) => e.id).map((e) => ({ ...e, link: `${i}/${e.title}/current-issue` }));
+    return {
+        title: `Nature Covers Story`,
+        description: `Find out the cover story of some Nature journals.`,
+        link: i,
+        item: await Promise.all(
+            c.map((r) =>
+                e.tryGet(r.link, async () => {
+                    let { id: e, name: i, link: o } = r,
+                        c = await n(o, { cookieJar: s }),
+                        l = a(c.data),
+                        { volume: u, issue: d } =
+                            l(`meta[property="og:url"]`)
+                                .attr(`content`)
+                                ?.match(/volumes\/(?<volume>\d+)\/issues\/(?<issue>\d+)/)?.groups ?? {},
+                        f = `<div align="center"><img src="${`https://media.springernature.com/full/springer-static/cover-hires/journal/${e}/${u}/${d}?as=webp`}" alt="Volume ${u} Issue ${d}"></div>`,
+                        p = l(`title`).text().split(`,`)[1].trim(),
+                        m = l(`div[data-test=issue-description]`).html() ?? ``;
+                    return { title: `${i} | Volume ${u} Issue ${d}`, description: f + m, link: c.url, pubDate: t(p, `MMMM YYYY`) };
+                })
+            )
+        ),
+    };
+}
+export { s as route };

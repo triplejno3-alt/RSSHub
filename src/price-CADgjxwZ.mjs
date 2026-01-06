@@ -1,0 +1,51 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { load as t } from 'cheerio';
+async function n(n) {
+    let r = t((await e(n)).body),
+        i = ``;
+    for (let e = 0; e < r(`p`).length; e++) {
+        let t = r(`p`).eq(e);
+        if (t.text().trim().includes(`经销商报价`)) {
+            i = ` => 经销商报价: ` + r(t.next()).text().trim();
+            break;
+        }
+    }
+    return i;
+}
+const r = {
+    path: `/price`,
+    categories: [`shopping`],
+    example: `/tesla/price`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`tesla.cn/model3/design`, `tesla.cn/`] }],
+    name: `价格`,
+    maintainers: [`xiaokyo`],
+    handler: i,
+    url: `tesla.cn/model3/design`,
+};
+async function i() {
+    let e = [
+            { name: `Model 3`, slug: `model3`, link: `https://www.dongchedi.com/auto/series/3762` },
+            { name: `Model Y`, slug: `modely`, link: `https://www.dongchedi.com/auto/series/4363` },
+            { name: `Model S`, slug: `models`, link: `https://www.dongchedi.com/auto/series/1254` },
+            { name: `Model X`, slug: `modelx`, link: `https://www.dongchedi.com/auto/series/1255` },
+        ],
+        t = e.map((e) => n(e.link));
+    return {
+        title: `Tesla Model 系列价格更新`,
+        link: `https://www.tesla.cn/model3/design#overview`,
+        description: `Tesla Model 系列价格更新`,
+        item: (await Promise.all(t)).map((t, n) => ({
+            title: `${e[n].name} 价格更新为 ${t}`,
+            link: `https://www.tesla.cn/${e[n].slug}/design#overview`,
+            author: `Tesla`,
+            guid: `https://www.tesla.cn/${e[n].slug}/design#overview#${t}`,
+        })),
+    };
+}
+export { r as route };

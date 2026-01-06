@@ -1,0 +1,52 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { r as n } from './common-utils-uYpL50sT.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './timezone-CrV-DT8S.mjs';
+import { t as a } from './description-zLmTiiTG.mjs';
+import { load as o } from 'cheerio';
+const s = { path: `*`, name: `Unknown`, maintainers: [], handler: c };
+async function c(s) {
+    let c = `https://news.pts.org.tw${n(s) === `/` ? `/dailynews` : n(s)}`,
+        l = o((await r({ method: `get`, url: c })).data),
+        u = l(`h1 a,h2 a`)
+            .slice(0, s.req.query(`limit`) ? Number.parseInt(s.req.query(`limit`)) : 30)
+            .toArray()
+            .map((e) => ((e = l(e)), { title: e.text(), link: e.attr(`href`) }));
+    return (
+        (u = await Promise.all(
+            u.map((n) =>
+                e.tryGet(n.link, async () => {
+                    let e = o((await r({ method: `get`, url: n.link })).data);
+                    return (
+                        (n.author = e(`.reporter-container a`)
+                            .toArray()
+                            .map((t) => ({ name: e(t).text() }))),
+                        (n.pubDate = i(t(e(`.article-time .mr-2 time`).text()), 8)),
+                        (n.updated = i(t(e(`.article-time span:nth-child(2) time`).text()), 8)),
+                        (n.category = e(`.tag-list`)
+                            .first()
+                            .find(`.blue-tag`)
+                            .toArray()
+                            .map((t) => e(t).text())
+                            .filter((e) => e !== `...`)),
+                        (n.description = a({ image: e(`meta[property="og:image"]`).attr(`content`), description: e(`.post-article`).html() })),
+                        n
+                    );
+                })
+            )
+        )),
+        {
+            title: l(`title`)
+                .text()
+                .replace(/第\d+頁 ｜ /, ``),
+            link: c,
+            item: u,
+        }
+    );
+}
+export { s as route };

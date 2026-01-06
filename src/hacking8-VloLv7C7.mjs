@@ -1,0 +1,48 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/:category?`,
+    categories: [`programming`],
+    example: `/hacking8`,
+    parameters: { category: `分类，见下表，默认为最近更新` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`hacking8.com/index/:category`, `hacking8.com/`] }],
+    name: `信息流`,
+    maintainers: [`nczitzk`],
+    handler: a,
+    description: `| 推荐  | 最近更新 | 漏洞 / PoC 监控 | PDF |
+| ----- | -------- | --------------- | --- |
+| likes | index    | vul-poc         | pdf |`,
+};
+async function a(i) {
+    let a = i.req.param(`category`) ?? `index`,
+        o = `https://i.hacking8.com`,
+        s = `${o}/index/${a}`,
+        c = r((await t({ method: `get`, url: s })).data),
+        l = c(`div.media`)
+            .toArray()
+            .map((t) => {
+                t = c(t);
+                let r = t.find(`div.link a`);
+                return {
+                    title: r.text(),
+                    link: new URL(r.attr(`href`), o).href,
+                    description: t.find(`div.media-body pre`).text(),
+                    pubDate: n(e(t.parent().parent().find(`td`).first().text(), `YYYY年M月D日 HH:mm`), 8),
+                    category: t
+                        .parent()
+                        .parent()
+                        .find(`span.label`)
+                        .toArray()
+                        .map((e) => c(e).text()),
+                };
+            });
+    return { title: `Hacking8 安全信息流 - ${c(`div.btn-group a.btn-primary`).text()}`, link: s, item: l };
+}
+export { i as route };

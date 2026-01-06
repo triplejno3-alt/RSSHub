@@ -1,0 +1,38 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './timezone-CrV-DT8S.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/gra`,
+    categories: [`university`],
+    example: `/nju/gra`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`grawww.nju.edu.cn/main.htm`, `grawww.nju.edu.cn/`] }],
+    name: `研究生院`,
+    maintainers: [`ret-1`],
+    handler: a,
+    url: `grawww.nju.edu.cn/main.htm`,
+};
+async function a() {
+    let i = (await t({ method: `get`, url: `https://grawww.nju.edu.cn/905/list.htm` })).data,
+        a = r(i);
+    return {
+        title: `研究生院-动态通知`,
+        link: `https://grawww.nju.edu.cn/905/list.htm`,
+        item: a(`li.news`)
+            .toArray()
+            .map((t) => {
+                t = a(t);
+                let r = t.find(`.news_days`).first().text(),
+                    i = t.find(`.news_year`).first().text();
+                return !r.length || !i.length ? null : { title: t.find(`a`).attr(`title`), link: `https://grawww.nju.edu.cn` + t.find(`a`).attr(`href`), pubDate: n(e(r + i, `YYYYMM-DD`), 8) };
+            })
+            .filter(Boolean),
+    };
+}
+export { i as route };

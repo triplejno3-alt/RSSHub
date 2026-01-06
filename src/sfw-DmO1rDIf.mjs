@@ -1,0 +1,144 @@
+import { t as e } from './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { i, r as a, t as o } from './utils-BI_C1viF.mjs';
+import { load as s } from 'cheerio';
+import { JSDOM as c, VirtualConsole as l } from 'jsdom';
+import u from 'query-string';
+function d(e, t) {
+    return a(`https://app-api.pixiv.net/v1/illust/detail`, { headers: { ...i, Authorization: `Bearer ` + t }, searchParams: u.stringify({ illust_id: e, filter: `for_ios` }) });
+}
+function f(e) {
+    let t = new Map([
+            [/pixiv:\/\/novels\/(\d+)/g, `https://www.pixiv.net/novel/show.php?id=$1`],
+            [/pixiv:\/\/illusts\/(\d+)/g, `https://www.pixiv.net/artworks/$1`],
+            [/pixiv:\/\/users\/(\d+)/g, `https://www.pixiv.net/users/$1`],
+            [/pixiv:\/\/novel\/series\/(\d+)/g, `https://www.pixiv.net/novel/series/$1`],
+        ]),
+        n = e;
+    for (let [e, r] of t) n = n.replace(e, r);
+    return n;
+}
+async function p(t, n, r) {
+    try {
+        if (r) {
+            let n = [...t.matchAll(/\[pixivimage:(\d+)(?:-(\d+))?\]/g)],
+                i = new Map();
+            (await Promise.all(
+                n.map(async ([, t, n]) => {
+                    if (t)
+                        try {
+                            let e = (await d(t, r)).data.illust,
+                                a = o.getImgs(e).map((e) => e.match(/src="([^"]+)"/)?.[1] || ``)[Number(n) || 0];
+                            a && i.set(n ? `${t}-${n}` : t, a);
+                        } catch (n) {
+                            e.warn(`Failed to fetch illust detail for ID ${t}: ${n instanceof Error ? n.message : String(n)}`);
+                        }
+                })
+            ),
+                (t = t.replaceAll(/\[pixivimage:(\d+)(?:-(\d+))?\]/g, (e, t, n) => {
+                    let r = n ? `${t}-${n}` : t,
+                        a = i.get(r);
+                    return a ? `<img src="${a}" alt="pixiv illustration ${t}${n ? ` page ${n}` : ``}">` : e;
+                })));
+        } else t = t.replaceAll(/\[pixivimage:(\d+)(?:-(\d+))?\]/g, (e, t) => `<a href="https://www.pixiv.net/artworks/${t}" target="_blank" rel="noopener noreferrer">Pixiv Artwork #${t}</a>`);
+        ((t = t.replaceAll(/\[uploadedimage:(\d+)\]/g, (e, t) => (n[t] ? `<img src="${o.getProxiedImageUrl(n[t])}" alt="novel illustration ${t}">` : e))),
+            (t = t
+                .replaceAll(
+                    `
+`,
+                    `<br>`
+                )
+                .replaceAll(/(<br>){2,}/g, `</p><p>`)
+                .replaceAll(/\[\[rb:(.*?)>(.*?)\]\]/g, `<ruby>$1<rt>$2</rt></ruby>`)
+                .replaceAll(/\[\[jumpuri:(.*?)>(.*?)\]\]/g, `<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>`)
+                .replaceAll(/\[jump:(\d+)\]/g, `Jump to page $1`)
+                .replaceAll(/\[chapter:(.*?)\]/g, `<h2>$1</h2>`)
+                .replaceAll(`[newpage]`, `<hr>`)));
+        let i = s(`<article><p>${t}</p></article>`);
+        return (
+            i(`p p`).each((e, t) => {
+                let n = i(t);
+                n.replaceWith(n.html() || ``);
+            }),
+            i(`p h2`).each((e, t) => {
+                let n = i(t),
+                    r = n.parent(`p`),
+                    a = n.prop(`outerHTML`);
+                r.length && a && r.replaceWith(`</p>${a}<p>`);
+            }),
+            i.html() || ``
+        );
+    } catch (e) {
+        throw Error(`Error parsing novel content: ${e instanceof Error ? e.message : String(e)}`);
+    }
+}
+async function m(e, r) {
+    return await t.tryGet(`https://app-api.pixiv.net/webview/v2/novel:${e}`, async () => {
+        let t = await a(`https://app-api.pixiv.net/webview/v2/novel`, { headers: { ...i, Authorization: `Bearer ` + r }, searchParams: u.stringify({ id: e, viewer_version: `20221031_ai` }) }),
+            o = new l().on(`error`, () => void 0),
+            { window: s } = new c(t.data, { runScripts: `dangerously`, virtualConsole: o }),
+            d = s.pixiv?.novel;
+        if ((s.close(), !d)) throw Error(`No novel data found`);
+        let f = Object.fromEntries(
+                Object.entries(d.images)
+                    .filter(([, e]) => e?.urls?.original)
+                    .map(([e, t]) => [e, t.urls.original])
+            ),
+            m = await p(d.text, f, r);
+        return {
+            id: d.id,
+            title: d.title,
+            description: d.caption,
+            content: m,
+            userId: d.userId,
+            userName: null,
+            bookmarkCount: d.rating.bookmark,
+            viewCount: d.rating.view,
+            likeCount: d.rating.like,
+            createDate: n(d.cdate),
+            updateDate: null,
+            isOriginal: d.isOriginal,
+            aiType: d.aiType,
+            tags: d.tags,
+            coverUrl: d.coverUrl,
+            images: f,
+            seriesId: d.seriesId || null,
+            seriesTitle: d.seriesTitle || null,
+        };
+    });
+}
+const h = `https://www.pixiv.net`;
+async function g(e) {
+    let i = `${h}/ajax/novel/${e}`;
+    return await t.tryGet(i, async () => {
+        let t = (await r(i, { headers: { referer: `${h}/novel/show.php?id=${e}` } })).data;
+        if (!t) throw Error(`No novel data found`);
+        let a = t.body,
+            s = {};
+        if (t.body.textEmbeddedImages) for (let [e, n] of Object.entries(t.body.textEmbeddedImages)) s[e] = o.getProxiedImageUrl(n.urls.original);
+        let c = await p(t.body.content, s);
+        return {
+            id: a.id,
+            title: a.title,
+            description: a.description,
+            content: c,
+            userId: a.userId,
+            userName: a.userName,
+            bookmarkCount: a.bookmarkCount,
+            viewCount: a.viewCount,
+            likeCount: a.likeCount,
+            createDate: n(a.createDate),
+            updateDate: n(a.uploadDate),
+            isOriginal: a.isOriginal,
+            aiType: a.aiType,
+            tags: a.tags.tags.map((e) => e.tag),
+            coverUrl: a.coverUrl,
+            images: s,
+            seriesId: a.seriesNavData?.seriesId?.toString() || null,
+            seriesTitle: a.seriesNavData?.title || null,
+        };
+    });
+}
+export { m as n, f as r, g as t };

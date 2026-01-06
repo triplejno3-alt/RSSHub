@@ -1,0 +1,46 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/:label?`,
+    categories: [`reading`],
+    example: `/xbookcn/精选作品`,
+    parameters: { label: `按名称分类，详见https://blog.xbookcn.net/p/all.html` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+    name: `短篇`,
+    maintainers: [`Lyunvy`],
+    handler: async (r) => {
+        let { label: i = `精选作品` } = r.req.param(),
+            a = `https://blog.xbookcn.net/search/label/${i}`,
+            o = n(await e(a)),
+            s = o(`.blog-posts.hfeed .date-outer`)
+                .find(`.post`)
+                .toArray()
+                .map((e) => {
+                    let t = o(e).find(`.post-title a`);
+                    return { title: t.text().trim(), link: t.attr(`href`), category: [] };
+                });
+        return {
+            title: `xbookcn`,
+            link: a,
+            item: await Promise.all(
+                s.map(
+                    async (r) =>
+                        await t.tryGet(r.link, async () => {
+                            let t = n(await e(r.link));
+                            return (
+                                (r.description = t(`.post-body.entry-content`).html() || `无内容`),
+                                (r.category = t(`.post-labels a`)
+                                    .toArray()
+                                    .map((e) => t(e).text().trim())),
+                                r
+                            );
+                        })
+                )
+            ),
+        };
+    },
+};
+export { r as route };

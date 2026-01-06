@@ -1,0 +1,55 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { load as r } from 'cheerio';
+const i = {
+        path: `/blog`,
+        name: `Blog`,
+        url: `cognition.ai/blog`,
+        maintainers: [`Loongphy`],
+        example: `/cognition/blog`,
+        categories: [`programming`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`cognition.ai/blog/1`], target: `/blog` }],
+        view: n.Articles,
+        handler: o,
+    },
+    a = (e) => {
+        if (!e) return;
+        let t = e
+            .split(`,`)
+            .map((e) => e.trim())
+            .filter(Boolean);
+        if (t.length !== 0) return t.map((e) => ({ name: e }));
+    };
+async function o() {
+    let n = `https://cognition.ai`,
+        i = new URL(`/blog/1`, n).href,
+        o = r(await e(i)),
+        s = o(`#blog-post-list__list li.blog-post-list__list-item`)
+            .toArray()
+            .map((e) => {
+                let r = o(e).find(`a.o-blog-preview`).first(),
+                    i = r.attr(`href`),
+                    s = i ? new URL(i, n).href : void 0;
+                if (!s) return;
+                let c = r.find(`h3.o-blog-preview__title`).text().trim();
+                if (!c) return;
+                let l = r.find(`p.o-blog-preview__intro`).text().trim(),
+                    u = r.find(`.o-blog-preview__meta-date`).clone();
+                u.find(`.o-blog-preview__meta`).remove();
+                let d = u.text().trim(),
+                    f = r.find(`.o-blog-preview__meta-author`).text().trim(),
+                    p = { title: c, link: s, pubDate: t(d) };
+                l && (p.description = l);
+                let m = a(f);
+                return (m && (p.author = m), p);
+            })
+            .filter((e) => e !== void 0),
+        c = o(`meta[property="og:image"]`).attr(`content`),
+        l = c ? new URL(c, n).href : void 0;
+    return { title: o(`title`).text(), description: o(`meta[name="description"]`).attr(`content`), link: i, allowEmpty: !0, item: s, image: l };
+}
+export { o as handler, i as route };

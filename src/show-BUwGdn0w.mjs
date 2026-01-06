@@ -1,0 +1,57 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { t as r } from './utils-C4JpPoMa.mjs';
+const i = {
+    path: `/show/:id`,
+    categories: [`multimedia`],
+    view: n.Audios,
+    example: `/spotify/show/5CfCWKI5pZ28U0uOzXkDHe`,
+    parameters: { id: `Show ID` },
+    features: {
+        requireConfig: [
+            { name: `SPOTIFY_CLIENT_ID`, description: `` },
+            { name: `SPOTIFY_CLIENT_SECRET`, description: `` },
+        ],
+        requirePuppeteer: !1,
+        antiCrawler: !1,
+        supportBT: !1,
+        supportPodcast: !1,
+        supportScihub: !1,
+    },
+    radar: [{ source: [`open.spotify.com/show/:id`] }],
+    name: `Show/Podcasts`,
+    maintainers: [`caiohsramos`, `pseudoyu`],
+    handler: a,
+};
+async function a(n) {
+    let i = await r.getPublicToken(),
+        a = await e(`https://api.spotify.com/v1/shows/${n.req.param(`id`)}?market=US`, { method: `GET`, headers: { Authorization: `Bearer ${i}` } }),
+        o = a.episodes.items;
+    return {
+        title: a.name,
+        description: a.description,
+        link: a.external_urls.spotify,
+        language: a.languages[0],
+        itunes_author: a.publisher,
+        itunes_category: a.type,
+        itunes_explicit: a.explicit,
+        allowEmpty: !0,
+        item: o
+            .filter(Boolean)
+            .map((e) => ({
+                title: e.name,
+                description: e.html_description,
+                pubDate: t(e.release_date),
+                link: e.external_urls.spotify,
+                itunes_item_image: e.images[0].url,
+                itunes_duration: e.duration_ms / 1e3,
+                enclosure_url: e.audio_preview_url,
+                enclosure_type: `audio/mpeg`,
+            })),
+        image: a.images.length ? a.images[0].url : void 0,
+    };
+}
+export { i as route };

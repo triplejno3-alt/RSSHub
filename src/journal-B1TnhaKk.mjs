@@ -1,0 +1,50 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/journals/:journal?`,
+    categories: [`journal`],
+    example: `/bioone/journals/acta-chiropterologica`,
+    parameters: { journal: `Journals, can be found in URL` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`bioone.org/journals/:journal`, `bioone.org/`], target: `/journals/:journal` }],
+    name: `Journals`,
+    maintainers: [`nczitzk`],
+    handler: a,
+};
+async function a(i) {
+    let a = i.req.param(`journal`) ?? `acta-chiropterologica`,
+        o = `https://bioone.org`,
+        s = `${o}/journals/${a}/current`,
+        c = r((await n(s, { https: { rejectUnauthorized: !1 } })).data),
+        l = c(`.TOCLineItemBoldText`)
+            .slice(0, i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`)) : 20)
+            .toArray()
+            .map((e) => ((e = c(e).parent()), { link: `${o}${e.attr(`href`)}` }));
+    return (
+        (l = await Promise.all(
+            l.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let e = r((await n(i.link, { https: { rejectUnauthorized: !1 } })).data);
+                    return (
+                        e(`.ProceedingsArticleOpenAccessPanel`).remove(),
+                        e(`#divNotSignedSection, #rightRail`).remove(),
+                        (i.description = e(`.panel-body`).html()),
+                        (i.title = e(`meta[name="dc.Title"]`).attr(`content`)),
+                        (i.author = e(`meta[name="dc.Creator"]`).attr(`content`)),
+                        (i.doi = e(`meta[name="dc.Identifier"]`).attr(`content`)),
+                        (i.pubDate = t(e(`meta[name="dc.Date"]`).attr(`content`))),
+                        i
+                    );
+                })
+            )
+        )),
+        { title: `${c(`.panel-body .row a`).first().text()} - BioOne`, description: c(`.panel-body .row text`).first().text(), link: s, item: l }
+    );
+}
+export { i as route };

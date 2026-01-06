@@ -1,0 +1,26 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './utils-D2KpmCJ6.mjs';
+const r = {
+    path: `/recommend`,
+    categories: [`new-media`],
+    example: `/infoq/recommend`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`infoq.cn/`] }],
+    name: `推荐`,
+    maintainers: [`brilon`],
+    handler: i,
+    url: `infoq.cn/`,
+};
+async function i(r) {
+    let i = `https://www.infoq.cn`,
+        a = (await t.post(`https://www.infoq.cn/public/v1/my/recommond`, { headers: { Referer: i }, json: { size: r.req.query(`limit`) ? Number(r.req.query(`limit`)) : 30 } })).data.data;
+    return { title: `InfoQ 推荐`, link: i, item: await n.ProcessFeed(a, e) };
+}
+export { r as route };

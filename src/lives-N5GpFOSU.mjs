@@ -1,0 +1,34 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+const n = {
+    path: `/lives/:id`,
+    categories: [`new-media`],
+    example: `/houxu/lives/33899`,
+    parameters: { id: `编号，可在对应 Live 页面的 URL 中找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`houxu.app/lives/:id`, `houxu.app/`] }],
+    name: `Live`,
+    maintainers: [`nczitzk`],
+    handler: r,
+    url: `houxu.app/`,
+};
+async function r(n) {
+    let r = n.req.param(`id`),
+        i = `https://houxu.app`,
+        a = `${i}/api/1/lives/${r}`,
+        o = `${i}/lives/${r}`,
+        s = await t({ method: `get`, url: a }),
+        c = (await t({ method: `get`, url: `${a}/threads?limit=${n.req.query(`limit`) ?? 500}` })).data.results.map((t) => ({
+            title: t.link.title,
+            link: t.link.url,
+            author: t.link.source ?? t.link.media.name,
+            pubDate: e(t.create_at),
+            description: t.link.description,
+        }));
+    return { title: `后续 - ${s.data.title}`, link: o, item: c, description: s.data.summary };
+}
+export { n as route };

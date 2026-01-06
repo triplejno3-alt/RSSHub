@@ -1,0 +1,50 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { n, t as r } from './utils-DAZORnRC.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/siteindex`,
+    categories: [`journal`],
+    example: `/nature/siteindex`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `Journal List`,
+    maintainers: [`TonyRL`, `pseudoyu`],
+    handler: o,
+};
+async function o(a) {
+    let o = await t(`${r}/siteindex`, { cookieJar: n }),
+        s = i(o.data),
+        c = s(`li[class^="grid mq640-grid-12"]`)
+            .toArray()
+            .map((e) => ((e = s(e)), { title: e.find(`a`).attr(`href`).replaceAll(`/`, ``), name: e.find(`a`).text(), link: r + e.find(`a`).attr(`href`) }));
+    return (
+        (c = await Promise.all(
+            c.map((r) =>
+                e.tryGet(`nature:siteindex:${r.title}`, async () => {
+                    try {
+                        let e = i((await t(r.link, { cookieJar: n })).data)(`.app-latest-issue-row__image img`).attr(`src`);
+                        if (e) {
+                            let t = e.match(/.*\/journal\/(\d{5})/);
+                            if (t) {
+                                let e = t[1];
+                                return { title: r.title, name: r.name, id: e, description: e };
+                            }
+                        }
+                        return { title: r.title, name: r.name };
+                    } catch {
+                        return { title: r.title, name: r.name };
+                    }
+                })
+            )
+        )),
+        a.set(`json`, { items: c }),
+        { title: `Nature siteindex`, link: o.url, item: c }
+    );
+}
+export { a as route };

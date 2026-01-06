@@ -1,0 +1,42 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/updates`,
+    categories: [`program-update`],
+    example: `/wizfile/updates`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`antibody-software.com/wizfile/download`] }],
+    name: `Version History`,
+    maintainers: [`Fatpandac`],
+    handler: i,
+    url: `antibody-software.com/wizfile/download`,
+};
+async function i() {
+    let r = `https://antibody-software.com/wizfile/download`,
+        i = n((await t(r)).data);
+    return {
+        title: `WziFile - 更新日志`,
+        link: r,
+        item: i(`section.blog-section > div > div > div > h4`)
+            .toArray()
+            .map((t) => {
+                let n = i(t)
+                        .text()
+                        .replace(/\(.*?\)/, ``),
+                    a = e(
+                        i(t)
+                            .find(`span`)
+                            .text()
+                            .match(/\((.*?)\)/)[1]
+                    );
+                return { title: n, description: i(t).next().html(), pubDate: a, guid: `${r}${n}` };
+            }),
+    };
+}
+export { r as route };

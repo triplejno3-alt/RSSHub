@@ -1,0 +1,22 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { load as t } from 'cheerio';
+const n = { path: `/839studio/:id`, radar: [{ source: [`thepaper.cn/`] }], name: `澎湃美数课作品集 - 分类`, maintainers: [`umm233`], handler: r, url: `thepaper.cn/` };
+async function r(n) {
+    let r = `http://projects.thepaper.cn/thepaper-cases/839studio/?cat=${n.req.param(`id`)}`,
+        i = (await e({ method: `get`, url: r })).data,
+        a = t(i),
+        o = a(`div[class=imgtext]`),
+        s = a(`div[class=lefth]`).find(`h1`).text(),
+        c = a(`div[class=leftc]`).find(`p`).text();
+    return {
+        title: `澎湃美数课作品集-${s}`,
+        link: r,
+        description: c,
+        item: o.toArray().map((e) => ((e = a(e)), { title: e.find(`.archive_up a`).first().text(), description: `描述：${e.find(`.imgdown p`).text()}`, link: e.find(`.archive_up a`).attr(`href`) })),
+    };
+}
+export { n as route };

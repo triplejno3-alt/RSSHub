@@ -1,0 +1,120 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+import { CookieJar as a } from 'tough-cookie';
+import o from 'p-map';
+const s = `https://oas.gdut.edu.cn/seeyon`,
+    c = {
+        news: { id: `-4899485396563308862`, name: `校内简讯`, publish: !1 },
+        notice: { id: `5854888065150372255`, name: `校内通知`, publish: !1 },
+        announcement: { id: `5821359576359193913`, name: `公示公告`, publish: !1 },
+        tender_result: { id: `-1226046021292568614`, name: `招标结果`, publish: !0 },
+        tender_invite: { id: `-3656117696093796045`, name: `招标公告`, publish: !0 },
+    };
+function l(e) {
+    return e.publish
+        ? JSON.stringify([{ pageSize: `20`, pageNo: 1, listType: `1`, spaceType: ``, spaceId: ``, typeId: e.id, condition: `publishDepartment`, textfield1: ``, textfield2: ``, myNews: `` }])
+        : JSON.stringify([
+              {
+                  pageSize: `20`,
+                  pageNo: 1,
+                  listType: `1`,
+                  spaceType: `2`,
+                  spaceId: ``,
+                  typeId: ``,
+                  condition: `publishDepartment`,
+                  textfield1: ``,
+                  textfield2: ``,
+                  myNews: ``,
+                  fragmentId: e.id,
+                  ordinal: `0`,
+                  panelValue: `designated_value`,
+              },
+          ]);
+}
+const u = { path: `/oa_news/:type?`, radar: [{ source: [`oas.gdut.edu.cn/seeyon`], target: `/oa_news/` }], name: `Unknown`, maintainers: [`jim-kirisame`], handler: d, url: `oas.gdut.edu.cn/seeyon` };
+async function d(u) {
+    let d = u.req.param(`type`) ?? `notice`;
+    if (c[d] === void 0) throw Error(`通知类型` + d + `未定义`);
+    let f = c[d],
+        p = new a();
+    await n(s + `/main.do`, { cookieJar: p });
+    let m = await n.post(s + `/ajax.do?method=ajaxAction&managerName=newsDataManager`, { cookieJar: p, form: { managerMethod: `findListDatas`, arguments: l(f) } });
+    if (!m.data.list) throw Error(`文章列表获取失败，可能是被临时限制了访问，请稍后重试`);
+    let h = await o(
+        m.data.list.map((e) => ({ title: e.title, guid: e.id, link: s + `/newsData.do?method=newsView&newsId=` + e.id, pubDate: r(t(e.publishDate1), 8), author: e.publishUserDepart, category: e.typeName })),
+        async (t) => {
+            let r = t.link;
+            return (
+                (t.description = await e.tryGet(r, async () => {
+                    let e = i((await n(r, { cookieJar: p })).data),
+                        t = e(`#content`);
+                    return (
+                        t
+                            .find(`*`)
+                            .filter(function () {
+                                return this.type === `comment` || this.tagName === `meta` || this.tagName === `style`;
+                            })
+                            .remove(),
+                        t
+                            .find(`*`)
+                            .contents()
+                            .filter(function () {
+                                return this.type === `comment` || this.tagName === `meta` || this.tagName === `style`;
+                            })
+                            .remove(),
+                        t.find(`*`).each(function () {
+                            if (this.attribs.style !== void 0) {
+                                let e = this.attribs.style
+                                    .split(`;`)
+                                    .filter((e) => {
+                                        let t = [`color:rgb(0,0,0)`, `color:black`, `background:rgb(255,255,255)`, `background:white`, `text-align:left`, `text-align:justify`, `font-style:normal`, `font-weight:normal`],
+                                            n = [
+                                                `font-family`,
+                                                `font-size`,
+                                                `background`,
+                                                `text-autospace`,
+                                                `text-transform`,
+                                                `letter-spacing`,
+                                                `line-height`,
+                                                `padding`,
+                                                `margin`,
+                                                `text-justify`,
+                                                `word-break`,
+                                                `vertical-align`,
+                                                `mso-`,
+                                                `-ms-`,
+                                            ],
+                                            r = e.trim();
+                                        if (t.includes(r.replaceAll(/\s+/g, ``))) return !1;
+                                        for (let e of n) if (r.startsWith(e)) return !1;
+                                        return !0;
+                                    })
+                                    .join(`;`);
+                                e ? (this.attribs.style = e) : delete this.attribs.style;
+                            }
+                            (this.attribs.class && this.attribs.class.trim().startsWith(`Mso`) && delete this.attribs.class,
+                                this.attribs.lang && delete this.attribs.lang,
+                                (this.tagName === `font` || this.tagName === `o:p`) && e(this).replaceWith(this.childNodes),
+                                this.tagName === `span` && !this.attribs.style && e(this).replaceWith(this.childNodes));
+                        }),
+                        t.find(`span`).each(function () {
+                            this.childNodes.length === 0 && e(this).remove();
+                        }),
+                        t.html()
+                    );
+                })),
+                t
+            );
+        },
+        { concurrency: 2 }
+    );
+    return { title: `广东工业大学新闻通知网 - ` + f.name, link: s, description: `广东工业大学新闻通知网`, item: h };
+}
+export { u as route };

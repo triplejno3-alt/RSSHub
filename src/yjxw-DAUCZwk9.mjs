@@ -1,0 +1,55 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = { gnxw: 0, gjxw: 1 },
+    o = {
+        path: `/yjxw/:category?`,
+        categories: [`forecast`],
+        example: `/cneb/yjxw`,
+        parameters: { category: `分类，见下表，默认为全部` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`cneb.gov.cn/yjxw/:category?`, `cneb.gov.cn/`] }],
+        name: `应急新闻`,
+        maintainers: [`nczitzk`],
+        handler: s,
+        description: `| 全部 | 国内新闻 | 国际新闻 |
+| ---- | -------- | -------- |
+|      | gnxw     | gjxw     |`,
+    };
+async function s(o) {
+    let s = o.req.query(`limit`) ? Number.parseInt(o.req.query(`limit`)) : 400,
+        c = o.req.param(`category`) ?? ``,
+        l = Object.hasOwn(a, c) ? a[c] : -1,
+        u = `http://www.cneb.gov.cn/yjxw${c ? `/${c}` : ``}`,
+        d = i((await n({ method: `get`, url: u })).data);
+    if (l !== -1) {
+        let e = Math.abs(l - 1);
+        (d(`.first-data`).eq(e).remove(), d(`.moreContent`).eq(e).remove());
+    }
+    let f = d(`.list`)
+        .slice(0, s)
+        .toArray()
+        .map((e) => {
+            e = d(e);
+            let n = e.find(`a`);
+            return { title: n.text(), link: n.attr(`href`), pubDate: r(t(e.find(`span`).text()), 8) };
+        });
+    return (
+        (f = await Promise.all(
+            f.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = i((await n({ method: `get`, url: t.link })).data);
+                    return ((t.description = e(`.w940`).html()), (t.author = e(`.source span`).last().text()), t);
+                })
+            )
+        )),
+        { title: `国家应急广播 - ${l === -1 ? `新闻` : d(`.select`).text()}`, link: u, item: f }
+    );
+}
+export { o as route };

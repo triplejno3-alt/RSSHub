@@ -1,0 +1,46 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import * as i from 'cheerio';
+const a = {
+    path: `/:category?`,
+    example: `/12371/zxfb`,
+    parameters: { category: '新闻分类名，预设 `zxfb`' },
+    radar: [{ source: [`www.12371.cn/:category`] }],
+    name: `最新发布`,
+    maintainers: [`zvrr`],
+    handler: async (a) => {
+        let { category: o = `zxfb` } = a.req.param(),
+            s = a.req.query(`limit`) ? Number.parseInt(a.req.query(`limit`), 10) : 15,
+            c = `https://www.12371.cn/${o}/`,
+            l = await n(c),
+            u = i.load(l.data),
+            d = JSON.parse(
+                u(`script[language="javascript"]`)
+                    .text()
+                    .match(/item=(\[{.*?}]);/)?.[1]
+                    .replaceAll(`'`, `"`) || `[]`
+            )
+                .slice(0, s)
+                .map((e) => ({ title: e.title, pubDate: r(t(e.brief, `YYYY-MM-DD HH:mm:ss`), 8), link: e.link_add })),
+            f = await Promise.all(
+                d.map((t) =>
+                    e.tryGet(t.link, async () => {
+                        let e = await n(t.link);
+                        return ((t.description = i.load(e.data)(`.word`).html()), t);
+                    })
+                )
+            );
+        return { title: u(`title`).text(), link: c, item: f };
+    },
+    url: `www.12371.cn`,
+    description: `| 最新发布 |
+| :------: |
+|   zxfb   |`,
+};
+export { a as route };

@@ -1,0 +1,83 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { load as n } from 'cheerio';
+const r = `https://www.sigsac.org/`,
+    i = {
+        path: `/ccs`,
+        categories: [`journal`],
+        example: `/sigsac/ccs`,
+        radar: [{ source: [`sigsac.org/ccs.html`, `sigsac.org/`] }],
+        name: `The ACM Conference on Computer and Communications Security`,
+        maintainers: [`ZeddYu`],
+        handler: a,
+        url: `sigsac.org/ccs.html`,
+        description: `Return results from 2020`,
+    };
+async function a() {
+    let i = new Date().getFullYear() + 1,
+        a = Array.from({ length: i - 2020 }, (e, t) => `${r}ccs/CCS${t + 2020}/`),
+        o = (await Promise.allSettled(a.map((t) => e(t))))
+            .map((e, t) => {
+                let r = n(e.value);
+                return r(`a:contains("Accepted Papers")`).attr(`href`) && new URL(r(`a:contains("Accepted Papers")`).attr(`href`), a[t]).href;
+            })
+            .filter(Boolean);
+    return {
+        title: `ACM CCS`,
+        link: r,
+        description: `The ACM Conference on Computer and Communications Security (CCS) Accepted Papers`,
+        allowEmpty: !0,
+        item: (await Promise.allSettled(o.map((t) => e(t)))).flatMap((e, r) => {
+            let i = n(e.value),
+                a = o[r],
+                s = i(`div.papers-item`)
+                    .toArray()
+                    .map((e) => {
+                        e = i(e);
+                        let n = e.find(`b`).text().trim();
+                        return {
+                            title: n,
+                            author: e
+                                .find(`p`)
+                                .text()
+                                .trim()
+                                .replaceAll(
+                                    `
+`,
+                                    ``
+                                )
+                                .replaceAll(/\s+/g, ` `),
+                            link: `${a}#${n}`,
+                            pubDate: t(a.match(/CCS(\d{4})/)[1], `YYYY`),
+                        };
+                    }),
+                c = i(`tbody tr`)
+                    .toArray()
+                    .slice(1)
+                    .map((e) => {
+                        e = i(e);
+                        let n = e.find(`td`).eq(0).text().trim();
+                        return {
+                            title: n,
+                            author: e
+                                .find(`td`)
+                                .eq(1)
+                                .text()
+                                .trim()
+                                .replaceAll(
+                                    `
+`,
+                                    ``
+                                )
+                                .replaceAll(/\s+/g, ` `),
+                            link: `${a}#${n}`,
+                            pubDate: t(a.match(/CCS(\d{4})/)[1], `YYYY`),
+                        };
+                    });
+            return s.length ? s : c;
+        }),
+    };
+}
+export { i as route };

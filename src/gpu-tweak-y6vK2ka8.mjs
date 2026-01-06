@@ -1,0 +1,34 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = `https://www.asus.com/campaign/GPU-Tweak-III/tw/index.php`,
+    i = {
+        path: `/gpu-tweak`,
+        categories: [`program-update`],
+        example: `/asus/gpu-tweak`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`asus.com/campaign/GPU-Tweak-III/*`, `asus.com/`] }],
+        name: `GPU Tweak`,
+        maintainers: [`TonyRL`],
+        handler: a,
+        url: `asus.com/campaign/GPU-Tweak-III/*`,
+    };
+async function a() {
+    let i = n((await t(r)).data),
+        a = i(`section div.inner div.item`)
+            .toArray()
+            .map(
+                (t) => (
+                    (t = i(t)),
+                    t.find(`.last`).remove(),
+                    { title: t.find(`.ver h6`).text().trim(), description: t.find(`.btnbox a.open_patch_lightbox`).attr(`data-info`), pubDate: e(t.find(`.ti`).text()), link: t.find(`.btnbox a[download=]`).attr(`href`) }
+                )
+            );
+    return { title: i(`head title`).text(), description: i(`meta[name=description]`).attr(`content`), image: new URL(i(`head link[rel="shortcut icon"]`).attr(`href`), r).href, link: r, item: a, language: i(`html`).attr(`lang`) };
+}
+export { i as route };

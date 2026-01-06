@@ -1,0 +1,115 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { t as r } from './utils-CwshCOhj.mjs';
+const i = { osx: `macOS`, ios: `iOS`, appletvos: `tvOS` },
+    a = { macos: `osx`, ios: `ios`, tvos: `appletvos` },
+    o = {
+        path: `/apps/update/:country/:id/:platform?`,
+        categories: [`program-update`],
+        view: n.Notifications,
+        example: `/apple/apps/update/us/id408709785`,
+        parameters: {
+            country: `App Store Country, obtain from the app URL, see below`,
+            id: `App id, obtain from the app URL`,
+            platform: {
+                description: `App Platform, see below, all by default`,
+                options: [
+                    { value: `All`, label: `all` },
+                    { value: `iOS`, label: `iOS` },
+                    { value: `macOS`, label: `macOS` },
+                    { value: `tvOS`, label: `tvOS` },
+                ],
+            },
+        },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`apps.apple.com/:country/app/:appSlug/:id`, `apps.apple.com/:country/app/:id`], target: `/apps/update/:country/:id` }],
+        name: `App Update`,
+        maintainers: [`EkkoG`, `nczitzk`],
+        handler: s,
+        description:
+            '\n::: tip\n  For example, the URL of [GarageBand](https://apps.apple.com/us/app/garageband/id408709785) in the App Store is `https://apps.apple.com/us/app/garageband/id408709785`. In this case, the `App Store Country` parameter for the route is `us`, and the `App id` parameter is `id408709785`. So the route should be [`/apple/apps/update/us/id408709785`](https://rsshub.app/apple/apps/update/us/id408709785).\n:::',
+    };
+async function s(n) {
+    let { country: o, id: s } = n.req.param(),
+        { platform: c } = n.req.param(),
+        l;
+    (c && c !== `all` && ((c = c.toLowerCase()), (l = Object.hasOwn(a, c) ? a[c] : c)), (c = void 0));
+    let u = n.req.query(`limit`) ? Number.parseInt(n.req.query(`limit`), 10) : 100,
+        d = new URL(`${o}/app/${s}`, `https://apps.apple.com`).href,
+        f = await r(),
+        p = (
+            await e(`https://amp-api-edge.apps.apple.com/v1/catalog/${o}/apps/${s.replace(`id`, ``)}`, {
+                headers: { authorization: `Bearer ${f}`, origin: `https://apps.apple.com` },
+                query: {
+                    platform: `iphone`,
+                    additionalPlatforms: `appletv,ipad,iphone,mac,realityDevice,watch`,
+                    extend: `accessibility,accessibilityDetails,ageRating,backgroundAssetsInfo,backgroundAssetsInfoWithOptional,customArtwork,customDeepLink,customIconArtwork,customPromotionalText,customScreenshotsByType,customVideoPreviewsByType,description,expectedReleaseDateDisplayFormat,fileSizeByDevice,gameDisplayName,iconArtwork,installSizeByDeviceInBytes,messagesScreenshots,miniGamesDeepLink,minimumOSVersion,privacy,privacyDetails,privacyPolicyUrl,remoteControllerRequirement,requirementsByDeviceFamily,supportURLForLanguage,supportedGameCenterFeatures,supportsFunCamera,supportsSharePlay,versionHistory,websiteUrl`,
+                    'extend[app-events]': `description,productArtwork,productVideo`,
+                    include: `alternate-apps,app-bundles,customers-also-bought-apps,developer,developer-other-apps,merchandised-in-apps,related-editorial-items,reviews,top-in-apps`,
+                    'include[apps]': `app-events`,
+                    'availableIn[app-events]': `future`,
+                    'sparseLimit[apps:customers-also-bought-apps]': 40,
+                    'sparseLimit[apps:developer-other-apps]': 40,
+                    'sparseLimit[apps:related-editorial-items]': 40,
+                    'limit[reviews]': 8,
+                    l: `en-US`,
+                },
+            })
+        ).data[0].attributes,
+        m = p.name,
+        h = p.artistName,
+        g = p.platformAttributes,
+        _ = [],
+        v = ``,
+        y = ``,
+        b = ``;
+    if (l && Object.hasOwn(g, l)) {
+        c = Object.hasOwn(i, l) ? i[l] : l;
+        let e = g[l];
+        ((_ = e.versionHistory), (v = `${m}${c ? ` for ${c} ` : ` `}`), (y = e.description.standard), (b = e.iconArtwork?.url?.replace(`{w}x{h}{c}.{f}`, `3000x3000bb.webp`)));
+    } else {
+        v = m;
+        for (let e of Object.keys(g)) {
+            let t = g[e];
+            ((_ = [..._, ...t.versionHistory.map((t) => ({ ...t, platformId: e }))]), (y = t.description.standard), (b = t.iconArtwork?.url?.replace(`{w}x{h}{c}.{f}`, `3000x3000bb.webp`)));
+        }
+    }
+    return (
+        (_ = _.slice(0, u).map((e) => {
+            let n = e.platformId ?? l,
+                r = c ?? (Object.hasOwn(i, n) ? i[n] : n);
+            return {
+                title: `${m} ${e.versionDisplay} for ${r}`,
+                link: d,
+                description: e.releaseNotes?.replaceAll(
+                    `
+`,
+                    `<br>`
+                ),
+                category: [r],
+                guid: `apple/apps/${o}/${s}/${n}#${e.versionDisplay}`,
+                pubDate: t(e.releaseTimestamp),
+            };
+        })),
+        {
+            item: _,
+            title: `${v} - Apple App Store`,
+            link: d,
+            description: y?.replaceAll(
+                `
+`,
+                ` `
+            ),
+            image: b,
+            logo: b,
+            subtitle: m,
+            author: h,
+            allowEmpty: !0,
+        }
+    );
+}
+export { o as route };

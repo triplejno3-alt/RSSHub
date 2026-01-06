@@ -1,0 +1,52 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/blog`,
+    categories: [`new-media`],
+    example: `/macfilos/blog`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`macfilos.com/blog`, `macfilos.com/`] }],
+    name: `Blog`,
+    maintainers: [`nczitzk`],
+    handler: a,
+    url: `macfilos.com/blog`,
+};
+async function a(i) {
+    let a = `https://www.macfilos.com/blog`,
+        o = r((await n({ method: `get`, url: a })).data),
+        s = o(`.entry-title a`)
+            .slice(0, i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`)) : 10)
+            .toArray()
+            .map((e) => {
+                e = o(e);
+                let n = e.parent().parent();
+                return { title: e.text(), link: e.attr(`href`), author: n.find(`.td-post-author-name a`).text(), pubDate: t(n.find(`.td-post-date time`).attr(`datetime`)) };
+            });
+    return (
+        (s = await Promise.all(
+            s.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = r((await n({ method: `get`, url: t.link })).data);
+                    return (
+                        e(`hr`).nextAll().remove(),
+                        e(`hr`).remove(),
+                        e(`img`).each(function () {
+                            e(this).removeAttr(`srcset`);
+                        }),
+                        (t.description = e(`.td-post-content`).html()),
+                        t
+                    );
+                })
+            )
+        )),
+        { title: o(`title`).text(), link: a, item: s }
+    );
+}
+export { i as route };

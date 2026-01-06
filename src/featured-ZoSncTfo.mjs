@@ -1,0 +1,27 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './utils-iN84aphH.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/featured`,
+    categories: [`new-media`],
+    example: `/thepaper/featured`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`thepaper.cn/`] }],
+    name: `首页头条`,
+    maintainers: [`HenryQW`, `nczitzk`, `bigfei`],
+    handler: i,
+    url: `thepaper.cn/`,
+};
+async function i(r) {
+    let i = await e(`https://m.thepaper.cn`, { headers: { Cookie: `blackAndWhiteMode=0; redTops=0;` } }),
+        a = n(i)(`#__NEXT_DATA__`).text(),
+        o = JSON.parse(a),
+        s = [...o.props.pageProps.data.list, ...o.props.pageProps.topData.recommendImg];
+    return { title: `澎湃新闻 - 首页头条`, link: `https://m.thepaper.cn`, item: await Promise.all(s.map((e) => t.ProcessItem(e, r))), itunes_author: `澎湃新闻`, image: t.ExtractLogo(i) };
+}
+export { r as route };

@@ -1,0 +1,17 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { n, r, t as i } from './utils-D9Vetn_z.mjs';
+const a = { path: `/issue/:id?`, radar: [{ source: [`hk01.com/issue/:id`, `hk01.com/`] }], name: `Unknown`, maintainers: [], handler: o };
+async function o(a) {
+    let o = a.req.param(`id`) ?? `649`,
+        s = `${r}/issue/${o}`,
+        c = await t({ method: `get`, url: `${n}/v2/issues/${o}` }),
+        l = await i(c.data.blocks[0].articles, a.req.query(`limit`), e.tryGet);
+    return { title: `${c.data.title} | 香港01`, link: s, item: l };
+}
+export { a as route };

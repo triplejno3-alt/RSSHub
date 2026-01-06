@@ -1,0 +1,5 @@
+import { Fragment as e, jsx as t, jsxs as n } from 'hono/jsx/jsx-runtime';
+import { renderToString as r } from 'hono/jsx/dom/server';
+const i = ({ image: r, description: i }) => n(e, { children: [r ? n(e, { children: [t(`img`, { src: r }), t(`br`, {})] }) : null, i] }),
+    a = (e) => r(t(i, { ...e }));
+export { a as t };

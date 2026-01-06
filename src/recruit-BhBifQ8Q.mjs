@@ -1,0 +1,36 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    name: `招聘公告`,
+    path: `/recruit`,
+    example: `/wchscu/recruit`,
+    url: `www.wchscu.cn`,
+    maintainers: [`ViggoC`],
+    categories: [`other`],
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.wchscu.cn/public/notice/recruit`] }],
+    handler: async () => {
+        let i = `https://www.wchscu.cn/public/notice/recruit`,
+            { data: a } = await n(i),
+            o = r(a),
+            s = o(`div#datalist div.list div.item`)
+                .toArray()
+                .map((e) => ((e = o(e)), { title: e.find(`span.s1`).text(), pubDate: t(e.find(`span.s2`).text()), link: new URL(e.find(`a`).prop(`href`), `https:///www.wchscu.cn`).href })),
+            c = await Promise.all(
+                s.map((t) =>
+                    e.tryGet(t.link, async () => {
+                        let { data: e } = await n(t.link);
+                        return ((t.description = r(e)(`div.xxy3 .content`).html()), t);
+                    })
+                )
+            );
+        return { title: o(`title`).text(), link: i, item: c, allowEmpty: !0 };
+    },
+};
+export { i as route };

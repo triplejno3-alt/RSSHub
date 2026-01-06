@@ -1,0 +1,55 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './invalid-parameter-DGZgOgO2.mjs';
+import { load as a } from 'cheerio';
+const o = { tzgg: { link: `tzgg/`, title: `通知公告` }, zjxx: { link: `zjxx/szfczyjs/`, title: `资金信息` }, zfcg: { link: `zfcg/zfcgml`, title: `政府采购` }, zdxm: { link: `zdxm`, title: `重大项目` } },
+    s = {
+        path: `/shenzhen/xxgk/zfxxgj/:caty`,
+        categories: [`government`],
+        example: `/gov/shenzhen/xxgk/zfxxgj/tzgg`,
+        parameters: { caty: `信息类别` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `深圳市人民政府`,
+        maintainers: [`laoxua`],
+        handler: c,
+        description: `| 通知公告 | 政府采购 | 资金信息 | 重大项目 |
+| :------: | :------: | :------: | :------: |
+|   tzgg   |   zfcg   |   zjxx   |   zdxm   |`,
+    };
+async function c(s) {
+    let c = o[s.req.param(`caty`)];
+    if (!c) throw new i(`Bad category. See <a href="https://docs.rsshub.app/routes/government#guang-dong-sheng-ren-min-zheng-fu-guang-dong-sheng-shen-zhen-shi-ren-min-zheng-fu">docs</a>`);
+    let l = new URL(c.link, `http://www.sz.gov.cn/cn/xxgk/zfxxgj/`).href,
+        u = a((await n(l)).data),
+        d = u(`div.zx_ml_list ul li span.tit`)
+            .toArray()
+            .map((e) => ((e = u(e).find(`a`)), { title: e.text(), link: e.attr(`href`) })),
+        f = await Promise.all(
+            d.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let e = a((await n(i.link)).data);
+                    return (
+                        (i.description = e(`div.news_cont_d_wrap`).html()),
+                        e(`div.fjdown`).html() !== null && (i.description += e(`div.fjdown`).html()),
+                        (i.pubDate = r(
+                            t(
+                                e(`.tit span:nth-child(2)`)
+                                    .text()
+                                    .replace(/信息提供日期：/, ``)
+                            ),
+                            8
+                        )),
+                        i
+                    );
+                })
+            )
+        );
+    return { title: `广东省深圳市人民政府 - ` + c.title, link: l, item: f };
+}
+export { s as route };

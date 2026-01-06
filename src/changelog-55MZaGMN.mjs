@@ -1,0 +1,43 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+import r from 'markdown-it';
+const i = r({ html: !0 }),
+    a = {
+        path: `/changelog`,
+        categories: [`program-update`],
+        example: `/imagemagick/changelog`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`imagemagick.org/script/download.php`, `imagemagick.org/script`, `imagemagick.org/`] }],
+        name: `Changelog`,
+        maintainers: [`nczitzk`],
+        handler: o,
+        url: `imagemagick.org/script/download.php`,
+    };
+async function o() {
+    let r = await t({ method: `get`, url: `https://raw.githubusercontent.com/ImageMagick/Website/main/ChangeLog.md` }),
+        a = n(i.render(r.data));
+    return {
+        title: `ImageMagick - ChangeLog`,
+        link: `https://imagemagick.org/script/download.php`,
+        item: a(`h2`)
+            .toArray()
+            .map((t) => {
+                t = a(t);
+                let n = t.text(),
+                    r = ``;
+                return (
+                    t.nextUntil(`h2`).each(function () {
+                        r += a(this).html();
+                    }),
+                    { title: n, description: r, link: `https://github.com/ImageMagick/Website/blob/main/ChangeLog.md#${n.replaceAll(/\s+/g, `-`).replaceAll(`.`, ``)}`, pubDate: e(n.match(/- (\d{4}-\d{2}-\d{2})/)[1]) }
+                );
+            }),
+    };
+}
+export { a as route };

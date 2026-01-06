@@ -1,0 +1,32 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { n as t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = { path: `/topic/:id/:order?`, radar: [{ source: [`guancha.cn/`], target: `/:category?` }], name: `Unknown`, maintainers: [`occupy5`, `nczitzk`], handler: a, url: `guancha.cn/` };
+async function a(i) {
+    let a = i.req.param(`id`) ?? `0`,
+        o = i.req.param(`order`) ?? `1`,
+        s = `https://user.guancha.cn`,
+        c = `${s}/${a === `0` ? `main/index-list.json?` : `topic/post-list?topic_id=` + a}&page=1&order=${o}`,
+        l = r((await n({ method: `get`, url: c })).data),
+        u = l(`.list-item h4 a, ul.home li .list-item h4 a`)
+            .toArray()
+            .map((e) => ((e = l(e)), { title: e.text(), link: `${s}${e.attr(`href`)}&page=0` }));
+    return (
+        (u = await Promise.all(
+            u.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let e = r((await n({ method: `get`, url: i.link })).data);
+                    return ((i.pubDate = t(e(`.time1`).text())), (i.author = e(`.user-main h4 a`).first().text()), (i.description = e(`.article-txt-content`).html()), i);
+                })
+            )
+        )),
+        l(`h1.title span`).remove(),
+        { title: `观察者网 - ${a === `0` ? `风闻` : l(`h1.title`).text()}`, link: c, item: u }
+    );
+}
+export { i as route };

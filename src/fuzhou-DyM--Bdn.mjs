@@ -1,0 +1,53 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { Fragment as t, jsx as n, jsxs as r } from 'hono/jsx/jsx-runtime';
+import { renderToString as i } from 'hono/jsx/dom/server';
+const a = (e) => {
+        let t = new Date(e.startTime);
+        e.startTime = `${t.getFullYear()}-${t.getMonth() + 1}-${t.getDate()} ${t.getHours()}:${t.getMinutes()}`;
+        let n = new Date(e.endTime);
+        e.endTime = `${n.getFullYear()}-${n.getMonth() + 1}-${n.getDate()} ${n.getHours()}:${n.getMinutes()}`;
+    },
+    o = {
+        path: `/fuzhou`,
+        categories: [`new-media`],
+        example: `/dushu/fuzhou`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`www.dushu365.com*`] }],
+        name: `樊登福州运营中心`,
+        maintainers: [`Fatpandac`],
+        handler: s,
+        url: `www.dushu365.com*`,
+    };
+async function s() {
+    let o = (await e(`https://gateway-api-ipv4.dushu365.com/compose-orch/offlineActivity/v100/activity/list`, { method: `POST`, body: { channelTid: `xtntzsnwsnkw511r`, pageNo: 1, pageSize: 10, type: 0 } })).data.activityListVOS;
+    return (
+        o.map((e) => a(e)),
+        {
+            title: `樊登福州运营中心`,
+            link: `https://card.dushu.io/requirement/offline-activity/host-home/v/index.html?webview-type=rn&hostId=xtntzsnwsnkw511r`,
+            item: o.map((e) => ({
+                title: e.activityName,
+                link: `https://card.dushu.io/requirement/offline-activity/activity-detail/v/index.html?productId=` + e.activityId + `&type=` + e.type,
+                description: i(
+                    r(t, {
+                        children: [
+                            n(`text`, { children: `地区：${e.areaName}` }),
+                            n(`br`, {}),
+                            n(`text`, { children: `地点：${e.address}` }),
+                            n(`br`, {}),
+                            n(`text`, { children: `开始时间： ${e.startTime}` }),
+                            n(`br`, {}),
+                            n(`text`, { children: `结束时间： ${e.endTime}` }),
+                            n(`br`, {}),
+                            n(`img`, { style: `heigth:500px;width:500px`, src: e.posterImg }),
+                        ],
+                    })
+                ),
+            })),
+        }
+    );
+}
+export { o as route };

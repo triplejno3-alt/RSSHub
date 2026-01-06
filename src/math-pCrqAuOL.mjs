@@ -1,0 +1,40 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './utils-CL2wn9gY.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/stxy`,
+    categories: [`university`],
+    example: `/jsu/stxy`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `数学与统计学院 - 通知公告`,
+    maintainers: [`wenjia03`],
+    handler: o,
+};
+async function o() {
+    let a = i((await n({ method: `get`, url: `https://stxy.jsu.edu.cn/index/tzgg1.htm` })).data),
+        o = a(`div.art_list`).toArray();
+    return {
+        title: `吉首大学数学与统计学院 - 通知公告`,
+        link: `https://stxy.jsu.edu.cn/index/tzgg1.htm`,
+        description: `吉首大学数学与统计学院 - 通知公告`,
+        item: await Promise.all(
+            o.map((n) => {
+                n = a(n);
+                let i = new URL(n.find(`a`).attr(`href`), `https://stxy.jsu.edu.cn/`).href;
+                return e.tryGet(i, async () => {
+                    let e = await r(`#right_con > form > div.articleInfo`, i, `#right_con > form > div.articleTitle`, `#right_con > form > div.articleAuthor > span:nth-child(1)`),
+                        n = t(e.date, `YYYY年MM月DD日 HH:mm`);
+                    return { title: e.title, link: i, pubDate: n, description: e.pageInfo, category: `通知公告` };
+                });
+            })
+        ),
+    };
+}
+export { a as route };

@@ -1,0 +1,89 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+import { raw as c } from 'hono/html';
+const l = `https://www.dcfever.com`,
+    u = (e, t, n) =>
+        s(
+            a(r, {
+                children: [
+                    i(`h2`, { children: e.find(`.trading_item_title`).text() }),
+                    e.find(`.trading_item_type_tag`).text(),
+                    ` `,
+                    e.find(`.trading_item_price`).text(),
+                    i(`br`, {}),
+                    a(`table`, {
+                        children: [
+                            a(`tr`, { children: [i(`th`, { children: `賣家` }), i(`td`, { children: e.find(`.clearfix .content`).eq(0).text() })] }),
+                            a(`tr`, { children: [i(`th`, { children: `查詢次數` }), i(`td`, { children: e.find(`.clearfix .content`).eq(1).text() })] }),
+                            a(`tr`, { children: [i(`th`, { children: `瀏覽次數` }), i(`td`, { children: e.find(`.clearfix .content`).eq(2).text() })] }),
+                            a(`tr`, { children: [i(`th`, { children: `刊登日期` }), i(`td`, { children: e.find(`.clearfix .content`).eq(3).text() })] }),
+                            a(`tr`, { children: [i(`th`, { children: `最後更新` }), i(`td`, { children: e.find(`.clearfix .content`).eq(4).text() })] }),
+                            a(`tr`, { children: [i(`th`, { children: `刊登期至` }), i(`td`, { children: e.find(`.clearfix .content`).eq(5).text() })] }),
+                            a(`tr`, { children: [i(`th`, { children: `刊登狀態` }), i(`td`, { children: e.find(`.clearfix .content`).eq(6).text() })] }),
+                        ],
+                    }),
+                    i(`br`, {}),
+                    t ? i(r, { children: c(t) }) : null,
+                    i(`br`, {}),
+                    i(`br`, {}),
+                    n ? i(r, { children: c(n) }) : null,
+                ],
+            })
+        ),
+    d = (r) =>
+        t.tryGet(r.link, async () => {
+            let t = o(await e(r.link)),
+                i = t(`div[itemprop="articleBody"], .column_article_content_html`),
+                a = t(`.article_multi_page a`)
+                    .not(`.selected`)
+                    .toArray()
+                    .map((e) => ({ link: new URL(t(e).attr(`href`), r.link).href }));
+            if (a.length) {
+                let t = await Promise.all(a.map(async (t) => o(await e(t.link))(`div[itemprop="articleBody"]`).html()));
+                i.append(t);
+            }
+            return (
+                i.find(`img`).each((e, t) => {
+                    t.attribs.src?.includes(`?`) && (t.attribs.src = t.attribs.src.split(`?`)[0]);
+                }),
+                i.find(`p a`).each((e, n) => {
+                    ((n = t(n)), n.text().startsWith(`下一頁為`) && n.remove());
+                }),
+                i.find(`iframe`).each((e, n) => {
+                    ((n = t(n)), n.attr(`src`).startsWith(`https://www.facebook.com/plugins/like.php`) && n.remove());
+                }),
+                (r.description = i.html()),
+                (r.pubDate = n(t(`meta[property="article:published_time"]`).attr(`content`))),
+                r
+            );
+        }),
+    f = (n) =>
+        t.tryGet(n.link, async () => {
+            let t = o(await e(n.link)),
+                r = o(
+                    t(`#trading_item_section .description`)
+                        .contents()
+                        .filter((e, t) => t.type === `comment`)
+                        .toArray()
+                        .map((e) => e.data)
+                        .join(``),
+                    null,
+                    !1
+                );
+            return (
+                r(`.selector_text`).remove(),
+                r(`.selector_image_div`).each((e, t) => {
+                    delete t.attribs.onclick;
+                }),
+                r(`.desktop_photo_selector img`).each((e, t) => {
+                    t.attribs.src.endsWith(`_sqt.jpg`) && (t.attribs.src = t.attribs.src.replace(`_sqt.jpg`, `.jpg`));
+                }),
+                (n.description = u(t(`.info_col`), t(`.description_text`).html(), r(`.desktop_photo_selector`).html())),
+                n
+            );
+        });
+export { d as n, f as r, l as t };

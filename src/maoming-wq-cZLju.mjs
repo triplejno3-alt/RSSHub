@@ -1,0 +1,247 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { r as e } from './common-utils-uYpL50sT.mjs';
+import './got-CKQ7C9HX.mjs';
+import './timezone-CrV-DT8S.mjs';
+import './wechat-mp-HNgcLN2K.mjs';
+import { t } from './general-C-fBY1um.mjs';
+const n = { path: `/maoming/*`, name: `Unknown`, maintainers: [], handler: r };
+async function r(n) {
+    let r = e(n)
+            .split(`/`)
+            .filter((e) => e !== ``),
+        i = 0,
+        a = ``,
+        o = ``,
+        s = `site`,
+        c = ``,
+        l = `(.*)`,
+        u = ``,
+        d = ``,
+        f = ``,
+        p = ``;
+    switch (r[1]) {
+        case `www`:
+            switch (((o = `.GsTL5 a`), (d = `茂名市人民政府网`), r[2])) {
+                case void 0:
+                    o = `h1 a, #d11_li ul a[href*="content"], .two-o ul a[href*="content"], .thr-o ul a[href*="content"]`;
+                    break;
+                case `jtysj`:
+                    ((i = 1), (a = `gkmlpt/`), (d = `茂名市交通运输局`));
+                    break;
+                case `mmtyjrswj`:
+                    ((i = 1), (a = `gkmlpt/`), (d = `茂名市退役军人事务局`));
+                    break;
+                case `mmsjj`:
+                    ((i = 1), (a = `gkmlpt/`), (d = `茂名市审计局`));
+                    break;
+                case `mmgyzc`:
+                    ((i = 1), (a = `gkmlpt/`), (d = `茂名市人民政府国有资产监督管理委员会`));
+                    break;
+                case `mmtjj`:
+                    ((i = 1), (a = `gkmlpt/`), (d = `茂名市统计局`));
+                    break;
+                case `mmylbzj`:
+                    ((i = 1), (a = `gkmlpt/`), (d = `茂名市医疗保障局`));
+                    break;
+                case `mmjrgzj`:
+                    ((i = 1), (a = `gkmlpt/`), (d = `茂名市金融工作局`));
+                    break;
+                case `xfj`:
+                    ((i = 1), (a = `gkmlpt/`), (d = `茂名市信访局`));
+                    break;
+                case `mmzfgjj`:
+                    ((i = 1), (a = `gkmlpt/`), (d = `茂名市住房公积金管理中心`));
+                    break;
+                case `mmgxhzs`:
+                    ((i = 1), (a = `gkmlpt/`), (d = `茂名市供销合作联社`));
+                    break;
+                case `mmdszbgs`:
+                    ((i = 1), (a = `gkmlpt/`), (d = `茂名市地志办`));
+                    break;
+                case `mmjjlyslgc`:
+                    ((i = 1), (a = `gkmlpt/`), (d = `茂名市高州水库管理中心`));
+                    break;
+                case `ywdt`:
+                    switch (r[3]) {
+                        case void 0:
+                            o = `#d11_li ul a[href*="content"], .two-o ul a[href*="content"]`;
+                            break;
+                    }
+                    break;
+                case `zwgk`:
+                    switch (r[3]) {
+                        case void 0:
+                            o = `.er-zw-l ul a`;
+                            break;
+                        case `zcjd`:
+                            switch (r[4]) {
+                                case void 0:
+                                    o = `.swiper-slide a, .bt a, .zcjdlist a`;
+                                    break;
+                            }
+                            break;
+                    }
+                    break;
+            }
+            ((c = `#ScDetailTitle`), (u = `#zoomcon`), (f = `.desc span:nth-child(2)`), (p = `日期：(.*)`));
+            break;
+        case `fgj`:
+            switch (((o = `.list a`), r[2])) {
+                case void 0:
+                    o = `.item a, .index-news-list a`;
+                    break;
+                case `zwgk`:
+                    switch (r[3]) {
+                        case void 0:
+                            o = `.zw-news-list a`;
+                            break;
+                    }
+                    break;
+            }
+            ((c = `.title`), (u = `.content`), (d = `茂名市发展和改革局`), (f = `.info`), (p = `发布时间：(.*)`));
+            break;
+        case `jxj`:
+            ((o = r[2] === void 0 ? `.lanse_16, .hei_14, .NoticeInfo li a, #con_two_2 a, #con_two_3 a, .hei[href*="content"], .main2lr_main a` : `#main21l_main_dk > table > tbody > tr > td:nth-child(2) a`),
+                (c = `td[background="/global/rlyelen_line04.gif"] > table:nth-child(1) > tbody > tr:nth-child(2)`),
+                (u = `td[background="/global/rlyelen_line04.gif"] > table:nth-child(1) > tbody > tr:nth-child(4)`),
+                (d = `茂名市工业和信息化局`),
+                (f = `td[background="/global/rlyelen_line04.gif"] > table:nth-child(1) > tbody > tr:nth-child(3) > td > table > tbody > tr > td`),
+                (p = `发表时间：
+(.*)`));
+            break;
+        case `mmjyj`:
+            if (((o = `.news_title a`), r[3] === void 0))
+                switch (r[2]) {
+                    case void 0:
+                        o = `.title0_ a, .content0 a`;
+                        break;
+                    case `xwzx`:
+                        o = `.news_title li a, .news_title_ li a`;
+                        break;
+                }
+            ((c = `.article_title`), (u = `.article_body`), (d = `茂名市教育局`), (f = `.op_ span:nth-child(2)`), (p = `发布时间：(.*)`));
+            break;
+        case `kjj`:
+            ((o = r[2] === void 0 ? `.hover-content-item ul li a[href*="kjj.maoming.gov.cn"][href*="content"]` : `.list-right-content a[href*="kjj.maoming.gov.cn"], .list-right-content a[href*="mp.weixin.qq.com"]`),
+                (s = `all`),
+                (c = `.article-detail-title`),
+                (u = `.article-detail-content`),
+                (d = `茂名市科学技术局`),
+                (f = `.article-detail-time span:nth-child(2)`),
+                (p = `发布时间：(.*)`));
+            break;
+        case `mmga`:
+            ((o = r[3] === void 0 ? `.lnewsc a[href*="content"]` : `.new_list a`), (c = `.top h2`), (u = `.mid.text`), (d = `茂名市公安局`), (f = `.top td:nth-child(1)`), (p = `时间：(.*)`));
+            break;
+        case `smzj`:
+            ((a = `zwgk/xxgkml/zcjd/`), (o = `.HK_List_ul_5 a`), (c = `.HTitle`), (u = `#mmhygs`), (d = `茂名市民政局`), (f = `.HTime`), (p = `日期：(.*)`));
+            break;
+        case `sfj`:
+            ((o = r[2] === void 0 ? `.bothA a` : `.list a`), (c = `.title`), (u = `#context`), (d = `茂名市司法局`), (f = `.info span:nth-child(1)`), (p = `发布时间：(.*)`));
+            break;
+        case `czj`:
+            ((o = r[2] === void 0 ? `.tabContent_item a[href*="content"]` : `.newsList_right .clearfix a`), (c = `.newsContainer_title`), (u = `.newsContainer_text`), (d = `茂名市财政局`), (f = `.time`), (p = `(.*)`));
+            break;
+        case `mmrs`:
+            if (((o = `.g-list a`), r[3] === void 0))
+                switch (r[2]) {
+                    case void 0:
+                        o = `.news-box a, .new_list a, .news-box2 a[href*="content"]`;
+                        break;
+                    case `xwzx`:
+                        o = `.marqueetop ul li a, .special-clu ul li a, .soc-list ul li a`;
+                        break;
+                    case `zwxx`:
+                        o = `.marqueetop a, .gud-file ul li a, .dyn-box ul li a, .org-list a`;
+                        break;
+                }
+            ((c = `.pre-box h3`), (u = `.pre-box .clearfix`), (d = `茂名市人力资源和社会保障局网站`), (f = `.pre-box > *:nth-child(3)`), (p = `发布时间:(.*)\xA0`));
+            break;
+        case `zrzyj`:
+            ((o = `.ul li a[href*="content"]`), (c = `header.title h1`), (u = `article.info`), (d = `茂名市自然资源局`), (f = `header.title p span:nth-child(1)`), (p = `日期：(.*)`));
+            break;
+        case `sthjj`:
+            ((o = r[3] === void 0 ? `.item-style1 ul li a[href*="content"], #notice-box ul li a` : `.pull-left`),
+                (c = `.article_top_l p`),
+                (l = `(.*)
+`),
+                (u = `.txt`),
+                (d = `茂名市生态环境局`),
+                (f = `.article_top_l > p > :nth-child(2)`),
+                (p = `发布时间：(.*)`));
+            break;
+        case `jianshe`:
+            ((a = `xwdt/zcjd/`), (o = `.listhref a`), (c = `#showtitlediv`), (u = `.aleft > *:nth-child(3)`), (d = `茂名市住房和城乡建设局`), (f = `#showtitlediv + table`), (p = `刊登时间：(.*)，信息`));
+            break;
+        case `swj`:
+            ((a = `zcjd/`), (o = `#lblListInfo a`), (c = `.HTitle`), (u = `#mmhygs`), (d = `茂名市水务局`), (f = `.HTime`), (p = `日期：(.*)`));
+            break;
+        case `mmny`:
+            switch (((o = `.xw > a`), r[2])) {
+                case void 0:
+                    o = `.txt li a, .Tabcon ul li a`;
+                    break;
+                case `zsq`:
+                    r[3] !== void 0 && (o = `.img a`);
+                    break;
+            }
+            ((c = `.bt`),
+                (l = `(.*)
+`),
+                (u = `.lien > table > tbody > tr:nth-child(4)`),
+                (d = `茂名市农业农村局`),
+                (f = `.lien > table > tbody > tr:nth-child(2)`),
+                (p = `日期：(.*)\xA0\xA0\xA0点击数`));
+            break;
+        case `lyj`:
+            ((o = r[2] === void 0 ? `#main-slide .changeDiv a, .lycneter_all a[href*="content"]` : `.r_text a`), (c = `h3`), (u = `.time_r + div`), (d = `茂名市林业局`), (f = `.time_r`), (p = `发布时间：(.*)\xA0\xA0\xA0文章来源`));
+            break;
+        case `mmswj`:
+            ((o = r[2] === void 0 ? `div[id^="con_three_"] a, .pt6 a[href*="content"]` : `#main21l_main_dk > table a`),
+                (c = `td[background="/global/rlyelen_line04.gif"] > table:nth-child(1) > tbody > tr:nth-child(2)`),
+                (u = `td[background="/global/rlyelen_line04.gif"] > table:nth-child(1) > tbody > tr:nth-child(4)`),
+                (d = `茂名市商务局`),
+                (f = `td[background="/global/rlyelen_line04.gif"] > table:nth-child(1) > tbody > tr:nth-child(3)`),
+                (p = `发表时间：(.*)`));
+            break;
+        case `wgxj`:
+            ((a = `zcfg/zcjd/`), (o = `.com-news a`), (c = `.text-title h2`), (u = `.text-body`), (d = `茂名市文化广电旅游体育局`), (f = `.text-title p`), (p = `最后更新： (.*)    来源`));
+            break;
+        case `wsjkj`:
+            ((o = r[2] === void 0 ? `.tbv_mn a` : `.news_list a`), (c = `h1.content_title`), (u = `#zoomcon`), (d = `茂名市卫生健康局`), (f = `.desc span:nth-child(1)`), (p = `发布时间：(.*)`));
+            break;
+        case `scj`:
+            ((o = r[2] === void 0 ? `.title_content a` : `.news_list > ul > li a`), (c = `.subject_tit`), (u = `#zoomcon`), (d = `茂名市市场监督管理局`), (f = `.subject_litle span:nth-child(1)`), (p = `发布时间:(.*)`));
+            break;
+        case `ajj`:
+            ((o = r[2] === void 0 ? `.picList a, .title_content a[href*="content"]` : `.newslist ul li a`),
+                (c = `.opinion_result center p:nth-child(1)`),
+                (u = `.opinion_result_content`),
+                (d = `茂名市应急管理局`),
+                (f = `.opinion_result center p:nth-child(2) span:nth-child(1)`),
+                (p = `发布时间：(.*)`));
+            break;
+        case `cgj`:
+            ((o =
+                r[2] === void 0
+                    ? `#con_two_1 a[href*="cgj.maoming.gov.cn"], #con_two_1 a[href*="mp.weixin.qq.com"], .newshotkuan.pt9 .heibti[href*="cgj.maoming.gov.cn"], .newshotkuan.pt9 .heibti[href*="mp.weixin.qq.com"], .qkuan01.mt9 .heibti[href*="cgj.maoming.gov.cn"], .qkuan01.mt9 .heibti[href*="mp.weixin.qq.com"], #demo a[href*="cgj.maoming.gov.cn"], #demo a[href*="mp.weixin.qq.com"], .main3lr_main a[href*="cgj.maoming.gov.cn"], .main3lr_main a[href*="mp.weixin.qq.com"]`
+                    : `#main21l_main_dkc .hei[href*="cgj.maoming.gov.cn"], #main21l_main_dkc .hei[href*="mp.weixin.qq.com"]`),
+                (s = `all`),
+                (c = `td[background="/global/rlyelen_line04.gif"] > table:nth-child(1) > tbody > tr:nth-child(2)`),
+                (u = `td[background="/global/rlyelen_line04.gif"] > table:nth-child(1) > tbody > tr:nth-child(4)`),
+                (d = `茂名市城市管理和综合执法局`),
+                (f = `td[background="/global/rlyelen_line04.gif"] > table:nth-child(1) > tbody > tr:nth-child(3)`),
+                (p = `发表时间：(.*)`));
+            break;
+        case `xzfw`:
+            ((a = `zcjd/`), (o = `#lblListInfo a`), (c = `.HTitle`), (u = `#mmhygs`), (d = `茂名市政务服务网`), (f = `.HTime`), (p = `发布日期：(.*)\xA0\xA0\xA0点击率`));
+            break;
+    }
+    await t({ pathstartat: i, defaultPath: a, list_element: o, list_include: s, title_element: c, title_match: l, description_element: u, authorisme: d, pubDate_element: f, pubDate_match: p }, n);
+}
+export { n as route };

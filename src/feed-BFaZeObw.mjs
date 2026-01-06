@@ -1,0 +1,58 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { a as r, i, o as a, r as o, s } from './_feed-DYR6QwZn.mjs';
+const c = {
+    path: `/user/feed/follow/:lang?`,
+    name: ` Follows Feed`,
+    maintainers: [`chrisis58`],
+    description: `Get the latest updates of all the manga you follow on MangaDex.`,
+    example: `/mangadex/user/feed/follow/zh?limit=10`,
+    radar: [{ source: [`mangadex.org/titles/feed`], target: `/user/feed/follow` }],
+    categories: [`anime`],
+    parameters: { lang: { description: `The language of the followed manga` } },
+    features: {
+        requireConfig: [
+            { name: `MANGADEX_USERNAME`, description: `MangaDex Username, required when refresh-token is not set`, optional: !0 },
+            { name: `MANGADEX_PASSWORD`, description: `MangaDex Password, required when refresh-token is not set`, optional: !0 },
+            { name: `MANGADEX_CLIENT_ID`, description: `MangaDex Client ID`, optional: !1 },
+            { name: `MANGADEX_CLIENT_SECRET`, description: `MangaDex Client Secret`, optional: !1 },
+            { name: `MANGADEX_REFRESH_TOKEN`, description: `MangaDex Refresh Token, required when username and password are not set`, optional: !0 },
+        ],
+        nsfw: !0,
+    },
+    handler: l,
+};
+async function l(c) {
+    let l = `${s.API.BASE}/user/follows/manga/feed`,
+        { lang: u } = c.req.param(),
+        d = c.req.query(`limit`) ? Number.parseInt(c.req.query(`limit`)) : 25,
+        f = await a(),
+        p = new Set([...(typeof u == `string` ? [u] : u || []), ...(await r())].filter(Boolean)),
+        m = await t.tryGet(
+            `mangadex:user-follows`,
+            async () => {
+                let t = (await n.get(`${l}${i({ translatedLanguage: p, order: { publishAt: `desc` }, limit: d })}`, { headers: { Authorization: `Bearer ${f}`, 'User-Agent': e.trueUA } }))?.data?.data;
+                if (!t) throw Error(`Failed to retrieve user follows from MangaDex API.`);
+                return t;
+            },
+            e.cache.routeExpire,
+            !1
+        ),
+        h = await o(m.map((e) => e?.relationships.find((e) => e.type === `manga`)?.id));
+    return {
+        title: `User Follows`,
+        link: `https://mangadex.org/titles/feed`,
+        description: `The latest updates of all the manga you follow on MangaDex.`,
+        item: m.map((e) => {
+            let t = e.relationships.find((e) => e.type === `manga`)?.id,
+                n = h.get(t),
+                r = [e.attributes.volume ? `Vol. ${e.attributes.volume}` : null, e.attributes.chapter ? `Ch. ${e.attributes.chapter}` : null, e.attributes.title].filter(Boolean).join(` `);
+            return { title: n?.title || `Unknown`, link: `${s.API.MANGA_CHAPTERS}${e.id}`, pubDate: new Date(e.attributes.publishAt), description: r, image: n?.cover };
+        }),
+    };
+}
+export { c as route };

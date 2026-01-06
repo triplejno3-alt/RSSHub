@@ -1,0 +1,36 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './got-CKQ7C9HX.mjs';
+import { t as e } from './types-Bl_lnefZ.mjs';
+import { t } from './utils-CrfxaWQ3.mjs';
+const n = {
+    path: `/items/character/:id/:order?`,
+    categories: [`anime`],
+    view: e.Pictures,
+    example: `/hpoi/items/character/1035374`,
+    parameters: {
+        id: `角色 ID`,
+        order: {
+            description: `排序`,
+            options: [
+                { value: `release`, label: `发售` },
+                { value: `add`, label: `入库` },
+                { value: `hits`, label: `总热度` },
+                { value: `hits7Day`, label: `一周热度` },
+                { value: `hitsDay`, label: `一天热度` },
+                { value: `rating`, label: `评价` },
+            ],
+            default: `add`,
+        },
+    },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `角色周边`,
+    maintainers: [`DIYgod`],
+    handler: r,
+};
+async function r(e) {
+    return await t(`character`, e.req.param(`id`), e.req.param(`order`));
+}
+export { n as route };

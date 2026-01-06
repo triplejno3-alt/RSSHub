@@ -1,0 +1,50 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = `https://gs.sass.org.cn`,
+    a = {
+        path: `/gs/:type`,
+        categories: [`university`],
+        example: `/sass/gs/1793`,
+        parameters: { type: '类别 ID，见下表，其他未列出的栏目参数可以从页面的 URL Path 中找到，例如：硕士统考招生的网址为 `https://gs.sass.org.cn/1793/list.htm`，则类别 ID 为`1793`' },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`gs.sass.org.cn/:type/list.htm`] }],
+        name: `研究生院`,
+        maintainers: [`yanbot-team`],
+        handler: o,
+        description: `| 硕士统考招生 | 硕士推免招生 |
+| ------------ | ------------ |
+| 1793         | sstmzs       |`,
+    };
+async function o(a) {
+    let o = `${i}/${a.req.param(`type`)}/list.htm`,
+        s = r((await n(o)).data),
+        c = s(`.column-news-list .cols_list .cols`);
+    return {
+        title: `上海社会科学院 - 研究生院`,
+        link: o,
+        description: `上海社会科学院 - 研究生院`,
+        item: await Promise.all(
+            c.map((a, o) => {
+                let [c, l] = o.children,
+                    u = s(l).text(),
+                    { href: d, title: f } = c.children[0].attribs,
+                    p = d.startsWith(`http`) ? d : i + d;
+                return e.tryGet(p, async () => {
+                    let e = ``;
+                    if (p) {
+                        let t = r((await n(p)).data);
+                        e = t(`.read .wp_articlecontent`).length ? t(`.read .wp_articlecontent`).html().trim() : f;
+                    } else e = f;
+                    return { title: f, link: p, description: e, pubDate: t(u, `YYYY-MM-DD`) };
+                });
+            })
+        ),
+    };
+}
+export { a as route };

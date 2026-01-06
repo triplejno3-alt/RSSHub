@@ -1,0 +1,43 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/:bcid?/:cid?`,
+    categories: [`study`],
+    example: `/sdzk`,
+    parameters: { bcid: '板块 id，可在对应板块页 URL 中找到，默认为 `1`，即信息与政策', cid: '栏目 id，可在对应板块页 URL 中找到，默认为 `16`，即通知公告' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `新闻`,
+    maintainers: [`nczitzk`],
+    handler: a,
+    description:
+        '::: tip\n  若订阅 [信息与政策](https://www.sdzk.cn/NewsList.aspx?BCID=1)，网址为 `https://www.sdzk.cn/NewsList.aspx?BCID=1`。截取 `BCID=1` 作为参数，此时路由为 [`/sdzk/1`](https://rsshub.app/sdzk/1)。\n\n  若订阅 [通知公告](https://www.sdzk.cn/NewsList.aspx?BCID=1&CID=16)，网址为 `https://www.sdzk.cn/NewsList.aspx?BCID=1&CID=16`。截取 `BCID=1` 与 `CID=16` 作为参数，此时路由为 [`/sdzk/1/16`](https://rsshub.app/sdzk/1/16)。\n:::',
+};
+async function a(i) {
+    let a = i.req.param(`bcid`) ?? `1`,
+        o = i.req.param(`cid`) ?? `16`,
+        s = `https://www.sdzk.cn`,
+        c = `${s}/NewsList.aspx?BCID=${a}${o ? `&CID=${o}` : ``}`,
+        l = r((await n({ method: `get`, url: c })).data),
+        u = l(`a[title]`)
+            .toArray()
+            .map((e) => ((e = l(e)), { title: e.text(), link: new URL(e.attr(`href`), s).href }));
+    return (
+        (u = await Promise.all(
+            u.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let e = r((await n({ method: `get`, url: i.link })).data),
+                        a = e(`div.laylist-r em`).text();
+                    return ((i.description = e(`.txt`).html()), (i.pubDate = t(a.split(`发布时间：`).pop())), i);
+                })
+            )
+        )),
+        { title: l(`title`).text(), link: c, item: u }
+    );
+}
+export { i as route };

@@ -1,0 +1,79 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = async (a) => {
+        let { category: o = `` } = a.req.param(),
+            s = a.req.query(`limit`) ? Number.parseInt(a.req.query(`limit`), 10) : 100,
+            c = new URL(o ? `page-${o}.htm` : ``, `https://iehou.com`).href,
+            { data: l } = await n(c),
+            u = i(l),
+            d = u(`html`).prop(`lang`),
+            f = u(`li.list-group-item div.subject h2`)
+                .slice(0, s)
+                .toArray()
+                .map(
+                    (e) => (
+                        (e = u(e)),
+                        {
+                            title: e.text(),
+                            pubDate: r(t(e.parent().find(`span`).text(), `MM-DD HH:mm`, `YYYY-MM-DD HH:mm`), 8),
+                            link: e.find(`a`).prop(`href`),
+                            category: e
+                                .nextAll(`a`)
+                                .toArray()
+                                .map((e) => u(e).text()),
+                            language: d,
+                        }
+                    )
+                );
+        return (
+            (f = await Promise.all(
+                f.map((a) =>
+                    e.tryGet(a.link, async () => {
+                        let { data: e } = await n(a.link),
+                            o = i(e),
+                            s = o(`h1.title`).text(),
+                            c = o(`div.thread-content`).html(),
+                            l = o(`div.thread-content img`).first().prop(`src`);
+                        return (
+                            (a.title = s),
+                            (a.description = c),
+                            (a.pubDate = r(t(o(`i.icon-clock-o`).parent().contents().last().text().trim(), `MM-DD HH:mm`, `YYYY-MM-DD HH:mm`), 8)),
+                            (a.author = o(`img.avatar-1`).parent().contents().last().text().trim()),
+                            (a.content = { html: c, text: o(`div.thread-content`).text() }),
+                            (a.image = l),
+                            (a.banner = l),
+                            (a.language = d),
+                            a
+                        );
+                    })
+                )
+            )),
+            { title: u(`title`).text(), description: u(`meta[name="description"]`).prop(`content`), link: c, item: f, allowEmpty: !0, author: u(`h1`).text(), language: d }
+        );
+    },
+    o = {
+        path: `/:category?`,
+        name: `线报`,
+        url: `iehou.com`,
+        maintainers: [`nczitzk`],
+        handler: a,
+        example: `/iehou`,
+        parameters: { category: `分类，默认为空，即最新线报，可在对应分类页 URL 中找到` },
+        description:
+            '::: tip\n  若订阅 [24小时热门线报](https://iehou.com/page-dayhot.htm)，网址为 `https://iehou.com/page-dayhot.htm`。截取 `https://iehou.com/page-` 到末尾 `.htm` 的部分 `dayhot` 作为参数填入，此时路由为 [`/iehou/dayhot`](https://rsshub.app/iehou/dayhot)。\n:::\n  \n| [最新线报](https://iehou.com/) | [24 小时热门](https://iehou.com/page-dayhot.htm) | [一周热门](https://iehou.com/page-weekhot.htm) |\n| ------------------------------ | ------------------------------------------------ | ---------------------------------------------- |\n| [](https://rsshub.app/iehou)   | [dayhot](https://rsshub.app/iehou/dayhot)        | [weekhot](https://rsshub.app/iehou/weekhot)    |\n  ',
+        categories: [`new-media`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            { title: `最新线报`, source: [`iehou.com`], target: `/` },
+            { title: `24小时热门`, source: [`iehou.com/page-dayhot.htm`], target: `/dayhot` },
+            { title: `一周热门`, source: [`iehou.com/page-weekhot.htm`], target: `/weekhot` },
+        ],
+    };
+export { a as handler, o as route };

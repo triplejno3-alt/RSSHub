@@ -1,0 +1,49 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './utils-BnyXtbFN.mjs';
+import { load as r } from 'cheerio';
+import i from 'p-map';
+const a = {
+    path: `/update`,
+    categories: [`anime`],
+    example: `/agefans/update`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`agemys.org/update`, `agemys.org/`] }],
+    name: `最近更新`,
+    maintainers: [`nczitzk`],
+    handler: o,
+    url: `agemys.org/update`,
+};
+async function o() {
+    let a = `${n}/update`,
+        o = r((await t(a)).data),
+        s = await i(
+            o(`.video_item`)
+                .toArray()
+                .map((e) => {
+                    e = o(e);
+                    let t = e.find(`a`).attr(`href`).replace(`http://`, `https://`);
+                    return { title: e.text(), link: t, guid: `${t}#${e.find(`.video_item--info`).text()}` };
+                }),
+            (n) =>
+                e.tryGet(n.link, async () => {
+                    let e = r((await t(n.link)).data);
+                    return (
+                        e(`img`).each((e, t) => {
+                            t.attribs[`data-original`] && ((t.attribs.src = t.attribs[`data-original`]), delete t.attribs[`data-original`]);
+                        }),
+                        e(`.video_detail_collect`).remove(),
+                        (n.description = e(`.video_detail_left`).html()),
+                        n
+                    );
+                }),
+            { concurrency: 3 }
+        );
+    return { title: o(`title`).text(), link: a, item: s };
+}
+export { a as route };

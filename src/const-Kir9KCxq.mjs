@@ -1,0 +1,34 @@
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+async function r(r) {
+    let i = n((await t(r)).body),
+        a = i(`title`)
+            .text()
+            .replace(`BaoBua.Com:`, ``)
+            .replace(/\| Page \d+\/\d+/, ``)
+            .trim(),
+        o = /Page \d+\/(\d+)/.exec(i(`title`).text()),
+        s = o ? Number.parseInt(o[1]) : 1,
+        c,
+        l = i(`script:contains("BlogPosting")`).first();
+    l && (c = e(JSON.parse(l.text()).datePublished));
+    let u = i(`.contentme2`).html() ?? ``;
+    if (s > 1) {
+        let e = await Promise.all(
+            Array.from({ length: s - 1 }, async (e, i) => {
+                try {
+                    return n((await t(`${r}?page=${i + 2}`)).body)(`.contentme2`).html() ?? ``;
+                } catch {
+                    return ``;
+                }
+            })
+        );
+        u += e.join(``);
+    }
+    return { title: a, description: u, pubDate: c, link: r };
+}
+var i = r;
+const a = `BaoBua`,
+    o = `https://baobua.com/`;
+export { o as n, i as r, a as t };

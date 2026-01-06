@@ -1,0 +1,25 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+const n = {
+    path: `/:feed?`,
+    categories: [`programming`],
+    example: `/sycl/news`,
+    parameters: { feed: `Feed source, defaults to news, references https://feeds.sycl.tech/` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `Feeds`,
+    maintainers: [`mocusez`],
+    handler: r,
+    description: `|  Events  | News |    Research Paper     |  Videos  |
+| :----: | :--: | :-------------: | :----: |
+| events | news | research_papers | videos |`,
+};
+async function r(n) {
+    let r = [`news`, `events`, `research_papers`, `videos`],
+        { feed: i = `news` } = n.req.param();
+    r.includes(i) || (i = `news`);
+    let a = (await e(`https://feeds.sycl.tech/${i}/feed.json`)).items.map((e) => ({ title: e.title, link: e.external_url, description: e.content_html, pubDate: t(e.date_published), author: e.author.name }));
+    return { title: `SYCL.tech ${i}`, link: `https://feeds.sycl.tech/${i}/feed.json`, item: a };
+}
+export { n as route };

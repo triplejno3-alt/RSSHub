@@ -1,0 +1,40 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { jsx as t } from 'hono/jsx/jsx-runtime';
+import { load as n } from 'cheerio';
+import { renderToString as r } from 'hono/jsx/dom/server';
+const i = (e) => r(t(`div`, { children: t(`img`, { src: e }) })),
+    a = {
+        path: `/latest-magazine/:query?`,
+        categories: [`reading`],
+        example: `/magazinelib/latest-magazine/new+yorker`,
+        parameters: { query: `query, search page querystring` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `Latest Magazine`,
+        maintainers: [`EthanWng97`],
+        handler: o,
+        description: 'For instance, when doing search at [https://magazinelib.com](https://magazinelib.com) and you get url `https://magazinelib.com/?s=new+yorker`, the query is `new+yorker`',
+    };
+async function o(t) {
+    let r = t.req.param(`query`),
+        a = await e({ method: `get`, url: `https://magazinelib.com/wp-json/wp/v2/posts/`, searchParams: { search: r, per_page: 30, _embed: 1 } }),
+        o = r;
+    o === void 0 ? (o = ``) : ((o = o.replaceAll(/[^\dA-Za-z]+/g, ` `).toUpperCase()), (o = ` - ${o}`));
+    let s = a.data.map((e) => {
+        let t = { date: e.date_gmt, link: e.link, featuredMediaLink: e._links[`wp:featuredmedia`][0].href, title: e.title.rendered },
+            r = n(e.content.rendered)(`.vk-att`);
+        (r.find(`img[src="https://magazinelib.com/wp-includes/images/media/default.png"]`).remove(), (t.content = r.html()));
+        let a = e._embedded[`wp:featuredmedia`][0].source_url;
+        return ((t.description = t.content + i(a)), (t.categories = e._embedded[`wp:term`][0].map((e) => e.name)), t);
+    });
+    return {
+        title: `MagazineLib - Latest Magazines${o}`,
+        link: `{host}/?s=${r}`,
+        description: `MagazineLib - Latest Magazines${o}`,
+        item: s.map((e) => ({ title: e.title, link: e.link, category: e.categories, pubDate: new Date(e.pubDate).toUTCString(), description: e.description })),
+    };
+}
+export { a as route };

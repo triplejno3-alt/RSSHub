@@ -1,0 +1,49 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import * as i from 'cheerio';
+const a = {
+    path: `/portal/:catId?`,
+    name: `分类`,
+    categories: [`bbs`],
+    example: `/chiphell/portal/1`,
+    parameters: { catId: `分类 ID，可在 URL 中找到，默认为 1` },
+    maintainers: [`tylinux`],
+    handler: async (a) => {
+        let { catId: o = `1` } = a.req.param(),
+            s = `https://www.chiphell.com/portal.php?mod=list&catid=${o}`,
+            c = await e(s),
+            l = i.load(c),
+            u = l(`dl.cl`)
+                .toArray()
+                .map((e) => {
+                    let t = l(e),
+                        i = t.find(`a.xi2`);
+                    return { title: i.text(), link: `https://www.chiphell.com/${i.attr(`href`)}`, category: [t.find(`dd label`).text()], pubDate: r(n(t.find(`span.xg1`).text()), 8) };
+                }),
+            d = await Promise.all(
+                u.map((n) =>
+                    t.tryGet(n.link, async () => {
+                        let t = await e(n.link),
+                            r = i.load(t);
+                        r(`#article_content div br`).parent().remove();
+                        let a = r(`#article_content`).html();
+                        if (r(`.pg`).length) {
+                            let t = r(`.pg a`)
+                                    .toArray()
+                                    .map((e) => `https://www.chiphell.com/${r(e).attr(`href`)}`)
+                                    .slice(0, -1),
+                                n = (await Promise.all(t.map((t) => e(t)))).map((e) => i.load(e)).map((e) => (e(`#article_content div br`).parent().remove(), e(`#article_content`).html()));
+                            a = [a, ...n].join(``);
+                        }
+                        return ((n.description = a), n);
+                    })
+                )
+            );
+        return { title: l(`head title`).text(), description: l(`head meta[name="description"]`).attr(`content`), link: s, item: d };
+    },
+};
+export { a as route };

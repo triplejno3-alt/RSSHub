@@ -1,0 +1,54 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/group/:groupid/:type?`,
+    categories: [`social-media`],
+    view: n.SocialMedia,
+    example: `/douban/group/648102`,
+    parameters: {
+        groupid: `豆瓣小组的 id`,
+        type: {
+            description: `类型`,
+            default: `latest`,
+            options: [
+                { label: `最新`, value: `latest` },
+                { label: `最热`, value: `essence` },
+                { label: `精华`, value: `elite` },
+            ],
+        },
+    },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.douban.com/group/:groupid`], target: `/group/:groupid` }],
+    name: `豆瓣小组`,
+    maintainers: [`DIYgod`],
+    handler: a,
+};
+async function a(n) {
+    let i = n.req.param(`groupid`),
+        a = n.req.param(`type`),
+        o = `https://www.douban.com/group/${i}/${a && a !== `latest` ? `?type=${a}` : ``}`,
+        s = r((await t({ method: `get`, url: o })).data),
+        c = s(`.olt tr:not(.th)`).slice(0, 30).toArray(),
+        l = await Promise.all(
+            c.map((n) => {
+                let i = s(n),
+                    a = { title: i.find(`.title a`).attr(`title`), author: i.find(`a`).eq(1).text(), link: i.find(`.title a`).attr(`href`) };
+                return e.tryGet(a.link, async () => {
+                    try {
+                        let e = r((await t({ method: `get`, url: a.link })).data);
+                        return ((a.pubDate = e(`.create-time`).text()), (a.description = e(`.rich-content`).html()), a);
+                    } catch {
+                        return a;
+                    }
+                });
+            })
+        );
+    return { title: `豆瓣小组-${s(`h1`).text().trim()}`, link: o, item: l };
+}
+export { i as route };

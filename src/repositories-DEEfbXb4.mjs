@@ -1,0 +1,33 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+const r = {
+    name: `Owner Repositories`,
+    description: `List of repositories for an image owner`,
+    maintainers: [`CaoMeiYouRen`],
+    path: `/repositories/:owner`,
+    categories: [`program-update`],
+    view: n.Notifications,
+    example: `/dockerhub/repositories/diygod`,
+    parameters: { owner: `Image owner` },
+    handler: i,
+};
+async function i(n) {
+    let r = n.req.param(`owner`).toLowerCase(),
+        i = Number.parseInt(n.req.query(`limit`) || `10`),
+        a = `https://hub.docker.com/r/${r}`,
+        o = (await t(`https://hub.docker.com/v2/repositories/${r}`, { searchParams: { page_size: i } })).data.results.map((t) => ({
+            title: t.name,
+            description: `${t.description}<br>status: ${t.status_description}<br>stars: ${t.star_count}<br>pulls: ${t.pull_count}`,
+            link: `https://hub.docker.com/r/${r}/${t.name}`,
+            author: r,
+            pubDate: e(t.last_updated),
+            guid: `${r}/${t.name}`,
+        }));
+    return { title: `${r} repositories`, description: `List of repositories for ${r}`, link: a, item: o };
+}
+export { r as route };

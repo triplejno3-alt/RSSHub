@@ -1,0 +1,38 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/hospital`,
+    categories: [`university`],
+    example: `/nju/hospital`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`hospital.nju.edu.cn/ggtz/index.html`] }],
+    name: `校医院`,
+    maintainers: [`ret-1`],
+    handler: i,
+    url: `hospital.nju.edu.cn/ggtz/index.html`,
+};
+async function i() {
+    return {
+        title: `校医院-公告通知`,
+        link: `https://hospital.nju.edu.cn/ggtz/index.html`,
+        item: (
+            await Promise.all(
+                Object.keys({ ggtz: `公告通知` }).map(async () => {
+                    let r = (await t(`https://hospital.nju.edu.cn/ggtz/index.html`)).data,
+                        i = n(r)(`div .wrapper`).find(`script`);
+                    i = i[1].children[0].data;
+                    let a = i.indexOf(`[`),
+                        o = i.lastIndexOf(`]`);
+                    return JSON.parse(i.substring(a, o + 1))[0].infolist.map((t) => ({ title: t.title, description: t.summary, link: t.url, author: t.username, pubDate: e(t.releasetime, `x`) }));
+                })
+            )
+        )[0],
+    };
+}
+export { r as route };

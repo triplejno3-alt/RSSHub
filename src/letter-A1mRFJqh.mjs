@@ -1,0 +1,28 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { n, t as r } from './utils-7XZqFwHy.mjs';
+const i = {
+    path: `/letters/:author`,
+    categories: [`new-media`],
+    example: `/zhiy/letters/messy`,
+    parameters: { author: `作者 ID，可在URL中找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`zhiy.cc/:author`] }],
+    name: `Newsletter`,
+    maintainers: [`TonyRL`],
+    handler: a,
+};
+async function a(i) {
+    let a = i.req.param(`author`),
+        { author_id: o, author_name: s, author_signature: c, author_avatar_url: l } = await n(a),
+        {
+            data: { result: u },
+        } = await t(`${r}/api/app/users/${o}/letters`, { searchParams: { page: 1, limit: i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`)) : 100 } }),
+        d = u.map((t) => ({ title: t.title, description: t.shortcut, pubDate: e(t.send_time, `X`), link: `${r}/letter/${t.id}` }));
+    return { title: s, link: `${r}/${a}`, description: c, image: l, item: d };
+}
+export { i as route };

@@ -1,0 +1,22 @@
+import { t as e } from './cache-DLkCV5c7.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+var i = async (i, a) => {
+    a = `https://www.sobooks.net/${a}`;
+    let o = r((await n({ method: `get`, url: a })).data),
+        s = o(`.card-item h3 a`)
+            .slice(0, 15)
+            .toArray()
+            .map((e) => ((e = o(e)), { title: e.text(), link: e.attr(`href`) })),
+        c = await Promise.all(
+            s.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let e = r((await n({ method: `get`, url: i.link })).data);
+                    return (e(`.e-secret, .article-social`).remove(), (i.description = e(`.article-content`).html()), (i.pubDate = t(e(`.bookinfo ul li`).eq(4).text().replace(`时间：`, ``))), i);
+                })
+            )
+        );
+    return { title: (o(`.archive-header h1`).text() ? o(`.archive-header h1`).text() + ` - ` : ``) + `SoBooks`, link: a, item: c };
+};
+export { i as t };

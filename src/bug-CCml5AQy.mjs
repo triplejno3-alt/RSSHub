@@ -1,0 +1,40 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './invalid-parameter-DGZgOgO2.mjs';
+import { load as r } from 'cheerio';
+const i = new Map([
+    [`apache`, `bz.apache.org/bugzilla`],
+    [`apache.ooo`, `bz.apache.org/ooo`],
+    [`apache.SpamAssassin`, `bz.apache.org/SpamAssassin`],
+    [`kernel`, `bugzilla.kernel.org`],
+    [`mozilla`, `bugzilla.mozilla.org`],
+    [`webkit`, `bugs.webkit.org`],
+]);
+async function a(a) {
+    let { site: o, bugId: s } = a.req.param();
+    if (!i.has(o)) throw new n(`unknown site: ${o}`);
+    let c = `https://${i.get(o)}/show_bug.cgi?id=${s}`,
+        l = r(await e(`${c}&ctype=xml`)),
+        u = l(`long_desc`).map((e, n) => {
+            let i = r(n, null, !1);
+            return { title: `comment #${i(`commentid`).text()}`, link: `${c}#c${e}`, description: i(`thetext`).text(), pubDate: t(i(`bug_when`).text()), author: i(`who`).attr(`name`) };
+        });
+    return { title: l(`short_desc`).text(), link: c, item: u.toArray() };
+}
+function o(e, t = `, `) {
+    return [...e.entries()].map(([e, t]) => `[\`${e}\`](https://${t})`).join(t);
+}
+const s = {
+    path: `/bug/:site/:bugId`,
+    name: `bugs`,
+    maintainers: [`FranklinYu`],
+    handler: a,
+    example: `/bugzilla/bug/webkit/251528`,
+    parameters: { site: `site identifier`, bugId: `numeric identifier of the bug in the site` },
+    description: `Supported site identifiers: ${o(i)}.`,
+    categories: [`programming`],
+    zh: { name: `bugs`, description: `支持的站点标识符：${o(i, `、`)}。` },
+};
+export { s as route };

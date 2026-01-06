@@ -1,0 +1,149 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+import { raw as c } from 'hono/html';
+const l = ({ host: e, attributes: t, description: n, gallery: o, jsonData: l, priceData: u }) =>
+        s(
+            i(r, {
+                children:
+                    e === `store.nintendo.com.hk`
+                        ? a(r, {
+                              children: [
+                                  o ? o.map((e, t) => (e.type === `image` && e.isMain ? i(`img`, { src: e.full || e.img || e.thumb }, `${e.full ?? e.img ?? e.thumb}-${t}`) : null)) : null,
+                                  a(`table`, {
+                                      children: [
+                                          a(`tr`, {
+                                              children: [
+                                                  t?.platform ? a(r, { children: [i(`th`, { children: `支援平台：` }), i(`td`, { children: t.platform })] }) : null,
+                                                  t?.supported_languages ? a(r, { children: [i(`th`, { children: `對應語言：` }), i(`td`, { children: t.supported_languages })] }) : null,
+                                              ],
+                                          }),
+                                          a(`tr`, {
+                                              children: [
+                                                  t?.game_category ? a(r, { children: [i(`th`, { children: `遊戲類型：` }), i(`td`, { children: t.game_category })] }) : null,
+                                                  t?.required_space ? a(r, { children: [i(`th`, { children: `所需容量（約）：` }), i(`td`, { children: t.required_space })] }) : null,
+                                              ],
+                                          }),
+                                          a(`tr`, {
+                                              children: [
+                                                  t?.release_date ? a(r, { children: [i(`th`, { children: `發售日：` }), i(`td`, { children: t.release_date })] }) : null,
+                                                  t?.supported_controllers ? a(r, { children: [i(`th`, { children: `支援的控制器：` }), i(`td`, { children: t.supported_controllers })] }) : null,
+                                              ],
+                                          }),
+                                          a(`tr`, {
+                                              children: [
+                                                  t?.publisher ? a(r, { children: [i(`th`, { children: `發行商：` }), i(`td`, { children: t.publisher })] }) : null,
+                                                  t?.supported_play_modes ? a(r, { children: [i(`th`, { children: `遊玩模式：` }), i(`td`, { children: t.supported_play_modes })] }) : null,
+                                              ],
+                                          }),
+                                          a(`tr`, {
+                                              children: [
+                                                  t?.no_of_players ? a(r, { children: [i(`th`, { children: `遊玩人數：` }), i(`td`, { children: t.no_of_players })] }) : null,
+                                                  t?.price ? a(r, { children: [i(`th`, { children: `售價：` }), a(`td`, { children: [t.currency, ` `, t.price] })] }) : null,
+                                              ],
+                                          }),
+                                      ],
+                                  }),
+                                  t?.disclaimer ? i(r, { children: t.disclaimer }) : null,
+                                  i(`br`, {}),
+                                  i(`br`, {}),
+                                  n ? i(r, { children: c(n) }) : null,
+                                  i(`br`, {}),
+                                  o ? o.map((e, t) => (e.type === `image` && !e.isMain ? i(`img`, { src: e.full || e.img || e.thumb }, `${e.full ?? e.img ?? e.thumb}-${t}`) : null)) : null,
+                              ],
+                          })
+                        : e === `ec.nintendo.com`
+                          ? a(r, {
+                                children: [
+                                    l?.hero_banner_url ? i(`img`, { src: l.hero_banner_url }) : null,
+                                    i(`h2`, { children: l?.catch_copy }),
+                                    i(`div`, {
+                                        children: l?.description
+                                            ? c(
+                                                  l.description.replaceAll(
+                                                      `
+`,
+                                                      `<br>`
+                                                  )
+                                              )
+                                            : null,
+                                    }),
+                                    l?.notices ? a(r, { children: [i(`br`, {}), i(`span`, { children: `廠商通知` }), i(`div`, { children: l.notices[0].text }), i(`br`, {})] }) : null,
+                                    a(`table`, {
+                                        children: [
+                                            u ? a(`tr`, { children: [i(`th`, { children: `售價` }), i(`td`, { children: u.price?.regular_price?.formatted_value })] }) : null,
+                                            l?.total_rom_size ? a(`tr`, { children: [i(`th`, { children: `需要空間` }), a(`td`, { children: [(l.total_rom_size / 1024 / 1024 / 1024).toFixed(1), ` GB`] })] }) : null,
+                                            l?.play_styles ? a(`tr`, { children: [i(`th`, { children: `遊玩模式` }), i(`td`, { children: l.play_styles.map((e) => e.name).join(`, `) })] }) : null,
+                                            l?.player_number ? a(`tr`, { children: [i(`th`, { children: `遊玩人數` }), i(`td`, { children: l.player_number.offline_max })] }) : null,
+                                            l?.player_number ? a(`tr`, { children: [i(`th`, { children: `鄰近主機通訊遊玩人數` }), i(`td`, { children: l.player_number.local_max })] }) : null,
+                                            l?.player_number ? a(`tr`, { children: [i(`th`, { children: `網路通訊遊玩人數` }), i(`td`, { children: l.player_number.online_max })] }) : null,
+                                            l?.controllers ? a(`tr`, { children: [i(`th`, { children: `對應控制器` }), i(`td`, { children: l.controllers.map((e) => e.name).join(`, `) })] }) : null,
+                                            l?.cloud_backup_type ? a(`tr`, { children: [i(`th`, { children: `保管儲存資料` }), i(`td`, { children: l.cloud_backup_type === `supported` ? `對應` : `不對應` })] }) : null,
+                                            l?.platform ? a(`tr`, { children: [i(`th`, { children: `平台` }), i(`td`, { children: l.platform.name })] }) : null,
+                                            l?.publisher ? a(`tr`, { children: [i(`th`, { children: `廠商` }), i(`td`, { children: l.publisher.name })] }) : null,
+                                            l?.genre ? a(`tr`, { children: [i(`th`, { children: `類型` }), i(`td`, { children: l.genre })] }) : null,
+                                            l?.release_date_on_eshop ? a(`tr`, { children: [i(`th`, { children: `發布日` }), i(`td`, { children: l.release_date_on_eshop })] }) : null,
+                                            l?.languages ? a(`tr`, { children: [i(`th`, { children: `對應語言` }), i(`td`, { children: l.languages.map((e) => e.name).join(`, `) })] }) : null,
+                                        ],
+                                    }),
+                                    l?.network_feature_description ? a(r, { children: [l.network_feature_description, i(`br`, {})] }) : null,
+                                    l?.copyright_text ? i(r, { children: l.copyright_text }) : null,
+                                    l?.screenshots ? l.screenshots.map((e, t) => e.images?.map((e, n) => i(`img`, { src: e.url }, String(e.url ?? `${t}-${n}`)))) : null,
+                                ],
+                            })
+                          : null,
+            })
+        ),
+    u = { path: `/eshop/hk`, radar: [{ source: [`nintendo.com.hk/software/switch`, `nintendo.com.hk/`] }], name: `Unknown`, maintainers: [], handler: d, url: `nintendo.com.hk/software/switch` };
+async function d(r) {
+    let i = (await n(`https://www.nintendo.com.hk/data/json/switch_software.json`)).data.filter(({ link: e }) => e.startsWith(`https://`)).slice(0, r.req.query(`limit`) ? Number(r.req.query(`limit`)) : 30);
+    return {
+        title: `Nintendo eShop（港服）新游戏`,
+        link: `https://www.nintendo.com.hk/software/switch/`,
+        description: `Nintendo eShop（港服）新上架的游戏`,
+        item: await Promise.all(
+            i.map((r) =>
+                e.tryGet(r.link, async () => {
+                    let { data: e } = await n(r.link),
+                        i = o(e),
+                        a;
+                    if (r.link.startsWith(`https://store.nintendo.com.hk/`)) {
+                        let e = {
+                                platform: i(`.platform .product-attribute-val`).text(),
+                                game_category: i(`.game_category .product-attribute-val`).text(),
+                                release_date: i(`.release_date .product-attribute-val`).text(),
+                                publisher: i(`.publisher .product-attribute-val`).text(),
+                                no_of_players: i(`.no_of_players .product-attribute-val`).text(),
+                                supported_languages: i(`.supported_languages .product-attribute-val`).text(),
+                                required_space: i(`.required_space .product-attribute-val`).text(),
+                                supported_controllers: i(`.supported_controllers .product-attribute-val`).text(),
+                                supported_play_modes: i(`.supported_play_modes .product-attribute-val`).text(),
+                                disclaimer: i(`.disclaimer .product-attribute-val p`).text(),
+                                price: i(`meta[property="product:price:amount"]`).attr(`content`),
+                                currency: i(`meta[property="product:price:currency"]`).attr(`content`),
+                            },
+                            t = JSON.parse(
+                                i(`[type=text/x-magento-init]`)
+                                    .text()
+                                    .match(/{\n\s+"\[data-gal{2}ery-role=gal{2}ery-placeholder]": {\n\s+"mage(?:\/gal{2}ery){2}".*?}{4}(?:\s+}\n){3}/s)
+                            );
+                        a = l({ attributes: e, description: i(`.description`).html(), gallery: t[`[data-gallery-role=gallery-placeholder]`][`mage/gallery/gallery`].data, host: `store.nintendo.com.hk` });
+                    } else if (r.link.startsWith(`https://ec.nintendo.com/`)) {
+                        let t = JSON.parse(e.match(/NXSTORE\.titleDetail\.jsonData = ({.*?});/)[1]),
+                            { data: r } = await n(`https://ec.nintendo.com/api/HK/zh/guest_prices`, { searchParams: { ns_uids: t.id } });
+                        a = l({ host: `ec.nintendo.com`, jsonData: t, priceData: r[0] });
+                    }
+                    return { title: r.title, description: a, link: r.link, pubDate: t(r.release_date, `YYYY.M.D`) };
+                })
+            )
+        ),
+    };
+}
+export { u as route };

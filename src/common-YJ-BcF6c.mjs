@@ -1,0 +1,17 @@
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = `https://www.ss.pku.edu.cn`,
+    i = async (i) => {
+        let a = n((await t(i)).data);
+        return a(`#info-list-ul`)
+            .find(`li`)
+            .toArray()
+            .map((t) => {
+                t = a(t);
+                let n = t.find(`.time`).text();
+                return { title: t.find(`a`).attr(`title`), pubDate: e(n), link: r + t.find(`a`).attr(`href`) };
+            });
+    },
+    a = (e, r) => r(e.link, async () => ((e.description = n((await t(e.link)).data)(`.article-content`).html()), e));
+export { a as n, i as r, r as t };

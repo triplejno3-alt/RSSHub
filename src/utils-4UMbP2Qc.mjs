@@ -1,0 +1,74 @@
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+import { raw as c } from 'hono/html';
+const l = `https://api.followin.io`,
+    u = `https://followin.io`,
+    d = `${u}/favicon.ico`,
+    f = (e) =>
+        s(
+            i(r, {
+                children: e.map((e) =>
+                    a(r, {
+                        children: [
+                            c(
+                                (e.translated_content || e.content).replaceAll(
+                                    `
+`,
+                                    `<br>`
+                                )
+                            ),
+                            i(`br`, {}),
+                            e.images.length ? e.images.map((e) => i(`img`, { src: e })) : null,
+                            e.link_previews.length ? e.link_previews.map((e) => a(`a`, { href: e.link, children: [e.title, i(`br`, {}), e.content] })) : null,
+                            i(`br`, {}),
+                        ],
+                    })
+                ),
+            })
+        ),
+    p = (e) => ({ a: `web`, b: ``, c: e, d: 0, e: ``, f: ``, g: ``, h: `0.1.0`, i: `official` }),
+    m = (t) =>
+        t(
+            `followin:buildId`,
+            async () => {
+                let { data: e } = await n(u),
+                    t = o(e),
+                    { buildId: r } = JSON.parse(t(`script#__NEXT_DATA__`).text());
+                return r;
+            },
+            e.cache.routeExpire,
+            !1
+        ),
+    h = (e) =>
+        e(`followin:gtoken`, async () => {
+            let { data: e } = await n.post(`${l}/user/gtoken`);
+            return e.data.gtoken;
+        }),
+    g = (e, n, r) =>
+        e.map((e) => ({
+            title: e.translated_title || e.title,
+            description: e.translated_content || e.content,
+            link: `${u}/${n === `en` ? `` : `${n}/`}feed/${e.id}`,
+            pubDate: t(e.publish_time, `x`),
+            category: e.tags.map((e) => e.name),
+            author: e.nickname,
+            nextData: `${u}/_next/data/${r}/${n}/feed/${e.id}.json`,
+        })),
+    _ = (e, r) =>
+        r(e.link, async () => {
+            let { data: r } = await n(e.nextData),
+                { queries: i } = r.pageProps.dehydratedState,
+                a = i.find((e) => e.queryKey[0] === `/feed/info`).state,
+                o = i.find((e) => e.queryKey[0] === `/feed/thread`);
+            return (
+                (e.description = o ? f(o.state.data.list) : a.data.translated_full_content || a.data.full_content),
+                (e.updated = t(a.dataUpdatedAt, `x`)),
+                (e.category = [...new Set([...e.category, ...a.data.tags.map((e) => e.name)])]),
+                e
+            );
+        });
+export { m as a, g as c, p as i, u as n, h as o, d as r, _ as s, l as t };

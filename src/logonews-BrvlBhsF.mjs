@@ -1,0 +1,62 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { r as n } from './common-utils-uYpL50sT.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+import { raw as l } from 'hono/html';
+const u = {
+    path: [`/work/tags/:tag`, `/tag/:tag`, `*`],
+    radar: [{ source: [`logonews.cn/work/tags/:tag`] }],
+    name: `Unknown`,
+    maintainers: [`nczitzk`],
+    handler: d,
+    url: `logonews.cn/`,
+    description: '如 [中国 - 标志情报局](https://www.logonews.cn/tag/china) 的 URL 为 `https://www.logonews.cn/tag/china`，可得路由为 [`/logonews/tag/china`](https://rsshub.app/logonews/tag/china)。',
+};
+async function d(i) {
+    let a = n(i),
+        o = a.indexOf(`/work`) === 0,
+        c = `https://www.logonews.cn${a === `/` ? `` : a}`,
+        l = s((await r({ method: `get`, url: c })).data),
+        u = l(o ? `h2 a` : `a.article-link`)
+            .slice(0, i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`)) : 25)
+            .toArray()
+            .map((e) => ((e = l(e)), { link: e.attr(`href`) }));
+    return (
+        (u = await Promise.all(
+            u.map((n) =>
+                e.tryGet(n.link, async () => {
+                    let e = s((await r({ method: `get`, url: n.link })).data);
+                    return (
+                        e(`.iconfont`).remove(),
+                        e(`img[data-src]`).each(function () {
+                            e(this).attr(
+                                `src`,
+                                e(this)
+                                    .attr(`data-src`)
+                                    .replace(/_logonews/, ``)
+                            );
+                        }),
+                        (n.title = e(`title`).text()),
+                        (n.author = e(`.author-links`).text()),
+                        (n.pubDate = t(e(`meta[property="og:release_date"]`).attr(`content`))),
+                        (n.category = e(`a.category_link, a[rel="tag"]`)
+                            .toArray()
+                            .map((t) => e(t).text().replaceAll(` · `, ``))),
+                        (n.description = f(o, e(`meta[property="og:image"]`).attr(`content`), e(`.This_Article_content, .w_info`).html())),
+                        n
+                    );
+                })
+            )
+        )),
+        { title: l(`title`).text(), link: c, item: u }
+    );
+}
+const f = (e, t, n) => c(o(i, { children: [e ? a(`img`, { src: t }) : null, n ? l(n) : null] }));
+export { u as route };

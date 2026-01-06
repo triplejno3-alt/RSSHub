@@ -1,0 +1,37 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+const t = {
+    path: `/book/rank/:type?`,
+    categories: [`social-media`],
+    example: `/douban/book/rank/fiction`,
+    parameters: { type: `图书类型，默认合并列表` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `热门图书排行`,
+    maintainers: [`xyqfer`, `queensferryme`],
+    handler: n,
+    description: `| 全部 | 虚构    | 非虚构     |
+| ---- | ------- | ---------- |
+|      | fiction | nonfiction |`,
+};
+async function n(t) {
+    let { type: n = `` } = t.req.param(),
+        r = `https://m.douban.com/book/${n}`,
+        i = async (t) => (await e({ url: `https://m.douban.com/rexxar/api/v2/subject_collection/book_${t}/items?start=0&count=10`, headers: { Referer: r } })).data.subject_collection_items,
+        a = n ? await i(n) : [...(await i(`fiction`)), ...(await i(`nonfiction`))];
+    return {
+        title: `豆瓣热门图书-${n ? (n === `fiction` ? `虚构类` : `非虚构类`) : `全部`}`,
+        link: r,
+        description: `每周一更新`,
+        item: a.map(({ title: e, url: t, cover: n, info: r, rating: i, null_rating_reason: a }) => {
+            let o = i ? `${i.value.toFixed(1)}分` : a,
+                s = `<img src="${n.url}"><br>
+              ${e}/${r}/${o}
+            `;
+            return { title: `${e}-${r}`, description: s, link: t };
+        }),
+    };
+}
+export { t as route };

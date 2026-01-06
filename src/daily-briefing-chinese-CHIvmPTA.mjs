@@ -1,0 +1,58 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { jsx as r } from 'hono/jsx/jsx-runtime';
+import { load as i } from 'cheerio';
+import { renderToString as a } from 'hono/jsx/dom/server';
+const o = {
+    path: `/daily_briefing_chinese`,
+    categories: [`traditional-media`],
+    example: `/nytimes/daily_briefing_chinese`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`nytimes.com/`], target: `` }],
+    name: `Daily Briefing`,
+    maintainers: [`yueyericardo`, `nczitzk`],
+    handler: s,
+    url: `nytimes.com/`,
+    description: `URL: [https://www.nytimes.com/zh-hans/series/daily-briefing-chinese](https://www.nytimes.com/zh-hans/series/daily-briefing-chinese)`,
+};
+async function s() {
+    let o = `https://www.nytimes.com/zh-hans/series/daily-briefing-chinese`,
+        s = await n({ method: `get`, url: o }),
+        c = JSON.parse(s.data.match(/"initialState":(.*),"config"/)[1]),
+        l = [];
+    for (let e of Object.keys(c))
+        if (e.startsWith(`Article:`) && c[e].url) {
+            let n = c[e];
+            l.push({ link: n.url, pubDate: t(n.firstPublished) });
+        }
+    return (
+        (l = await Promise.all(
+            l.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = await n({ method: `get`, url: t.link }),
+                        o = i(e.data);
+                    o(`.StoryBodyCompanionColumn`).last().find(`p`).last().remove();
+                    let s = e.data.match(/"url":"[^{}]+","name":"articleLarge"/g).map((e) => JSON.parse(`{${e}}`).url),
+                        c = 0;
+                    return (
+                        o(`figure`).each(function () {
+                            o(this).html(a(r(`figure`, { children: r(`img`, { src: s[c++] }) })));
+                        }),
+                        (t.title = o(`meta[property="og:title"]`).attr(`content`)),
+                        (t.author = o(`meta[name="byl"]`).attr(`content`).replace(/By /, ``)),
+                        (t.description = o(`section[name="articleBody"]`).html()),
+                        t
+                    );
+                })
+            )
+        )),
+        { title: `Daily Briefing - The New York Times`, link: o, item: l }
+    );
+}
+export { o as route };

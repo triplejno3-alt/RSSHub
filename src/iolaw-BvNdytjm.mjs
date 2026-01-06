@@ -1,0 +1,32 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/iolaw/:section?`,
+    categories: [`study`],
+    example: `/cssn/iolaw/zxzp`,
+    parameters: { section: 'Section ID, can be found in the URL. For example, the Section ID of URL `http://iolaw.cssn.cn/zxzp/` is `zxzp`. The default value is `zxzp`' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `Institute of Law`,
+    maintainers: [`HankChow`],
+    handler: i,
+};
+async function i(r) {
+    let i = r.req.param(`section`) ?? `zxzp`,
+        a = `iolaw.cssn.cn`,
+        o = (await t(`http://${a}/${i}/`)).data,
+        s = n(o),
+        c = s(`div.notice_right ul li`)
+            .toArray()
+            .map((t) => {
+                t = s(t);
+                let n = `http://${a}` + t.find(`a`).attr(`href`).slice(1);
+                return { title: t.find(`a div.title`).text(), link: n, author: `中国法学网`, pubtime: e(t.find(`a p`).text()) };
+            });
+    return { title: `中国法学网`, url: `http://${a}/${i}/`, description: `中国法学网`, item: c.map((e) => ({ title: e.title, pubDate: e.pubtime, link: e.link, author: e.author })) };
+}
+export { r as route };

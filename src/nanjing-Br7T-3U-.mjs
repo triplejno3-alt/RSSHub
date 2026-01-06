@@ -1,0 +1,39 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = `http://www.jlwater.com/`,
+    i = {
+        path: `/nanjing`,
+        categories: [`forecast`],
+        example: `/tingshuitz/nanjing`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`jlwater.com/portal/10000015`, `jlwater.com/`] }],
+        name: `南京市`,
+        maintainers: [`ocleo1`, `pseudoyu`],
+        handler: a,
+        url: `jlwater.com/portal/10000015`,
+    };
+async function a() {
+    let i = `${r}portal/10000015`,
+        a = (await t(i)).data,
+        o = n(a),
+        s = o(`.list-content ul li`);
+    return {
+        title: o(`head title`).text(),
+        link: i,
+        item: s.toArray().map((t) => {
+            let n = o(t),
+                i = n.find(`a span`).text(),
+                a = n.find(`a`).attr(`href`),
+                s = n.find(`.list-time`).text(),
+                c = e(s);
+            return { title: `${i} ${s}`, description: `南京市停水通知`, link: `${r}${a}`, pubDate: c };
+        }),
+    };
+}
+export { i as route };

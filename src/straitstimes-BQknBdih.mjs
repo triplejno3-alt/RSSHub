@@ -1,0 +1,75 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { renderToString as o } from 'hono/jsx/dom/server';
+import { raw as s } from 'hono/html';
+const c = (e, t) =>
+        o(
+            a(r, {
+                children: [
+                    e?.map((e) => (e?.url ? a(`figure`, { children: [i(`img`, { src: e.large ?? e.url, height: e.height, width: e.width }), e.caption ? i(`figcaption`, { children: e.caption }) : null] }) : null)),
+                    t ? s(t) : null,
+                ],
+            })
+        ),
+    l = {
+        path: `/:category?/:section?`,
+        categories: [`traditional-media`],
+        example: `/straitstimes/singapore`,
+        parameters: { category: `Category, see below for more information`, section: `Section, see below for more information` },
+        features: { requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, requireConfig: !1 },
+        name: `News`,
+        maintainers: [`quiniapiezoelectricity`],
+        handler: u,
+        description:
+            '\n| Category               | `:category`               |\n| ---------------------- | --------------------------- |\n| Singapore              | `singapore`               |\n| Asia                   | `asia`                    |\n| World                  | `world`                   |\n| Opinion                | `opinion`                 |\n| Life                   | `life`                    |\n| Business               | `business`                |\n| Jobs                   | `jobs`                    |\n| Parenting & Education  | `parenting-and-education` |\n| Food                   | `food`                    |\n| Tech                   | `tech`                    |\n| Sport                  | `sport`                   |\n| Podcasts               | `podcasts`                |,\n\n| Section                | `:section`                |\n| ---------------------- | --------------------------- |\n| Top Stories            | `top-stories`             |\n| Latest                 | `latest`                  |',
+        radar: [
+            { source: [`www.straitstimes.com/:category`], target: `/:category` },
+            { source: [`www.straitstimes.com`], target: `/` },
+        ],
+    };
+async function u(r) {
+    let i = r.req.param(`category`) ? r.req.param(`category`).toLowerCase() : `singapore`,
+        a = r.req.param(`section`) ? r.req.param(`section`).toLowerCase() : void 0,
+        o = `T9XUJM9rAZoLOd2CAx2wCBSTrm3xoyPw`,
+        s = `iosflex`,
+        l;
+    l = (await n({ method: `get`, url: `https://newsapi.sphdigital.com/v2/feed/section/st?page=1&platform=${s}&section=${i}/star&subscribed=false&version=4.0`, headers: { 'x-api-key': o } })).data.data;
+    let u = new Set(l.filter((e) => e.items[0].itemType === `SectionFooter`).map((e) => e.items[0].sectionFooterData.link.id)),
+        d = a && u.has(`${i}-${a}-more/star`) ? `${i}-${a}-more/star` : void 0;
+    if (a === void 0) {
+        for (let e of [`latest`, `top-picks`, `top-stories`])
+            if (u.has(`${i}-${e}-more/star`)) {
+                d = `${i}-${e}-more/star`;
+                break;
+            }
+    }
+    d && (l = (await n({ method: `get`, url: `https://newsapi.sphdigital.com/v2/feed/section/st?page=1&platform=${s}&section=${d}&subscribed=false&version=4.0`, headers: { 'x-api-key': o } })).data.data);
+    let f = l.filter((e) => e.items[0].itemType === `Article`),
+        p = await Promise.all(
+            f.map((r) =>
+                e.tryGet(r.items[0].articleData.url, async () => {
+                    let e = r.items[0].articleData;
+                    (e.authors && (r.author = e.authors.map((e) => e.name).join(`, `)),
+                        e.keywords && (r.category = e.keywords.map((e) => e.name)),
+                        (r.title = e.headline),
+                        (r.pubDate = t(e.publicationTime, `X`)),
+                        (r.updated = t(e.updatedTime, `X`)),
+                        (r.link = e.url));
+                    let i = e.teaser;
+                    return (
+                        e.documentId && (i = (await n({ method: `get`, url: `https://newsapi.sphdigital.com/v2/feed/article/st/${e.documentId}?platform=${s}&version=4.0`, headers: { 'x-api-key': o } })).data.data.body),
+                        (r.description = c(e.images ?? [], i)),
+                        r
+                    );
+                })
+            )
+        );
+    return { title: `The Strait Times - ${i.replaceAll(`-`, ` `).toUpperCase()}`, link: `https://www.straitstimes.com/${i.toLowerCase()}`, item: p };
+}
+export { l as route };

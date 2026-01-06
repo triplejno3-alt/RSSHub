@@ -1,0 +1,131 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { n, t as r } from './parse-date-DjdQS_Nt.mjs';
+import { t as i } from './types-Bl_lnefZ.mjs';
+import { Fragment as a, jsx as o, jsxs as s } from 'hono/jsx/jsx-runtime';
+import { load as c } from 'cheerio';
+import { renderToString as l } from 'hono/jsx/dom/server';
+import { raw as u } from 'hono/html';
+const d = ({ intro: e, description: t }) => s(a, { children: [e ? o(`blockquote`, { children: e }) : null, t ? o(a, { children: u(t) }) : null] }),
+    f = (e) => l(o(d, { ...e })),
+    p = async (i) => {
+        let { category: a = `newslists`, id: o } = i.req.param(),
+            s = Number.parseInt(i.req.query(`limit`) ?? `30`, 10),
+            l = `https://info.10000link.com`,
+            u = new URL(`${a}.aspx${o ? `?chid=${o}` : ``}`, l).href,
+            d = c(await e(u)),
+            p = d(`html`).attr(`lang`) ?? `zh`,
+            m = [];
+        ((m = d(`ul.l_newshot li dl.lhotnew2`)
+            .slice(0, s)
+            .toArray()
+            .map((e) => {
+                let t = d(e),
+                    r = t.find(`dd h1 a`),
+                    i = r.attr(`title`) ?? r.text(),
+                    a = f({ intro: t.find(`dd.title_l`).text() }),
+                    o = t.find(`span.ymd_w`).text(),
+                    s = r.attr(`href`),
+                    c = t.find(`dd.day-lx span a`).toArray(),
+                    u = [...new Set(c.map((e) => d(e).text()).filter(Boolean))],
+                    m = t.find(`dd.day-lx span`).first().text(),
+                    h = t.find(`dt.img220 a img`).attr(`src`),
+                    g = o;
+                return {
+                    title: i,
+                    description: a,
+                    pubDate: o ? n(o) : void 0,
+                    link: s ? new URL(s, l).href : void 0,
+                    category: u,
+                    author: m,
+                    content: { html: a, text: a },
+                    image: h,
+                    banner: h,
+                    updated: g ? n(g) : void 0,
+                    language: p,
+                };
+            })),
+            (m = (
+                await Promise.all(
+                    m.map((n) =>
+                        n.link
+                            ? t.tryGet(n.link, async () => {
+                                  let t = await e(n.link),
+                                      i = c(t),
+                                      a = i(`div.entity_title h1 a`).text(),
+                                      o = i(`div.entity_thumb img.img-responsive`).attr(`src`),
+                                      s = f({ description: i(`div.entity_content`).html() }),
+                                      l = t.match(/var\stime\s=\s"(.*?)";/)?.[1],
+                                      u = i(`div.entity_tag span a`).toArray(),
+                                      d = [...new Set([...u.map((e) => i(e).text()), ...(n.category ?? [])].filter(Boolean))],
+                                      m = l,
+                                      h = { title: a, description: s, pubDate: l ? r(l) : n.pubDate, category: d, content: { html: s, text: s }, image: o, banner: o, updated: m ? r(m) : n.updated, language: p };
+                                  return { ...n, ...h };
+                              })
+                            : n
+                    )
+                )
+            ).filter((e) => !0)));
+        let h = `10000万联网`,
+            g = d(`h1`).contents().first().text();
+        return {
+            title: `${h} - ${g}`,
+            description: g,
+            link: u,
+            item: m,
+            allowEmpty: !0,
+            image: d(`a.navbar-brand img`).attr(`src`) ? new URL(d(`a.navbar-brand img`).attr(`src`), l).href : void 0,
+            author: h,
+            language: p,
+            id: d(`meta[property="og:url"]`).attr(`content`),
+        };
+    },
+    m = {
+        path: `/info/:category?/:id?`,
+        name: `新闻`,
+        url: `info.10000link.com`,
+        maintainers: [`nczitzk`],
+        handler: p,
+        example: `/10000link/info/newslists/My01`,
+        parameters: {
+            category: {
+                description: '分类，默认为 `newslists`，可在对应分类页 URL 中找到',
+                options: [
+                    { label: `新闻`, value: `newslists` },
+                    { label: `物流`, value: `newslogistics` },
+                    { label: `供应链金融风控`, value: `newsRisk` },
+                    { label: `区块链`, value: `newsBlockChain` },
+                    { label: `B2B`, value: `newsBTwoB` },
+                    { label: `跨境电商`, value: `newsCrossborder` },
+                    { label: `投融资`, value: `newsInvestment` },
+                    { label: `供应链管理`, value: `newsManagement` },
+                    { label: `供应链创新`, value: `newsInnovation` },
+                    { label: `数据`, value: `newslists/A02` },
+                    { label: `政策`, value: `newslists/A03` },
+                    { label: `规划`, value: `newslists/A04` },
+                    { label: `案例`, value: `newslists/GL03` },
+                    { label: `职场`, value: `newslists/ZC` },
+                    { label: `供应链票据`, value: `newsBill` },
+                ],
+            },
+            id: { description: `ID，默认为空，可在对应分类页 URL 中找到` },
+        },
+        description:
+            '::: tip\n若订阅 [天下大势](https://info.10000link.com/newslists.aspx?chid=My01)，网址为 `https://info.10000link.com/newslists.aspx?chid=My01`，请截取 `https://info.10000link.com/` 到末尾 `.aspx` 的部分 `newslists` 作为 `category` 参数填入，而 `My01` 作为 `id` 参数填入，此时目标路由为 [`/10000link/info/newslists/My01`](https://rsshub.app/10000link/info/newslists/My01)。\n:::\n\n| 金融科技      | 物流          | 供应链金融风控 | 区块链         | B2B       |\n| ------------- | ------------- | -------------- | -------------- | --------- |\n| newsFinancial | newslogistics | newsRisk       | newsBlockChain | newsBTwoB |\n\n| 跨境电商        | 投融资         | 供应链管理     | 供应链创新     | 数据          |\n| --------------- | -------------- | -------------- | -------------- | ------------- |\n| newsCrossborder | newsInvestment | newsManagement | newsInnovation | newslists/A02 |\n\n| 政策          | 规划          | 案例           | 职场         | 供应链票据 |\n| ------------- | ------------- | -------------- | ------------ | ---------- |\n| newslists/A03 | newslists/A04 | newslists/GL03 | newslists/ZC | newsBill   |\n',
+        categories: [`new-media`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            {
+                source: [`info.10000link.com/:category`],
+                target: (e, t) => {
+                    let n = new URL(t).searchParams.get(`chid`) ?? void 0,
+                        r = e.category;
+                    return `/10000link/info${r ? `/${r}${n ? `/${n}` : ``}` : ``}`;
+                },
+            },
+        ],
+        view: i.Articles,
+    };
+export { p as handler, m as route };

@@ -1,0 +1,55 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/featured/:lang?`,
+    categories: [`traditional-media`],
+    example: `/vom/featured`,
+    parameters: { lang: 'Language, see the table below, `mn` by default' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`vom.mn/:lang`, `vom.mn/`], target: `/featured/:lang` }],
+    name: `News`,
+    maintainers: [`TonyRL`],
+    handler: a,
+    description: `| English | 日本語 | Монгол | Русский | 简体中文 |
+| ------- | ------ | ------ | ------- | -------- |
+| en      | ja     | mn     | ru      | zh       |`,
+};
+async function a(i) {
+    let { lang: a = `mn` } = i.req.param(),
+        { data: o } = await n(`http://www.vom.mn/${a}`),
+        s = r(o),
+        c = [
+            ...new Set(
+                s(`#bigNewsSlide .item, #news_3 .item`)
+                    .toArray()
+                    .map((e) => ((e = s(e)), { link: e.find(`a`).eq(0).attr(`href`) }))
+            ),
+        ];
+    return (
+        await Promise.all(
+            c.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let { data: e } = await n(i.link),
+                        a = r(e);
+                    return (
+                        (i.title = a(`h2`).text()),
+                        (i.author = a(`.uk-border-circle`).next().text()),
+                        (i.pubDate = t(a(`.vom-news-show-meta .right`).prev().text())),
+                        (i.category = a(`.vom-news-show-meta .uk-button-text`).text()),
+                        a(`.uk-article-title, .uk-text-meta, article .uk-grid-small`).remove(),
+                        (i.description = a(`article`).html()),
+                        i
+                    );
+                })
+            )
+        ),
+        { title: s(`meta[name=description]`).attr(`content`), image: `http://www.vom.mn/dist/images/vom-logo.png`, item: c }
+    );
+}
+export { i as route };

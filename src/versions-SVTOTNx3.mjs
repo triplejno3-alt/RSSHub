@@ -1,0 +1,35 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/scripts/:script/versions`,
+    categories: [`program-update`],
+    example: `/greasyfork/scripts/431691-bypass-all-shortlinks/versions`,
+    parameters: { script: `Script id, can be found in URL` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`greasyfork.org/:language/scripts/:script/versions`] }],
+    name: `Script Version History`,
+    maintainers: [`miles170`],
+    handler: i,
+};
+async function i(r) {
+    let i = `https://greasyfork.org/scripts/${r.req.param(`script`)}/versions`,
+        a = n((await t(i)).data);
+    return {
+        title: a(`title`).text(),
+        link: i,
+        description: a(`meta[name=description]`).attr(`content`),
+        item: a(`.history_versions li`)
+            .toArray()
+            .map((t) => {
+                t = a(t);
+                let n = t.find(`.version-number a`);
+                return { title: n.text(), description: t.find(`.version-changelog`).text().trim(), pubDate: e(t.find(`gf-relative-time`).attr(`datetime`)), link: n.attr(`href`) };
+            }),
+    };
+}
+export { r as route };

@@ -1,0 +1,61 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+const n = {
+    path: `/manga/update/:comicid`,
+    categories: [`social-media`],
+    example: `/bilibili/manga/update/26009`,
+    parameters: { comicid: '漫画 id, 可在 URL 中找到, 支持带有`mc`前缀' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`manga.bilibili.com/detail/:comicid`] }],
+    name: `漫画更新`,
+    maintainers: [`hoilc`],
+    handler: i,
+};
+async function r(n, r) {
+    let { Go: i } = await import(`./wasm-exec-BsIl2cdy.mjs`),
+        a = await e.tryGet(`bilibili-manga-wasm-20250208`, async () => {
+            let e = await t(`https://s1.hdslb.com/bfs/manga-static/manga-pc/6732b1bf426cfc634293.wasm`, { responseType: `arrayBuffer` });
+            return Buffer.from(e.data).toString(`base64`);
+        }),
+        o = Buffer.from(a, `base64`),
+        s = new i(),
+        { instance: c } = await WebAssembly.instantiate(o, s.importObject);
+    if ((s.run(c), globalThis.genReqSign === void 0)) throw Error(`WASM function not available`);
+    return globalThis.genReqSign(n, r, Date.now()).sign;
+}
+async function i(e) {
+    let n = e.req.param(`comicid`).startsWith(`mc`) ? e.req.param(`comicid`).replace(`mc`, ``) : e.req.param(`comicid`),
+        i = `https://manga.bilibili.com/detail/mc${n}`,
+        a = await t(`https://api.bilibili.com/x/frontend/finger/spi`),
+        o = `device=pc&platform=web&nov=25`,
+        s = JSON.stringify({ comic_id: Number(n) }),
+        c = (
+            await t({
+                method: `POST`,
+                url: `https://manga.bilibili.com/twirp/comic.v2.Comic/ComicDetail?${o}&ultra_sign=${await r(o, s)}`,
+                body: s,
+                headers: { Referer: i, Cookie: `buvid3=${a.data.data.b_3}; buvid4=${a.data.data.b_4}` },
+            })
+        ).data.data,
+        l = c.author_name.join(`, `);
+    return {
+        title: `${c.title} - 哔哩哔哩漫画`,
+        link: i,
+        image: c.vertical_cover,
+        description: c.classic_lines,
+        item: c.ep_list
+            .slice(0, 20)
+            .map((e) => ({
+                title: e.short_title === e.title ? e.short_title : `${e.short_title} ${e.title}`,
+                author: l,
+                description: `<img src="${e.cover}">`,
+                pubDate: new Date(e.pub_time + ` +0800`),
+                link: `https://manga.bilibili.com/mc${n}/${e.id}`,
+            })),
+    };
+}
+export { n as route };

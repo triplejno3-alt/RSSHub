@@ -1,0 +1,47 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { Fragment as t, jsx as n, jsxs as r } from 'hono/jsx/jsx-runtime';
+import { renderToString as i } from 'hono/jsx/dom/server';
+const a = (e) =>
+        i(
+            r(t, {
+                children: [
+                    r(`p`, {
+                        children: [
+                            e.availability && e.availability.includes(`Pre-order`) ? r(t, { children: [`预售中`, n(`br`, {})] }) : null,
+                            e.releaseDateDisplay ? r(t, { children: [`预计发售时间：`, e.releaseDateDisplay] }) : null,
+                            e.price
+                                ? r(t, {
+                                      children: [`当前价格：`, e.price.finalPrice === 0 ? `免费` : `$${e.price.finalPrice}`, n(`br`, {}), e.price.salePrice ? r(t, { children: [`原价：$`, e.price.regPrice, n(`br`, {})] }) : null],
+                                  })
+                                : null,
+                            e.genres ? r(t, { children: [`类别：`, e.genres.join(`, `), n(`br`, {})] }) : null,
+                            e.softwareDeveloper ? r(t, { children: [`开发商：`, e.softwareDeveloper, n(`br`, {})] }) : null,
+                            e.softwarePublisher ? r(t, { children: [`发行商：`, e.softwarePublisher, n(`br`, {})] }) : null,
+                        ],
+                    }),
+                    n(`p`, { children: e.description }),
+                ],
+            })
+        ),
+    o = { path: `/eshop/us`, radar: [{ source: [`nintendo.com/store/games`, `nintendo.com/`] }], name: `Unknown`, maintainers: [], handler: s, url: `nintendo.com/store/games` };
+async function s(t) {
+    let n = await e.post(`https://u3b6gr4ua3-dsn.algolia.net/1/indexes/store_game_en_us_release_des/query`, {
+            headers: { 'x-algolia-api-key': `a29c6927638bfd8cee23993e51e721c9`, 'x-algolia-application-id': `U3B6GR4UA3` },
+            json: { params: new URLSearchParams({ hitsPerPage: 40, page: 0, facetFilters: JSON.stringify([[`availability:Available now`, `availability:Pre-order`]]) }).toString() },
+        }),
+        r = n.data.hits;
+    return (
+        t.set(`json`, n.data),
+        {
+            title: `Nintendo eShop（美服）新游戏`,
+            link: `https://www.nintendo.com/store/games/`,
+            description: `Nintendo eShop（美服）新上架的游戏`,
+            item: r.map((e) => ({ title: e.title, description: a(e), link: `https://www.nintendo.com${e.url}` })),
+        }
+    );
+}
+export { o as route };

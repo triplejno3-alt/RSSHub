@@ -1,0 +1,41 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { load as n } from 'cheerio';
+async function r(r) {
+    let { params: i } = r.req.param(),
+        a = `https://hanime1.me`,
+        o = new URLSearchParams(i),
+        s = o.get(`query`) || ``,
+        c = o.get(`genre`) || ``,
+        l = o.get(`broad`) || ``,
+        u = o.getAll(`tags[]`),
+        d = `${a}/search?query=${s}&genre=${c}&broad=${l}&sort=${o.get(`sort`) || ``}&year=${o.get(`year`) || ``}&month=${o.get(`month`) || ``}`;
+    for (let e of u) d += `&tags[]=${e}`;
+    let f = n(await e(d, { headers: { referer: a, 'user-agent': t.trueUA } })),
+        p = f(`.content-padding-new .row.no-gutter`)
+            .find(`.search-doujin-videos.hidden-xs`)
+            .toArray()
+            .map((e) => {
+                let t = f(e);
+                return { title: t.attr(`title`), link: t.find(`a.overlay`).attr(`href`), description: `<img src="${t.find(`img[style*="object-fit: cover"]`).attr(`src`)}">` };
+            }),
+        m = u.slice(0, 3).join(`, `) + (u.length > 3 ? `, ...` : ``);
+    return { title: `Hanime1 搜索结果` + (c ? ` | 类型: ${c}` : ``) + (s ? ` | 关键词: ${s}` : ``) + (u.length ? ` | 标签: ${m}` : ``), link: d, item: p };
+}
+const i = {
+    path: `/search/:params`,
+    name: `搜索结果`,
+    maintainers: [`kjasn`],
+    example: `/hanime1/search/tags%5B%5D=%E7%B4%94%E6%84%9B&`,
+    categories: [`anime`],
+    parameters: {
+        params: {
+            description:
+                '\n| 参数                | 说明                              | 示例或可选值                                                                                                          |\n| ------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------- |\n| `query`           | 搜索框输入的内容                  | 任意值都可以，例如：`辣妹`                                                                                          |\n| `genre`           | 番剧类型，默认为`全部`          | 可选值有：`全部` / `裏番` / `泡麵番` / `Motion+Anime` / `3D動畫` / `同人作品` / `MMD` / `Cosplay`     |\n| `tags[]`          | 标签                              | 可选值过多，不一一列举，详细请查看原网址。例如：`tags[]=純愛&tags[]=中文字幕`                                       |\n| `broad`           | 标签模糊匹配，默认为 `off`      | `on`（模糊匹配，包含任一标签） / `off`（精确匹配，包含全部标签）                                                  |\n| `sort`            | 搜索结果排序，默认 `最新上市`   | `最新上市` / `最新上傳` / `本日排行` / `本週排行` / `本月排行` / `觀看次數` / `讚好比例` / `他們在看` |\n| `year`, `month` | 筛选发布时间，默认为 `全部时间` | 例如：`year=2025&month=5`                                                                                           |\n\n::: tip\n如果你不确定标签或类型的具体名字，可以直接去原网址选好筛选条件后，把网址中的参数复制过来使用。例如： `https://hanime1.me/search?query=&genre=裏番&broad=on&sort=最新上市&tags[]=純愛&tags[]=中文字幕`，`/search?`后面的部分就是参数了,最后得到**类似**这样的路由 `https://rsshub.app/hanime1/search/query=&genre=裏番&broad=on&sort=最新上市&tags[]=純愛&tags[]=中文字幕`\n:::\n',
+        },
+    },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+    handler: r,
+};
+export { i as route };

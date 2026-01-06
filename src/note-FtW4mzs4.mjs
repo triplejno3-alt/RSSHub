@@ -1,0 +1,51 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './utils-i-Akwp6Q.mjs';
+import { load as a } from 'cheerio';
+const o = {
+    path: `/apps/:lang?/note/:id`,
+    categories: [`anime`],
+    example: `/qoo-app/apps/en/note/7675`,
+    parameters: { lang: 'Language, see the table above, empty means `中文`', id: `Game ID, can be found in URL` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `Game Store - Notes`,
+    maintainers: [`TonyRL`],
+    handler: s,
+};
+async function s(o) {
+    let { id: s, lang: c = `` } = o.req.param(),
+        l = `${i}${c ? `/${c}` : ``}/app-note/${s}`,
+        { data: u } = await n(l),
+        d = a(u),
+        f = d(`.qoo-note-wrap`)
+            .toArray()
+            .map(
+                (e) => (
+                    (e = d(e)),
+                    {
+                        title: e.find(`.content-title`).text() || e.find(`.description`).text(),
+                        link: e.find(`a.link-wrap`).attr(`href`),
+                        description: e.find(`.description`).text(),
+                        pubDate: r(t(e.find(`time`).text(), `YYYY-MM-DD HH:mm`), 8),
+                        author: e.find(`cite.name`).text(),
+                    }
+                )
+            ),
+        p = await Promise.all(
+            f.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let { data: e } = await n(t.link),
+                        r = a(e);
+                    return (r(`footer`).remove(), (t.description = r(`article .content`).html()), t);
+                })
+            )
+        );
+    return { title: d(`head title`).text(), link: l, language: d(`html`).attr(`lang`), item: p };
+}
+export { o as route };

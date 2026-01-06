@@ -1,0 +1,37 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import * as r from 'cheerio';
+const i = { path: `/user/:pphId`, categories: [`new-media`], example: `/thepaper/user/4221423`, parameters: { pphId: `澎湃号 id，可在澎湃号页 URL 中找到` }, name: `澎湃号`, maintainers: [`TonyRL`], handler: a };
+async function a(i) {
+    let { pphId: a } = i.req.param(),
+        o = await t.tryGet(`thepaper:m:buildId`, async () => {
+            let t = await e(`https://m.thepaper.cn`),
+                n = r.load(t);
+            return JSON.parse(n(`script#__NEXT_DATA__`).text()).buildId;
+        }),
+        s = await t.tryGet(
+            `thepaper:user:${a}`,
+            async () => (await e(`https://api.thepaper.cn/userservice/user/homePage/${a}`, { headers: { 'Client-Type': `2`, Origin: `https://m.thepaper.cn`, Referer: `https://m.thepaper.cn/` } })).userInfo
+        ),
+        c = (await e(`https://api.thepaper.cn/contentapi/cont/pph/user`, { method: `POST`, body: { pageSize: 10, pageNum: 1, contType: 0, excludeContIds: [], pphId: a, startTime: 0 } })).data.list.map((e) => ({
+            title: e.name,
+            link: `https://www.thepaper.cn/newsDetail_forward_${e.contId}`,
+            pubDate: n(e.pubTimeLong),
+            author: e.authorInfo.sname,
+            contId: e.contId,
+            image: e.pic,
+        })),
+        l = await Promise.all(
+            c.map((r) =>
+                t.tryGet(r.link, async () => {
+                    let t = await e(`https://m.thepaper.cn/_next/data/${o}/detail/${r.contId}.json`, { query: { id: r.contId } });
+                    return ((r.description = t.pageProps.detailData.contentDetail.content), (r.updated = n(t.pageProps.detailData.contentDetail.updateTime)), r);
+                })
+            )
+        );
+    return { title: s.sname, description: s.perDesc, link: `https://www.thepaper.cn/user_${a}`, item: l, itunes_author: s.sname, image: s.pic };
+}
+export { i as route };

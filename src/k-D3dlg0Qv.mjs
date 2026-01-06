@@ -1,0 +1,36 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+const n = {
+    path: `/k`,
+    categories: [`traditional-media`],
+    example: `/caixin/k`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !0, supportScihub: !1 },
+    name: `财新一线`,
+    maintainers: [`boypt`],
+    handler: r,
+};
+async function r() {
+    return {
+        title: `财新网 - 财新一线新闻`,
+        link: `https://k.caixin.com/web/`,
+        description: `财新网 - 财新一线新闻`,
+        item: (await t(`https://k.caixin.com/app/v1/list`, { searchParams: { productIdList: `8,28`, uid: ``, unit: 1, name: ``, code: ``, deviceType: ``, device: ``, userTag: ``, p: 1, c: 20 } })).data.data.list.map((t) => {
+            let n = t.audio_url || Object.values(t.audios)[0];
+            return {
+                title: t.title,
+                description: t.text,
+                link: `http://k.caixin.com/web/detail_${t.oneline_news_code}`,
+                pubDate: e(t.ts, `x`),
+                author: `财新一线`,
+                enclosure_url: n ? t.audio_url || Object.values(t.audios)[0] : void 0,
+                enclosure_type: n ? `audio/mpeg` : void 0,
+            };
+        }),
+    };
+}
+export { n as route };

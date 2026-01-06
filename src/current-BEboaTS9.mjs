@@ -1,0 +1,47 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './proxy-6vblFdo1.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { n } from './puppeteer-BbZGb8cd.mjs';
+import { n as r, r as i, t as a } from './utils-BYK5ZCkV.mjs';
+import { load as o } from 'cheerio';
+const s = {
+    path: `/current/:journal?`,
+    categories: [`journal`],
+    example: `/science/current/science`,
+    parameters: { journal: `Short name for a journal` },
+    features: { requireConfig: !1, requirePuppeteer: !0, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !0 },
+    radar: [{ source: [`science.org/journal/:journal`, `science.org/toc/:journal/current`], target: `/current/:journal` }],
+    name: `Current Issue`,
+    maintainers: [`y9c`, `TonyRL`],
+    handler: c,
+    description: `|  Short name |    Full name of the journal    | Route                                                                          |
+| :---------: | :----------------------------: | ------------------------------------------------------------------------------ |
+|   science   |             Science            | [/science/current/science](https://rsshub.app/science/current/science)         |
+|    sciadv   |        Science Advances        | [/science/current/sciadv](https://rsshub.app/science/current/sciadv)           |
+|  sciimmunol |       Science Immunology       | [/science/current/sciimmunol](https://rsshub.app/science/current/sciimmunol)   |
+| scirobotics |        Science Robotics        | [/science/current/scirobotics](https://rsshub.app/science/current/scirobotics) |
+|  signaling  |        Science Signaling       | [/science/current/signaling](https://rsshub.app/science/current/signaling)     |
+|     stm     | Science Translational Medicine | [/science/current/stm](https://rsshub.app/science/current/stm)                 |
+
+  -   Using route (\`/science/current/\` + "short name for a journal") to get current issue of a journal from AAAS.
+  -   Leaving it empty (\`/science/current\`) to get update from Science.`,
+};
+async function c(s) {
+    let { journal: c = `science` } = s.req.param(),
+        l = `${a}/toc/${c}/current`,
+        { data: u } = await t(l, { headers: { cookie: `cookiePolicy=iaccept;` } }),
+        d = o(u),
+        f = d(`head > title`).text(),
+        p = d(`.toc__section .card`)
+            .toArray()
+            .map((e) => i(e, d)),
+        m = await n(),
+        h = await r(p, m, e.tryGet);
+    return (await m.close(), { title: `${f} | Current Issue`, description: `Current Issue of ${f}`, image: `${a}/apple-touch-icon.png`, link: l, language: `en-US`, item: h });
+}
+export { s as route };

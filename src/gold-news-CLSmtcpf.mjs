@@ -1,0 +1,126 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { load as i } from 'cheerio';
+const a = async (r) => {
+        let { category: a } = r.req.param(),
+            o = Number.parseInt(r.req.query(`limit`) ?? `30`, 10),
+            s = new URL(`gold-news${a ? `/${a}` : ``}`, `https://bullionvault.com`).href,
+            c = i(await e(s)),
+            l = c(`html`).attr(`lang`) ?? `en`,
+            u = [];
+        return (
+            (u = c(`section#block-bootstrap-views-block-latest-articles-block div.media, div.gold-news-content table tr`)
+                .slice(0, o)
+                .toArray()
+                .map((e) => {
+                    let t = c(e),
+                        r = t.find(`td.views-field-title a, div.views-field-title a`).first(),
+                        i = r.text(),
+                        a = t.find(`td.views-field-created, div.views-field-created`).text().trim(),
+                        o = r.attr(`href`),
+                        s = t
+                            .find(`a.username`)
+                            .toArray()
+                            .map((e) => {
+                                let t = c(e);
+                                return { name: t.text(), url: t.attr(`href`), avatar: void 0 };
+                            }),
+                        u = a;
+                    return { title: i, pubDate: a ? n(a) : void 0, link: o, author: s, updated: u ? n(u) : void 0, language: l };
+                })),
+            (u = (
+                await Promise.all(
+                    u.map((r) =>
+                        r.link
+                            ? t.tryGet(r.link, async () => {
+                                  let t = i(await e(r.link)),
+                                      a = t(`article.article h1`).text(),
+                                      o = t(`div.content`).html() ?? ``,
+                                      s = t(`div.submitted`).text().split(/,/).pop(),
+                                      c = t(`meta[name="news_keywords"]`).attr(`content`)?.split(/,/) ?? [],
+                                      u = t(`div.view-author-bio`)
+                                          .toArray()
+                                          .map((e) => {
+                                              let n = t(e);
+                                              return { name: n.find(`h1`).text(), url: void 0, avatar: n.find(`img`).attr(`src`) };
+                                          }),
+                                      d = s,
+                                      f = { title: a, description: o, pubDate: s ? n(s) : r.pubDate, category: c, author: u, content: { html: o, text: o }, updated: d ? n(d) : r.updated, language: l };
+                                  return { ...r, ...f };
+                              })
+                            : r
+                    )
+                )
+            ).filter((e) => !0)),
+            {
+                title: c(`title`).text(),
+                description: c(`meta[property="og:description"]`).attr(`content`),
+                link: s,
+                item: u,
+                allowEmpty: !0,
+                image: c(`meta[property="og:image"]`).attr(`content`),
+                author: c(`meta[property="og:title"]`).attr(`content`)?.split(/\|/).pop(),
+                language: l,
+                id: c(`meta[property="og:url"]`).attr(`content`),
+            }
+        );
+    },
+    o = {
+        path: `/gold-news/:category?`,
+        name: `Gold News`,
+        url: `bullionvault.com`,
+        maintainers: [`nczitzk`],
+        handler: a,
+        example: `/bullionvault/gold-news`,
+        parameters: {
+            category: {
+                description: `Category`,
+                options: [
+                    { label: `Gold market analysis & gold investment research`, value: `` },
+                    { label: `Opinion & Analysis`, value: `opinion-analysis` },
+                    { label: `Gold Price News`, value: `gold-price-news` },
+                    { label: `Investment News`, value: `news` },
+                    { label: `Gold Investor Index`, value: `gold-investor-index` },
+                    { label: `Gold Infographics`, value: `infographics` },
+                    { label: `Market Fundamentals`, value: `market-fundamentals` },
+                ],
+            },
+        },
+        description: `::: tip
+If you subscribe to [Gold Price News](https://www.bullionvault.com/gold-news/gold-price-news)，where the URL is \`https://www.bullionvault.com/gold-news/gold-price-news\`, extract the part \`https://www.bullionvault.com/gold-news/\` to the end, and use it as the parameter to fill in. Therefore, the route will be [\`/bullionvault/gold-news/gold-price-news\`](https://rsshub.app/bullionvault/gold-news/gold-price-news).
+:::
+
+| Category                                                                          | ID                                                                                   |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| [Opinion & Analysis](https://www.bullionvault.com/gold-news/opinion-analysis)     | [opinion-analysis](https://rsshub.app/bullionvault/gold-news/opinion-analysis)       |
+| [Gold Price News](https://www.bullionvault.com/gold-news/gold-price-news)         | [gold-price-news](https://rsshub.app/bullionvault/gold-news/gold-price-news)         |
+| [Investment News](https://www.bullionvault.com/gold-news/news)                    | [news](https://rsshub.app/bullionvault/gold-news/news)                               |
+| [Gold Investor Index](https://www.bullionvault.com/gold-news/gold-investor-index) | [gold-investor-index](https://rsshub.app/bullionvault/gold-news/gold-investor-index) |
+| [Gold Infographics](https://www.bullionvault.com/gold-news/infographics)          | [infographics](https://rsshub.app/bullionvault/gold-news/infographics)               |
+| [Market Fundamentals](https://www.bullionvault.com/gold-news/market-fundamentals) | [market-fundamentals](https://rsshub.app/bullionvault/gold-news/market-fundamentals) |
+`,
+        categories: [`finance`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            {
+                source: [`bullionvault.com/gold-news/:category`],
+                target: (e) => {
+                    let t = e.category;
+                    return `/bullionvault/gold-news${t ? `/${t}` : ``}`;
+                },
+            },
+            { title: `Gold market analysis & gold investment research`, source: [`bullionvault.com/gold-news`], target: `/gold-news` },
+            { title: `Opinion & Analysis`, source: [`bullionvault.com/gold-news/opinion-analysis`], target: `/gold-news/opinion-analysis` },
+            { title: `Gold Price News`, source: [`bullionvault.com/gold-news/gold-price-news`], target: `/gold-news/gold-price-news` },
+            { title: `Investment News`, source: [`bullionvault.com/gold-news/news`], target: `/gold-news/news` },
+            { title: `Gold Investor Index`, source: [`bullionvault.com/gold-news/gold-investor-index`], target: `/gold-news/gold-investor-index` },
+            { title: `Gold Infographics`, source: [`bullionvault.com/gold-news/infographics`], target: `/gold-news/infographics` },
+            { title: `Market Fundamentals`, source: [`bullionvault.com/gold-news/market-fundamentals`], target: `/gold-news/market-fundamentals` },
+        ],
+        view: r.Articles,
+    };
+export { a as handler, o as route };

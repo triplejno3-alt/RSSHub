@@ -1,0 +1,54 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import * as n from 'node:url';
+import { load as r } from 'cheerio';
+const i = `http://www.wsyu.edu.cn`,
+    a = { xxyw: { name: `学校要闻`, url: `/info/iList.jsp?cat_id=10307` }, zhxw: { name: `综合新闻`, url: `/info/iList.jsp?cat_id=10119` }, mtjj: { name: `媒体聚焦`, url: `/info/iList.jsp?cat_id=10120` } },
+    o = {
+        path: `/news/:type?`,
+        categories: [`university`],
+        example: `/wsyu/news/xxyw`,
+        parameters: { type: '分类，默认为 `xxyw`' },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `新闻中心`,
+        maintainers: [`Derekmini`],
+        handler: s,
+        description: `| 学校要闻 | 综合新闻 | 媒体聚焦 |
+| -------- | -------- | -------- |
+| xxyw     | zhxw     | mtjj     |`,
+    };
+async function s(o) {
+    let s = o.req.param(`type`) || `xxyw`,
+        c = i + a[s].url,
+        l = r((await t({ method: `get`, url: c, headers: { Referer: i } })).data),
+        u = l(`.mainContent li`)
+            .slice(0, 10)
+            .toArray()
+            .map((e) => l(`a`, e).attr(`href`)),
+        d = l(`.mainContent li`)
+            .slice(0, 10)
+            .toArray()
+            .map((e) => l(`a`, e).text()),
+        f = l(`.mainContent li`)
+            .slice(0, 10)
+            .toArray()
+            .map((e) => l(`span`, e).text()),
+        p = await Promise.all(
+            u.map(async (a, o) => {
+                if (((a = n.resolve(i, a)), a.includes(`.htm`))) {
+                    let n = await e.get(a);
+                    if (n) return JSON.parse(n);
+                    let i = r((await t.get(a)).data);
+                    i(`.content .photos`).remove();
+                    let s = { title: d[o], link: a, description: i(`.content`).html(), pubDate: f[o] };
+                    return (e.set(a, JSON.stringify(s)), s);
+                } else return { title: d[o], link: a, description: `此链接为文件，请点击下载`, pubDate: f[o] };
+            })
+        );
+    return { title: `武昌首义学院-` + a[s].name, link: c, item: p };
+}
+export { o as route };

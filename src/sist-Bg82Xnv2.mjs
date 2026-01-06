@@ -1,0 +1,61 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './invalid-parameter-DGZgOgO2.mjs';
+import { load as a } from 'cheerio';
+const o = new Map([
+        [`tzgg`, { title: `中国科学技术大学信息科学技术学院 - 通知公告`, id: `5142` }],
+        [`zsgz`, { title: `中国科学技术大学信息科学技术学院 - 招生工作`, id: `5108` }],
+    ]),
+    s = `https://sist.ustc.edu.cn`,
+    c = {
+        path: `/sist/:type?`,
+        categories: [`university`],
+        example: `/ustc/sist/tzgg`,
+        parameters: { type: `分类，见下表，默认为通知公告` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`sist.ustc.edu.cn/`], target: `/sist` }],
+        name: `信息科学技术学院`,
+        maintainers: [`jasongzy`],
+        handler: l,
+        url: `sist.ustc.edu.cn/`,
+        description: `| 通知公告 | 招生工作 |
+| -------- | -------- |
+| tzgg     | zsgz     |`,
+    };
+async function l(c) {
+    let l = c.req.param(`type`) ?? `tzgg`,
+        u = o.get(l);
+    if (!u) throw new i(`invalid type`);
+    let d = u.id,
+        f = a((await n(`${s}/${d}/list.htm`)).data),
+        p = f(`div[portletmode=simpleList]`)
+            .find(`div.card`)
+            .toArray()
+            .map((e) => {
+                e = f(e);
+                let n = e.find(`.card-title > a`).attr(`title`).trim(),
+                    i = e.find(`.card-title > a`).attr(`href`);
+                return ((i = i.startsWith(`/`) ? s + i : i), { title: n, pubDate: r(t(e.find(`time`).text().replace(`发布时间：`, ``), `YYYY-MM-DD`), 8), link: i });
+            });
+    return (
+        (p = await Promise.all(
+            p.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = ``;
+                    try {
+                        ((e = a((await n(t.link)).data)(`div.wp_articlecontent`).html()), (t.description = e));
+                    } catch {}
+                    return t;
+                })
+            )
+        )),
+        { title: u.title, link: `${s}/${d}/list.htm`, item: p }
+    );
+}
+export { c as route };

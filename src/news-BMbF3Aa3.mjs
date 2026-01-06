@@ -1,0 +1,39 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+async function a(e) {
+    let { data: t } = await n(e),
+        r = i(t);
+    return (r(`strong`).remove(), r(`#content`).html());
+}
+const o = { path: `/news/:type?`, radar: [{ source: [`jseea.cn/webfile/news/:type`], target: `/news/:type` }], name: `Unknown`, maintainers: [`schen1024`], handler: s };
+async function s(o) {
+    let s = `https://www.jseea.cn/webfile/news/${o.req.param(`type`) ?? `zkyw`}/`,
+        { data: c } = await n(s),
+        l = i(c),
+        u = l(`div.content-list-div ul li a`)
+            .toArray()
+            .map(
+                (e) => (
+                    (e = l(e)),
+                    {
+                        title: e
+                            .contents()
+                            .filter((e, t) => t.nodeType === 3)
+                            .text()
+                            .trim(),
+                        link: `https:${e.attr(`href`)}`,
+                        pubDate: r(t(e.find(`span`).text(), `YYYY-MM-DD`), 8),
+                    }
+                )
+            ),
+        d = await Promise.all(u.map((t) => e.tryGet(t.link, async () => ((t.description = await a(t.link)), t))));
+    return { title: l(`head title`).text() + ` - 江苏省教育考试院`, link: s, item: d };
+}
+export { o as route };

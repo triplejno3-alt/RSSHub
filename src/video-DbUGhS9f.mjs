@@ -1,0 +1,103 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './types-Bl_lnefZ.mjs';
+import { t as a } from './description-CN05cUaw.mjs';
+import { load as o } from 'cheerio';
+const s = async (i) => {
+        let s = Number.parseInt(i.req.query(`limit`) ?? `18`, 10),
+            c = `https://www.dgtle.com`,
+            l = new URL(`video`, c).href,
+            u = new URL(`video/list/1`, c).href,
+            d = o(await e(l)),
+            f = d(`html`).attr(`lang`) ?? `zh-CN`,
+            p = await e(u),
+            m = [];
+        ((m = p.data.list.slice(0, s).map((e) => {
+            let t = e.title,
+                n = e.cover?.split(/\?/)?.[0],
+                r = a({ images: n ? [{ src: n, alt: t }] : void 0, intro: e.description }),
+                i = e.url,
+                o = [{ name: e.author.username, url: void 0, avatar: e.author.avatar_path?.split(/\?/)?.[0] }],
+                s = `dgtle-${e.id}`;
+            return { title: t, description: r, link: i, author: o, guid: s, id: s, content: { html: r, text: r }, image: n, banner: n, language: f, enclosure_length: e.duration };
+        })),
+            (m = await Promise.all(
+                m.map((i) =>
+                    i.link
+                        ? t.tryGet(i.link, async () => {
+                              let t = o(await e(i.link)),
+                                  s = t(`h1.video-title`).text(),
+                                  l = t(`div.video-play video source`).first(),
+                                  u = l.attr(`src`),
+                                  d = t(`div.video-play`).attr(`data-url`),
+                                  p = a({ videos: u ? [{ src: u, type: `video/mp4`, poster: d }] : void 0, intro: t(`h3.video-summary`).text() }),
+                                  m = t(`p.video-time`).text()?.split(/\s/)?.[0],
+                                  h = t(`.title`).attr(`href`),
+                                  g = t(`.category`).toArray(),
+                                  _ = [...new Set(g.map((e) => t(e).text()).filter(Boolean))],
+                                  v = t(`.author`)
+                                      .toArray()
+                                      .map((e) => {
+                                          let n = t(e);
+                                          return { name: n.text(), url: n.attr(`href`), avatar: n.find(`img`).attr(`src`) };
+                                      }),
+                                  y = t(`.id`).text(),
+                                  b = m,
+                                  x = {
+                                      title: s,
+                                      description: p,
+                                      pubDate: m ? r(n(m), 8) : i.pubDate,
+                                      link: h ? new URL(h, c).href : i.link,
+                                      category: _,
+                                      author: v,
+                                      doi: t(`meta[name="citation_doi"]`).attr(`content`),
+                                      guid: y,
+                                      id: y,
+                                      content: { html: p, text: p },
+                                      image: d,
+                                      banner: d,
+                                      updated: b ? r(n(b), 8) : i.updated,
+                                      language: f,
+                                  };
+                              if (u) {
+                                  let e = l.attr(`type`) || `video/mp4`;
+                                  x = { ...x, enclosure_url: u, enclosure_type: e, enclosure_title: s, enclosure_length: i.enclosure_length, itunes_duration: i.enclosure_length, itunes_item_image: d };
+                              }
+                              return { ...i, ...x };
+                          })
+                        : i
+                )
+            )));
+        let h = d(`meta[name="keywords"]`).attr(`content`)?.split(/,/)[0] ?? void 0;
+        return {
+            title: d(`title`).text().trim().split(/\s/)[0],
+            description: d(`meta[name="description"]`).attr(`content`),
+            link: l,
+            item: m,
+            allowEmpty: !0,
+            author: h,
+            language: f,
+            itunes_author: h,
+            itunes_category: `Technology`,
+            id: l,
+        };
+    },
+    c = {
+        path: `/video`,
+        name: `视频`,
+        url: `www.dgtle.com`,
+        maintainers: [`nczitzk`],
+        handler: s,
+        example: `/dgtle/video`,
+        parameters: void 0,
+        description: void 0,
+        categories: [`new-media`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`www.dgtle.com/video`], target: `/video` }],
+        view: i.Articles,
+    };
+export { s as handler, c as route };

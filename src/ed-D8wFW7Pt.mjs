@@ -1,0 +1,48 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/ed`,
+    categories: [`university`],
+    example: `/ecnu/ed`,
+    radar: [{ source: [`ed.ecnu.edu.cn`], target: `/ed` }],
+    name: `教育学部通知公告`,
+    maintainers: [`FrozenStarrrr`, `ChiyoYuki`, `ECNU-minus`],
+    handler: async () => {
+        let a = `https://ed.ecnu.edu.cn/`,
+            o = i((await n(`${a}45918/list.htm`)).data),
+            s = o(`ul.news_list.list2 > li`)
+                .toArray()
+                .map((e) => ({ pubDate: r(t(o(e).find(`.news_meta`).text()), 8), link: new URL(o(e).find(`a`).attr(`href`), a).toString(), title: o(e).find(`a`).text() }));
+        return {
+            title: `教育学部通知公告`,
+            link: `https://ed.ecnu.edu.cn/45918/list.htm`,
+            item: await Promise.all(
+                s.map((t) =>
+                    e.tryGet(t.link, async () => {
+                        let { data: e } = await n(t.link),
+                            r = i(e),
+                            o = r(`div.read`);
+                        return (
+                            o.find(`img[src], a[href]`).each((e, t) => {
+                                let n = r(t),
+                                    i = t.tagName === `img` ? `src` : `href`,
+                                    o = n.attr(i);
+                                o && n.attr(i, new URL(o, a).toString());
+                            }),
+                            (t.description = o.html()?.trim()),
+                            t
+                        );
+                    })
+                )
+            ),
+        };
+    },
+};
+export { a as route };

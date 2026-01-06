@@ -1,0 +1,45 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+import a from 'iconv-lite';
+const o = (e) => a.decode(e, `gbk`),
+    s = `https://www.flyert.com`,
+    c = `${s}/forum.php?mod=forumdisplay&sum=all&fid=all&catid=322`,
+    l = {
+        path: `/preferential`,
+        categories: [`travel`],
+        example: `/flyert/preferential`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`flyert.com/`] }],
+        name: `优惠信息`,
+        maintainers: [`howel52`],
+        handler: u,
+        url: `flyert.com/`,
+    };
+async function u() {
+    let a = i(o((await n(c, { responseType: `buffer` })).data)),
+        l = a(`.comiis_wzli`)
+            .toArray()
+            .map((e) => ({ title: a(e).find(`.wzbt`).text(), link: `${s}/${a(e).find(`.wzbt a`).attr(`href`)}`, description: a(e).find(`.wznr > div:first-child`).text() }));
+    return {
+        title: `飞客茶馆优惠`,
+        link: `https://www.flyert.com/`,
+        description: `飞客茶馆优惠`,
+        item: await Promise.all(
+            l.map((a) =>
+                e.tryGet(a.link, async () => {
+                    let e = i(o((await n(a.link, { responseType: `buffer` })).data));
+                    return (e(`div.artical_top`).remove(), (a.description = e(`#artMain`).html()), (a.pubDate = r(t(e(`p.xg1 > span:nth-child(1)`).attr(`title`) || e(`p.xg1`).text().split(`|`)[0], `YYYY-M-D HH:mm`), 8)), a);
+                })
+            )
+        ),
+    };
+}
+export { l as route };

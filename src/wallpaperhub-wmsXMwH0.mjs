@@ -1,0 +1,22 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { Fragment as n, jsx as r, jsxs as i } from 'hono/jsx/jsx-runtime';
+import { renderToString as a } from 'hono/jsx/dom/server';
+const o = { path: `/`, radar: [{ source: [`wallpaperhub.app/wallpaperhub`, `wallpaperhub.app/`], target: `` }], name: `Unknown`, maintainers: [`nczitzk`], handler: s, url: `wallpaperhub.app/wallpaperhub` };
+async function s() {
+    return {
+        title: `WallpaperHub`,
+        link: `https://wallpaperhub.app/wallpapers`,
+        item: (await t({ method: `get`, url: `https://wallpaperhub.app/api/v1/wallpapers/?limit=20&page=&query=&width=&height=&tags=` })).data.entities.map((t) => ({
+            title: t.entity.title,
+            description: a(i(n, { children: [r(`p`, { children: t.entity.description }), r(`img`, { src: t.entity.variations[0].resolutions[0].url || t.entity.thumbnail })] })),
+            pubDate: e(t.entity.created),
+            link: `https://wallpaperhub.app/wallpapers/${t.entity.id}`,
+        })),
+    };
+}
+export { o as route };

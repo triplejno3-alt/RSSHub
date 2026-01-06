@@ -1,0 +1,35 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { load as r } from 'cheerio';
+const i = { path: `/`, categories: [`new-media`], example: `/ftm`, parameters: {}, name: `文章`, maintainers: [`dzx-dzx`], radar: [{ source: [`www.ftm.eu`] }], handler: a };
+async function a(i) {
+    let a = `https://www.ftm.eu/articles`,
+        o = r(await e(a)),
+        s = o(`.article-card`)
+            .toArray()
+            .map((e) => ({ link: o(e).attr(`href`), title: o(e).find(`h2`).text() }))
+            .slice(0, i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`), 10) : 1 / 0),
+        c = await Promise.all(
+            s.map((i) =>
+                t.tryGet(i.link, async () => {
+                    let t = r(await e(i.link)),
+                        a = JSON.parse(t(`[type="application/ld+json"]:not([data-schema])`).text());
+                    return (
+                        (i.pubDate = n(a.datePublished)),
+                        (i.updated = n(a.dateModified)),
+                        (i.author = t(`[name='author']`)
+                            .toArray()
+                            .map((e) => ({ name: o(e).attr(`content`) }))),
+                        (i.category = t(`.collection .tab`).text().trim() || null),
+                        (i.description = t(`.body`).html()),
+                        i
+                    );
+                })
+            )
+        );
+    return { title: o(`title`).text(), link: a, item: c };
+}
+export { i as route };

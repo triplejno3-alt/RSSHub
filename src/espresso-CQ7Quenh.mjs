@@ -1,0 +1,41 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+import { t as r } from './parse-date-DjdQS_Nt.mjs';
+import { t as i } from './types-Bl_lnefZ.mjs';
+import * as a from 'cheerio';
+import o from 'xxhash-wasm';
+import s from 'sanitize-html';
+const c = `https://www.economist.com/the-world-in-brief`,
+    l = {
+        path: `/espresso`,
+        categories: [`traditional-media`],
+        view: i.Articles,
+        example: `/economist/espresso`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`economist.com/the-world-in-brief`, `economist.com/espresso`] }],
+        name: `Espresso`,
+        maintainers: [`TonyRL`],
+        handler: u,
+        url: `economist.com/the-world-in-brief`,
+    };
+async function u() {
+    let { h64ToString: i } = await o(),
+        { content: l, metadata: u } = (
+            await n.tryGet(
+                c,
+                async () => {
+                    let t = await e(c),
+                        n = a.load(t);
+                    return JSON.parse(n(`script#__NEXT_DATA__`).text());
+                },
+                t.cache.routeExpire,
+                !1
+            )
+        ).props.pageProps,
+        d = l.gobbets.map((e) => ({ link: c, title: s(e, { allowedTags: [], allowedAttributes: {} }), pubDate: r(l.datePublished), description: e, guid: `${c}#${i(e)}` }));
+    return { title: u.title, link: c, description: u.description, language: `en-gb`, image: u.imageUrl, item: d };
+}
+export { l as route };

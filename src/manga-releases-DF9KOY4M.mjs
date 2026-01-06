@@ -1,0 +1,38 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { load as r } from 'cheerio';
+const i = `https://www.nautiljon.com`,
+    a = {
+        path: `/releases/manga`,
+        categories: [`reading`],
+        example: `/nautiljon/releases/manga`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`nautiljon.com/`] }],
+        name: `France manga releases`,
+        maintainers: [`Fafnor`],
+        handler: s,
+        url: `nautiljon.com`,
+    },
+    o = (e) => {
+        let t = n(e, `DD/MM/YYYY`),
+            r = new Date();
+        return (r.setHours(0, 0, 0, 0), t <= r);
+    };
+async function s() {
+    let a = r(await e(`${i}/planning/manga/`, { headers: { 'User-Agent': t.trueUA } })),
+        s = a(`table#planning tbody tr`)
+            .toArray()
+            .filter((e) => o(a(e).find(`td`).first().text()))
+            .map((e) => {
+                e = a(e);
+                let t = e.find(`td`).first().text(),
+                    r = e.find(`td.p_titre`).find(`a.sim`).first(),
+                    o = e.find(`td:nth-child(2) a`).first();
+                return { title: r.text(), link: `${i}${r.attr(`href`)}`, pubDate: n(t, `DD/MM/YYYY`), image: `${i}${o.attr(`im`)}`, category: e.find(`td.p_titre div.fl`).first().text() };
+            });
+    return { title: `Nautiljon France Manga Releases`, link: `${i}/planning/manga/`, item: s };
+}
+export { a as route };

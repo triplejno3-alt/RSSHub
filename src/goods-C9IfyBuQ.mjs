@@ -1,0 +1,41 @@
+import { jsx as e, jsxs as t } from 'hono/jsx/jsx-runtime';
+import { renderToString as n } from 'hono/jsx/dom/server';
+import { raw as r } from 'hono/html';
+const i = (n) => {
+        let i = n.pic_url || n.img_square || n.imgs?.img800,
+            a = n.market_price ? n.market_price / 100 : void 0,
+            o = n.price_min ?? n.flash_price,
+            s = o ? o / 100 : void 0;
+        return t(`figure`, {
+            children: [
+                e(`img`, { src: i, alt: n.alt, loading: `lazy`, style: `display:block; margin-left:auto; margin-right:auto; width:100%;` }),
+                n.videos_url
+                    ? e(`video`, {
+                          controls: !0,
+                          playsinline: `true`,
+                          'webkit-playsinline': `true`,
+                          'x5-playsinline': `true`,
+                          'x5-video-player-type': `h5`,
+                          'x5-video-orientation': `landscape|portrait`,
+                          'x5-video-player-fullscreen': `true`,
+                          'x-webkit-airplay': `allow`,
+                          preload: `metadata`,
+                          poster: n.pic_url || n.imgs?.img800,
+                          children: e(`source`, { src: n.videos_url[0], type: `video/mp4` }),
+                      })
+                    : null,
+                n.name
+                    ? t(`figcaption`, {
+                          children: [
+                              e(`div`, { class: `caption`, children: r(n.name) }),
+                              e(`div`, { class: `credit`, children: r(n.summary ?? ``) }),
+                              t(`div`, { class: `price`, children: [`原始价格：`, a, `元`] }),
+                              t(`div`, { class: `price`, children: [`实际价格：`, s, `元`] }),
+                          ],
+                      })
+                    : null,
+            ],
+        });
+    },
+    a = (t) => n(e(i, { ...t }));
+export { a as t };

@@ -1,0 +1,30 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { n, r } from './utils-CXBwUyiY.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/:type`,
+    categories: [`game`],
+    example: `/indienova/article`,
+    parameters: { type: '类型: `article` 文章，`development` 开发' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `文章`,
+    maintainers: [`GensouSakuya`, `kt286`],
+    handler: o,
+};
+async function o(a) {
+    let o = a.req.param(`type`),
+        s = `https://indienova.com/indie-game-news/`;
+    o === `development` && (s = `https://indienova.com/indie-game-development/`);
+    let c = i((await t(s)).data),
+        l = r(c),
+        u = await Promise.all(l.map((t) => e.tryGet(t.link, () => n(t))));
+    return { title: c(`head title`).text(), link: s, description: `独立游戏资讯 | indienova 独立游戏`, item: u };
+}
+export { a as route };

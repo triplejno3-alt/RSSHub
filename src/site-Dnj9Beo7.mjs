@@ -1,0 +1,24 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { c as e, d as t, f as n, t as r } from './service-8NkLHBf0.mjs';
+const i = {
+    path: `/site/:siteId`,
+    categories: [`shopping`],
+    example: `/showstart/site/3583`,
+    parameters: { siteId: `演出场地 (编号)` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.showstart.com/venue/:id`] }],
+    name: `按场地 - 演出更新`,
+    maintainers: [`lchtao26`],
+    handler: a,
+    description: `::: tip
+-   演出场地 ID 查询: \`/showstart/search/site/:keyword\`, 如: [https://rsshub.app/showstart/search/site/酒球会](https://rsshub.app/showstart/search/site/酒球会)
+:::`,
+};
+async function a(i) {
+    let a = Number.parseInt(i.req.param(`siteId`)).toString(),
+        [o, s] = await Promise.all([r({ siteId: a }), e({ siteId: a })]);
+    return { title: `${n} - ${s.name}`, description: s.address, link: t, item: o };
+}
+export { i as route };

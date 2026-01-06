@@ -1,0 +1,36 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './md5-DQN6cWFb.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+const i = {
+    path: `/starred_repos/:user`,
+    categories: [`programming`],
+    example: `/github/starred_repos/DIYgod`,
+    parameters: { user: `User name` },
+    features: { requireConfig: [{ name: `GITHUB_ACCESS_TOKEN`, optional: !0, description: `To get more requests` }] },
+    radar: [{ source: [`github.com/:user`] }],
+    name: `User Starred Repositories`,
+    maintainers: [`LanceZhu`],
+    handler: a,
+};
+async function a(i) {
+    let a = i.req.param(`user`),
+        o = `https://github.com/${a}?tab=stars`,
+        { data: s } = await r(`https://api.github.com/users/${a}/starred`, { headers: { Accept: `application/vnd.github.star+json`, Authorization: e.github?.access_token ? `Bearer ${e.github.access_token}` : void 0 } }),
+        c = s.map(({ starred_at: e, repo: r }) => ({
+            title: `${a} starred ${r.name}`,
+            author: a,
+            description: `${r.description ?? `No Description`}<br>
+        Primary Language: ${r.language ?? `Primary Language`}<br>
+        Stargazers: ${r.stargazers_count}<br>
+        <img sytle="width:50px;" src="https://opengraph.githubassets.com/${t(r.updated_at)}/${r.full_name}">`,
+            pubDate: n(e),
+            link: r.html_url,
+            category: r.topics,
+        }));
+    return { allowEmpty: !0, title: `${a}'s starred repositories`, link: o, description: `${a}'s starred repositories`, item: c };
+}
+export { i as route };

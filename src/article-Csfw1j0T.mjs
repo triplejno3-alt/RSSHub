@@ -1,0 +1,55 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { t as i } from './types-Bl_lnefZ.mjs';
+import { load as a } from 'cheerio';
+const o = {
+    path: `/ci-en/:id/article`,
+    categories: [`anime`],
+    view: i.Articles,
+    example: `/dlsite/ci-en/7400/article`,
+    parameters: { id: `Creator id, can be found in URL` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+    radar: [{ source: [`ci-en.dlsite.com/creator/:id/article/843558`, `ci-en.dlsite.com/`] }],
+    name: `Ci-en Creators' Article`,
+    maintainers: [`nczitzk`],
+    handler: s,
+};
+async function s(i) {
+    let o = i.req.param(`id`) ?? `7400`,
+        s = i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`)) : 10,
+        c = `https://ci-en.dlsite.com/creator/${o}/article?mode=list`,
+        l = a((await n({ method: `get`, url: c })).data),
+        u = l(`.c-postedArticle-info a`)
+            .slice(0, s)
+            .toArray()
+            .map((e) => ((e = l(e)), { title: e.text(), link: e.attr(`href`) }));
+    return (
+        (u = await Promise.all(
+            u.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let e = a((await n({ method: `get`, url: i.link })).data);
+                    return (
+                        e(`.article-title`).remove(),
+                        e(`.file-player-image`).each(function () {
+                            e(this).replaceWith(`<img src="${e(this).attr(`data-actual`)}">`);
+                        }),
+                        (i.description = e(`article`).html()),
+                        (i.pubDate = r(t(e(`.e-date`).first().text()), 9)),
+                        (i.category = e(`.c-hashTagList-item`)
+                            .toArray()
+                            .map((t) => e(t).text().split(`#`).pop().trim())),
+                        i
+                    );
+                })
+            )
+        )),
+        { title: l(`title`).text(), link: c, item: u }
+    );
+}
+export { o as route };

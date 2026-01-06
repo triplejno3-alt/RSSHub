@@ -1,0 +1,105 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import r from 'markdown-it';
+const i = r({ html: !0 }),
+    a = `https://api.github.com`,
+    o = { issue: { title: `Issue` }, issues: { title: `Issue` }, pull: { title: `Pull request` } },
+    s = {
+        path: `/comments/:user/:repo/:number?`,
+        categories: [`programming`],
+        example: `/github/comments/DIYgod/RSSHub/8116`,
+        parameters: { user: `User / Org name`, repo: `Repo name`, number: `Issue or pull number (if omitted: all)` },
+        radar: [{ source: [`github.com/:user/:repo/:type`, `github.com/:user/:repo/:type/:number`], target: `/comments/:user/:repo/:number?` }],
+        name: `Issue / Pull Request comments`,
+        maintainers: [`TonyRL`, `FliegendeWurst`],
+        handler: c,
+    };
+async function c(e) {
+    let n = e.req.param(`user`),
+        r = e.req.param(`repo`),
+        i = e.req.param(`number`) && Number.isNaN(Number.parseInt(e.req.param(`number`))) ? 1 : Number.parseInt(e.req.param(`number`)),
+        a = e.req.query(`limit`) ? Number.parseInt(e.req.query(`limit`)) : 100,
+        o = t.github && t.github.access_token ? { Accept: `application/vnd.github.v3+json`, Authorization: `token ${t.github.access_token}` } : { Accept: `application/vnd.github.v3+json` };
+    return await (Number.isNaN(i) ? l(e, n, r, a, o) : u(e, n, r, i, a, o));
+}
+async function l(t, r, s, c, l) {
+    let u = await e.raw(`${a}/repos/${r}/${s}/issues/comments`, { headers: l, query: { sort: `updated`, direction: `desc`, per_page: c } }),
+        d = u._data.map((e) => {
+            let t = e.actor?.login ?? e.user?.login ?? `ghost`,
+                a = e.issue_url.split(`/`).at(-1);
+            return { title: `${t} commented on ${r}/${s}: ${o[e.html_url.split(`/`).at(-2)].title} #${a}`, author: t, pubDate: n(e.created_at), link: e.html_url, description: e.body ? i.render(e.body) : null };
+        }),
+        f = {
+            limit: Number.parseInt(u.headers.get(`x-ratelimit-limit`)),
+            remaining: Number.parseInt(u.headers.get(`x-ratelimit-remaining`)),
+            reset: n(Number.parseInt(u.headers.get(`x-ratelimit-reset`)) * 1e3),
+            resoure: u.headers.get(`x-ratelimit-resource`),
+            used: Number.parseInt(u.headers.get(`x-ratelimit-used`)),
+        },
+        p = { title: `${r}/${s}: Issue & Pull request comments`, link: `https://github.com/${r}/${s}`, item: d };
+    return (t.set(`json`, { ...p, rateLimit: f }), p);
+}
+async function u(t, r, s, c, l, u) {
+    let d = await e.raw(`${a}/repos/${r}/${s}/issues/${c}`, { headers: u }),
+        f = d._data,
+        p = f.pull_request ? `pull` : `issue`,
+        m = await e.raw(f.timeline_url, { headers: u, query: { per_page: l } }),
+        h = [],
+        g = m.headers.get(`link`)?.match(/<(\S+?)>; rel="last"/)?.[1];
+    g
+        ? (m = await e.raw(g, { headers: u }))
+        : h.push({ title: `${f.user.login} created ${r}/${s}: ${o[p].title} #${f.number}`, description: f.body ? i.render(f.body) : null, author: f.user.login, pubDate: n(f.created_at), link: `${f.html_url}#issue-${f.id}` });
+    let _ = m._data;
+    for (let e of _) {
+        let t = e.actor?.login ?? e.user?.login ?? `ghost`;
+        switch (e.event) {
+            case `closed`:
+                h.push({ title: `${t} ${e.event} ${r}/${s}: ${o[p].title} #${f.number}`, author: t, pubDate: n(e.created_at), link: e.url });
+                break;
+            case `commented`:
+                h.push({ title: `${t} ${e.event} on ${r}/${s}: ${o[p].title} #${f.number}`, description: i.render(e.body), author: t, pubDate: n(e.created_at), link: e.html_url });
+                break;
+            case `cross-referenced`:
+                h.push({
+                    title: `${t} ${e.event} on ${r}/${s}: ${o[p].title} #${f.number}`,
+                    description: `${t} mentioned this issue in <a href='${e.source.issue.html_url}'><b>${e.source.issue.title}</b> #${e.source.issue.number}</a>`,
+                    author: t,
+                    pubDate: n(e.created_at),
+                    guid: `${t} ${e.event} on ${r}/${s}: ${o[p].title} #${f.number} on ${e.created_at}`,
+                    link: `${t} ${e.event} on ${r}/${s}: ${o[p].title} #${f.number} on ${e.created_at}`,
+                });
+                break;
+            case `renamed`:
+                h.push({ title: `${t} ${e.event} on ${r}/${s}: ${o[p].title} #${f.number}`, description: `${t} changed the title <del>${e.rename.from}</del> ${e.rename.to}`, author: t, pubDate: n(e.created_at), link: e.url });
+                break;
+            case `reviewed`:
+                h.push({
+                    title: `${e.user.login} ${e.event} on ${r}/${s}: ${o[p].title} #${f.number}`,
+                    description: e.body ? i.render(e.body) : e.state.replace(`_`, ` `),
+                    author: e.user.login,
+                    pubDate: n(e.submitted_at),
+                    link: e.html_url,
+                });
+                break;
+            default:
+                break;
+        }
+    }
+    let v = { title: `${r}/${s}: ${o[p].title} #${c} - ${f.title}`, link: f.html_url, item: h };
+    return (
+        t.set(`json`, {
+            ...v,
+            rateLimit: {
+                limit: Number.parseInt(d.headers.get(`x-ratelimit-limit`)),
+                remaining: Number.parseInt(d.headers.get(`x-ratelimit-remaining`)),
+                reset: n(Number.parseInt(d.headers.get(`x-ratelimit-reset`)) * 1e3),
+                resoure: d.headers.get(`x-ratelimit-resource`),
+                used: Number.parseInt(d.headers.get(`x-ratelimit-used`)),
+            },
+        }),
+        v
+    );
+}
+export { s as route };

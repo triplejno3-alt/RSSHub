@@ -1,0 +1,48 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { a as r, i, n as a, r as o } from './util-9uMF9AqF.mjs';
+import { load as s } from 'cheerio';
+const c = {
+    path: `/:category?`,
+    categories: [`new-media`],
+    example: `/readhub`,
+    parameters: { category: `分类，见下表，默认为热门话题` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `分类`,
+    maintainers: [`WhiteWorld`, `nczitzk`, `Fatpandac`],
+    handler: l,
+    description: `| 热门话题 | 科技动态 | 医疗产业 | 财经快讯           |
+| -------- | -------- | -------- | ------------------ |
+|          | news     | medical  | financial_express |`,
+};
+async function l(c) {
+    let { category: l = `` } = c.req.param(),
+        u = c.req.query(`limit`) ? Number.parseInt(c.req.query(`limit`), 10) : 30,
+        d = new URL(l ?? ``, i).href,
+        { data: f } = await n(d),
+        { data: p } = await n(a, { searchParams: { type: f.match(/\[\\"type\\",\\"(\d+)\\",\\"d\\"]/)?.[1] ?? `1`, page: 1, size: u } }),
+        m = p.data.items
+            .slice(0, u)
+            .map((e) => ({
+                title: e.title,
+                link: e.url ?? new URL(`topic/${e.uid}`, i).href,
+                description: r({ description: e.summary, news: e.newsAggList, timeline: e.timeline, rootUrl: i }),
+                author: e.siteNameDisplay,
+                category: [...(e.entityList.map((e) => e.name) ?? []), ...(e.tagList.map((e) => e.name) ?? [])],
+                guid: e.uid,
+                pubDate: t(e.publishDate),
+            }));
+    m = await o(m, e.tryGet);
+    let h = s(f),
+        g = h(`meta[property="og:site_name"]`).prop(`content`),
+        _ = h(`a[data-path="/${l}"]`).text(),
+        v = h(`link[rel="preload"][as="image"]`).prop(`href`),
+        y = h(`meta[property="og:image"]`).prop(`content`);
+    return { item: m, title: `${g} - ${_}`, link: d, description: h(`meta[property="og:description"]`).prop(`content`), language: `zh`, image: v, icon: y, logo: y, subtitle: _, author: g, allowEmpty: !0 };
+}
+export { c as route };

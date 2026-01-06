@@ -1,0 +1,56 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/:language?/:category?`,
+    categories: [`new-media`],
+    example: `/swissinfo/eng/latest-news`,
+    parameters: { language: `Language, eng by default`, category: `Category, Latest News by default` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`swissinfo.ch/:language/:category`, `swissinfo.ch/`] }],
+    name: `Category`,
+    maintainers: [`nczitzk`],
+    handler: a,
+};
+async function a(i) {
+    let a = i.req.param(`language`) ?? `eng`,
+        o = i.req.param(`category`) ?? `latest-news`,
+        s = `https://www.swissinfo.ch`,
+        c = `${s}/${a}/${o}`,
+        l = r((await n({ method: `get`, url: c })).data),
+        u = l(`title`).text();
+    l = r((await n({ method: `get`, url: `${s}${l(`main div[data-fragment-placeholder]`).attr(`data-fragment-placeholder`)}` })).data);
+    let d = l(`.si-teaser__link`)
+        .slice(0, i.req.query(`limit`) ? Number.parseInt(i.req.query(`limit`)) : 20)
+        .toArray()
+        .map((e) => ((e = l(e)), { link: `${s}${e.attr(`href`)}`, title: e.find(`.si-teaser__title`).text(), pubDate: t(e.find(`.si-teaser__date`).attr(`datetime`)) }));
+    return (
+        (d = await Promise.all(
+            d.map((t) =>
+                e.tryGet(t.link, async () => {
+                    let e = await n({ method: `get`, url: t.link }),
+                        i = r(e.data);
+                    return (
+                        i(`.si-detail__content .si-grid`).remove(),
+                        i(`.si-detail__content .si-teaser`).remove(),
+                        i(`.show-for-sr, time, address, .si-detail__translation`).remove(),
+                        i(`picture`).each(function () {
+                            i(this).html(`<img src="${i(this).find(`source`).first().attr(`srcset`)}">`);
+                        }),
+                        (t.description = i(`.si-detail__content`).html()),
+                        (t.author = i(`meta[name="author"]`).attr(`content`)),
+                        (t.guid = e.data.match(/content_id: "(.*)",/)[1]),
+                        t
+                    );
+                })
+            )
+        )),
+        { title: u, link: c, item: d }
+    );
+}
+export { i as route };

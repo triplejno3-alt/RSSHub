@@ -1,0 +1,86 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './invalid-parameter-DGZgOgO2.mjs';
+import { t as i } from './valid-host-Bsy2BS2p.mjs';
+import { load as a } from 'cheerio';
+var o = {
+        news: `ttgz`,
+        teach: `xwkd/xwkd`,
+        perdep: `tzgg/tzgg`,
+        gs: `zytz`,
+        ssdut: `ywgg/xueyuanxinwen/jdxw`,
+        eda: `tzgg/tzgg`,
+        panjin: `index/gg`,
+        xsgzb: `index/zytz`,
+        pjteach: `index/xwkd`,
+        pjxqzwb: `index/tzgg`,
+        tjpj: `index/zxgg`,
+        dutdice: `xwsd/xxxw`,
+        tycgzx: `tzgg/tzgg`,
+        fldpj: `index/zytz`,
+    },
+    s = {
+        news: { xwjj: `xwjj01`, rcpy: `xwjj01/rcpy`, kxyj: `xwjj01/kxyj`, jlhz: `xwjj01-kxyj`, yxfc: `yxfc1`, dgrw: `dgrw/dgrw1`, yxdg: `yxdg1`, mtdg: `mtdg/mtdg` },
+        teach: { xwkd: `xwkd/xwkd`, zytg: `zytg/zytg`, bhgs: `zytg/bhgs` },
+        perdep: { tzgg: `tzgg/tzgg`, gzdt: `gzdt/gzdt1`, zcfg: `zcfg/zcfg` },
+        gs: { gzdt: `gzdt1`, zcfg: `zcfg/zcfg` },
+        ssdut: { jdxw: `ywgg/xueyuanxinwen/jdxw`, zhxw: `ywgg/xueyuanxinwen`, xytz: `index/xytz`, xsdt: `index/xsdt`, bkstz: `index/bkstz`, yjstz: `yjspy/yjspy/yjstz` },
+        eda: { tzgg: `tzgg/tzgg`, xqxw: `xqxw/xqxw` },
+        panjin: { xqxw: `index/xqxw`, xywh: `index/xywh`, xyfc: `index/xyfc`, xsdt: `index/xsdt`, mtbd: `index/mtbd`, gg: `index/gg` },
+        xsgzb: { zytz: `index/zytz`, xgdt: `index/xgdt`, gsgonggao: `index/gsgonggao` },
+        pjteach: { xwkd: `index/xwkd`, zytz: `index/zytz`, xkyks: `index/xkyks`, jxwj: `index/jxwj`, cjwt: `index/cjwt` },
+        pjxqzwb: { tzgg: `index/tzgg`, zwkx: `index/zwkx` },
+        tjpj: { xyxw: `index/xyxw`, zxgg: `index/zxgg` },
+        dutdice: { jstz: `tzgg/jstz`, xstong_zhi: `tzgg/xstong_zhi`, xwsd: `xwsd/xxxw` },
+        tycgzx: { tzgg: `tzgg/tzgg`, hdrc: `hdrc/hdrc`, xwdt: `xwdt/xwdt`, jkzs: `jkzs/jkzs1` },
+        fldpj: { xsdt: `kxyj/xsdt`, zytz: `index/zytz`, ywgk: `index/ywgk` },
+    };
+const c = { path: [`/*/*`, `/:0?`], name: `Unknown`, maintainers: [], handler: l };
+async function l(c) {
+    let l = c.params[0] ?? `news`;
+    if (!i(l)) throw new r(`Invalid site`);
+    let u,
+        d = c.params[1] ?? (Object.hasOwn(o, l) ? o[l] : ``);
+    d = Object.hasOwn(s, l) && Object.hasOwn(s[l], d) ? s[l][d] : d;
+    let f = `https://${l}.dlut.edu.cn`,
+        p = `${f}/${d}.htm`,
+        m = a((await n({ method: `get`, url: p })).data);
+    return (
+        l === `panjin`
+            ? (u = m(`a.news`).slice(0, -4))
+            : l === `fldpj`
+              ? (u = m(`li[id^="line_u9"]`).find(`a`))
+              : (m(`.Next, .rjxw_left, .pb_sys_common`).remove(), (u = m(`.txt, .itemlist, .wall, .list, .list01, .ny_list, .rjxw_right, .rj_yjs_con, .c_hzjl_list1, .winstyle67894, .winstyle80936, .winstyle50738, #lili`).find(`a`))),
+        (u = u
+            .slice(0, c.req.query(`limit`) ? Number.parseInt(c.req.query(`limit`)) : 50)
+            .toArray()
+            .map((e) => {
+                e = m(e);
+                let n = { link: e.attr(`href`).startsWith(`http`) ? e.attr(`href`) : `${f}/${e.attr(`href`).replace(/^[./]+/, ``)}` };
+                if (l === `fldpj`) ((n.title = e.find(`em`).text()), (n.pubDate = t(e.find(`span`).text())));
+                else {
+                    let r = /(\d{4}[/年-]\d{2}[/月-]\d{2})/,
+                        i = e.parent().text().match(r);
+                    ((i ||= e.parent().parent().text().match(r)), (n.title = e.text().trim() === `` ? e.next().text() : e.text()), i && (n.pubDate = t(i[1].replaceAll(/年|月/g, `-`))));
+                }
+                return n;
+            })),
+        (u = await Promise.all(
+            u.map((t) =>
+                e.tryGet(t.link, async () => {
+                    try {
+                        t.description = a((await n({ method: `get`, url: t.link })).data)(`.v_news_content, .conbox`).html();
+                    } catch {}
+                    return t;
+                })
+            )
+        )),
+        { title: m(`title`).text(), link: p, item: u, allowEmpty: !0 }
+    );
+}
+export { c as route };

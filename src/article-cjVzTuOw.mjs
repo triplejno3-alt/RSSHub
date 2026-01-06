@@ -1,0 +1,34 @@
+import { Fragment as e, jsx as t, jsxs as n } from 'hono/jsx/jsx-runtime';
+import { renderToString as r } from 'hono/jsx/dom/server';
+import { raw as i } from 'hono/html';
+const a = ({ item: a, $: o }) => {
+    let s = o(`.article .subhead`).length ? o(`.article .subhead`).html() : null,
+        c = o(`.article .media`).length ? o(`.article .media`).html() : null,
+        l = o(`.article .content_video`).length
+            ? o(`script`)
+                  .text()
+                  .match(/initPlayer\('(.*?)','(.*?)'\)/)
+            : null,
+        u = o(`div#Main_Content_Val.text`).length ? o(`div#Main_Content_Val.text`).html() : null,
+        d = a.pics,
+        f = typeof d == `string` && d.includes(`#`) ? d.split(`#`) : null;
+    return r(
+        n(e, {
+            children: [
+                a.audio ? n(e, { children: [t(`audio`, { src: a.audio, controls: !0 }), t(`br`, {})] }) : null,
+                s ? n(e, { children: [t(`blockquote`, { children: t(`p`, { children: i(s) }) }), t(`br`, {})] }) : null,
+                c ? n(e, { children: [i(c), t(`br`, {})] }) : null,
+                l ? n(e, { children: [t(`video`, { controls: !0, preload: `metadata`, poster: l[2], src: l[1] }), t(`br`, {})] }) : null,
+                u
+                    ? t(e, { children: i(u) })
+                    : n(e, {
+                          children: [
+                              a.summary ? n(e, { children: [t(`blockquote`, { children: t(`p`, { children: a.summary }) }), t(`br`, {})] }) : null,
+                              f ? t(e, { children: f.map((r) => n(e, { children: [t(`img`, { src: r }), t(`br`, {})] })) }) : n(e, { children: [t(`img`, { src: d }), t(`br`, {})] }),
+                          ],
+                      }),
+            ],
+        })
+    );
+};
+export { a as t };

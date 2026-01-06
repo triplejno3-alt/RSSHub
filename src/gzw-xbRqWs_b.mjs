@@ -1,0 +1,68 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/chongqing/gzw/:category{.+}?`,
+    parameters: { category: `分类，见下表，默认为通知公告` },
+    name: `重庆市人民政府 国有资产监督管理委员会`,
+    url: `gzw.cq.gov.cn`,
+    maintainers: [`nczitzk`],
+    handler: o,
+    radar: [{ source: `gzw.cq.gov.cn/*category`, target: `/chongqing/gzw/*category` }],
+    description: `| 通知公告  | 国企资讯 | 国企简介 | 国企招聘 |
+| --------- | -------- | -------- | -------- |
+| tzgg_191 | gqdj     | gqjj     | gqzp     |`,
+};
+async function o(a) {
+    let { category: o = `tzgg_191` } = a.req.param(),
+        s = a.req.query(`limit`) ? Number.parseInt(a.req.query(`limit`), 10) : 15,
+        c = `https://gzw.cq.gov.cn`,
+        l = new URL(o, c).href,
+        { data: u } = await n(l),
+        d = i(u),
+        f = d(`ul.tab-item li.clearfix`)
+            .slice(0, s)
+            .toArray()
+            .map((e) => {
+                e = d(e);
+                let n = e.find(`a`);
+                return { title: n.text(), link: new URL(n.prop(`href`).replace(/^\./, o), c).href, pubDate: t(e.find(`span`).text()) };
+            });
+    f = await Promise.all(
+        f.map((a) =>
+            e.tryGet(a.link, async () => {
+                let { data: e } = await n(a.link),
+                    o = i(e);
+                return (
+                    (a.title = o(`meta[name="ArticleTitle"]`).prop(`content`)),
+                    (a.description = o(`div.trs_paper_default`).html()),
+                    (a.author = o(`meta[name="ContentSource"]`).prop(`content`)),
+                    (a.category = o(`meta[name="Keywords"]`).prop(`content`).split(/;/).filter(Boolean)),
+                    (a.pubDate = r(t(o(`meta[name="PubDate"]`).prop(`content`)), 8)),
+                    a
+                );
+            })
+        )
+    );
+    let p = new URL(`favicon.ico`, c).href;
+    return {
+        item: f,
+        title: `${d(`title`).text()} - ${d(`meta[name="ColumnName"]`).prop(`content`)}`,
+        link: l,
+        description: d(`meta[name="ColumnDescription"]`).prop(`content`),
+        language: d(`html`).prop(`lang`),
+        image: new URL(d(`div.logo img`).prop(`src`), c).href,
+        icon: p,
+        logo: p,
+        subtitle: d(`meta[name="ColumnKeywords"]`).prop(`content`),
+        author: d(`meta[name="SiteName"]`).prop(`content`),
+        allowEmpty: !0,
+    };
+}
+export { a as route };

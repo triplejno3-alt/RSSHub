@@ -1,0 +1,34 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+const n = {
+    path: `/researchResults`,
+    categories: [`other`],
+    example: `/ke/researchResults`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.research.ke.com/researchResults`] }],
+    name: `研究成果`,
+    maintainers: [`shaomingbo`],
+    handler: r,
+    url: `www.research.ke.com/researchResults`,
+};
+async function r() {
+    let {
+        status: n,
+        statusMessage: r,
+        data: i,
+    } = await t({ method: `post`, url: `https://research.ke.com/apis/consumer-access/index/contents/page`, headers: { Referer: `https://research.ke.com/ResearchResults` }, json: { pageIndex: 1, pageSize: 9 } });
+    if (n !== 200) throw Error(r);
+    let { list: a } = i.data;
+    return {
+        title: `房地产行业研究报告`,
+        link: `https://research.ke.com/ResearchResults`,
+        description: `研究成果`,
+        item: a.map((t) => ({ title: t.title, link: `https://research.ke.com/${t.contentTypeId}/ArticleDetail?id=${t.id}`, author: t.author, description: t.guideReading, pubDate: e(t.publishTime) })),
+    };
+}
+export { n as route };

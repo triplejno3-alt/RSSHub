@@ -1,0 +1,81 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/news/:category?`,
+    categories: [`university`],
+    example: `/hlju/news/hdyw`,
+    parameters: {
+        category: {
+            description: `新闻分类，默认为黑大要闻`,
+            options: [
+                { value: `hdyw`, label: `黑大要闻` },
+                { value: `jjxy`, label: `菁菁校园` },
+                { value: `rwfc`, label: `人物风采` },
+                { value: `xwdt`, label: `新闻动态` },
+                { value: `jxky`, label: `教学科研` },
+                { value: `xyjw`, label: `学院经纬` },
+                { value: `jlhz`, label: `交流合作` },
+                { value: `cxcy`, label: `创新创业` },
+            ],
+        },
+    },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`hdxw.hlju.edu.cn/:category.htm`, `hdxw.hlju.edu.cn/`], target: `/news/:category` }],
+    name: `新闻网`,
+    maintainers: [`LCMs-YoRHa`],
+    handler: a,
+};
+async function a(i) {
+    let a = i.req.param(`category`) ?? `hdyw`,
+        o = `https://hdxw.hlju.edu.cn`,
+        s = `${o}/${a}.htm`,
+        c = r(await e(s)),
+        l = c(`.bgtitle_list`).text().trim() || `黑大要闻`,
+        u = c(`a[href*="info/"]`)
+            .toArray()
+            .map((e) => {
+                let t = c(e),
+                    r = t.attr(`href`),
+                    i = t.text().trim();
+                if (!i || !r || i.length < 5) return null;
+                let a = t
+                    .parent()
+                    .text()
+                    .match(/(\d{4})\/(\d{2})\/(\d{2})/);
+                return { title: i, link: r.startsWith(`http`) ? r : `${o}/${r}`, pubDate: a ? n(a[0].replaceAll(`/`, `-`)) : void 0 };
+            })
+            .filter((e) => e !== null)
+            .filter((e, t, n) => n.findIndex((t) => t.link === e.link) === t)
+            .slice(0, 15),
+        d = await Promise.all(
+            u.map((i) =>
+                t.tryGet(i.link, async () => {
+                    if (!i.link.includes(`hdxw.hlju.edu.cn`)) return { title: i.title, link: i.link, description: `外部链接，请点击查看原文`, pubDate: i.pubDate };
+                    let t = r(await e(i.link)),
+                        a = t(`.v_news_content`),
+                        o = ``;
+                    a.length > 0 ? (a.find(`script, style, .print, .share`).remove(), (o = a.html() || ``)) : (o = `内容获取失败，请点击查看原文`);
+                    let s = i.pubDate,
+                        c = t(`.timestyle110144`);
+                    if (c.length > 0) {
+                        let e = c
+                            .text()
+                            .trim()
+                            .match(/(\d{4}[-/]\d{2}[-/]\d{2})\s*(\d{2}:\d{2}(?::\d{2})?)/);
+                        if (e) {
+                            let t = e[1].replaceAll(`/`, `-`),
+                                r = e[2];
+                            s = n(`${t} ${r}`);
+                        }
+                    }
+                    return { title: i.title, link: i.link, description: o || `无法获取文章内容，请点击查看原文`, pubDate: s };
+                })
+            )
+        );
+    return { title: `黑龙江大学新闻网 - ${l}`, link: s, description: `黑龙江大学新闻网${l}栏目`, item: d };
+}
+export { i as route };

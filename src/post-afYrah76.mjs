@@ -1,0 +1,92 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+import a from 'iconv-lite';
+const o = {
+    path: `/post/:tid/:authorId?`,
+    categories: [`bbs`],
+    example: `/nga/post/18449558`,
+    parameters: { tid: `帖子 id, 可在帖子 URL 找到`, authorId: `作者 id` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `帖子`,
+    maintainers: [`xyqfer`, `syrinka`],
+    handler: s,
+};
+async function s(o) {
+    let s = (e, t, n = 1, r = ``) => `https://nga.178.com/read.php?tid=${e}&page=${n}${t ? `&authorid=${t}` : ``}&rand=${Math.random() * 1e3}#${r}`,
+        c = async (t, r, o = 1) => {
+            let c = s(t, r, o),
+                l = `guestJs=${Math.floor(Date.now() / 1e3)};`;
+            e.nga.uid && e.nga.cid && (l = `ngaPassportUid=${e.nga.uid}; ngaPassportCid=${e.nga.cid};`);
+            let u = await n(c, { responseType: `buffer`, headers: { Cookie: l } });
+            return i(a.decode(u.data, `gbk`));
+        },
+        l = async (e, t) => {
+            let n = (await c(e, t))(`#pagebtop`)
+                .html()
+                .match(/{0:'\/read\.php\?tid=(\d+).*?',1:(\d+),.*?}/);
+            return n ? n[2] : 1;
+        },
+        u = (e, t, n) => {
+            for (; t.test(e); ) e = e.replace(t, n);
+            return e;
+        },
+        d = (e) => (
+            (e = u(e, /\[(b|u|i|del|code|sub|sup)](.+?)\[\/\1]/g, `<$1>$2</$1>`)),
+            (e = e
+                .replaceAll(/\[dice](.+?)\[\/dice]/g, `<b>ROLL : $1</b>`)
+                .replaceAll(/\[color=(.+?)](.+?)\[\/color]/g, `<span style="color:$1;">$2</span>`)
+                .replaceAll(/\[font=(.+?)](.+?)\[\/font]/g, `<span style="font-family:$1;">$2</span>`)
+                .replaceAll(/\[size=(.+?)](.+?)\[\/size]/g, `<span style="font-size:$1;">$2</span>`)
+                .replaceAll(/\[align=(.+?)](.+?)\[\/align]/g, `<span style="text-align:$1;">$2</span>`)),
+            (e = u(e, /\[\*](.+?)(?=\[\*]|\[\/list])/g, `<li>$1</li>`)),
+            (e = u(e, /\[list](.+?)\[\/list]/g, `<ul>$1</ul>`)),
+            (e = e.replaceAll(/\[img](.+?)\[\/img]/g, (e, t) => `<img src='${t[0] === `.` ? `https://img.nga.178.com/attachments` + t.slice(1) : t}'></img>`)),
+            (e = u(e, /\[collapse(?:=(.+?))?](.+?)\[\/collapse]/g, `<details><summary>$1</summary>$2</details>`)),
+            (e = u(e, /\[quote](.+?)\[\/quote]/g, `<blockquote>$1</blockquote>`)
+                .replaceAll(/\[@(.+?)]/g, `<a href="https://nga.178.com/nuke.php?func=ucp&username=$1">@$1</a>`)
+                .replaceAll(/\[uid=(\d+)](.+?)\[\/uid]/g, `<a href="https://nga.178.com/nuke.php?func=ucp&uid=$1">@$2</a>`)
+                .replaceAll(/\[tid=(\d+)](.+?)\[\/tid]/g, `<a href="https://nga.178.com/read.php?tid=$1">$2</a>`)
+                .replaceAll(/\[pid=(\d+),(\d+),(\d+)](.+?)\[\/pid]/g, (e, t, n, r, i) => `<a href="${`https://nga.178.com/read.php?tid=${n}&page=${r}#pid${t}Anchor`}">${i}</a>`)),
+            (e = e.replaceAll(/\[url=(.+?)](.+?)\[\/url]/g, `<a href="$1">$2</a>`)),
+            (e = e.replaceAll(/\[h](.+?)\[\/h]/g, `<h4 style="font-size:1.17em;font-weight:bold;border-bottom:1px solid #aaa;clear:both;margin:1.33em 0 0.2em 0;">$1</h4>`)),
+            e
+        ),
+        f = o.req.param(`tid`),
+        p = o.req.param(`authorId`) || void 0,
+        m = await l(f, p),
+        h = await c(f, p, m),
+        g = h(`title`).text() || ``,
+        _ = JSON.parse(
+            h(`script`)
+                .text()
+                .match(/commonui\.userInfo\.setAll\((.*)\)$/m)[1]
+        ),
+        v = p ? _[p].username : void 0,
+        y = h(`#m_posts_c`)
+            .children()
+            .filter(`table`)
+            .toArray()
+            .map((e) => {
+                let n = h(e),
+                    a = n
+                        .find(`.posterinfo a`)
+                        .first()
+                        .attr(`href`)
+                        .match(/&uid=(-?\d+)$/)[1],
+                    o = v || _[a].username,
+                    c = n.find(`.postcontent`).first(),
+                    l = d(c.html()),
+                    u = c.attr(`id`),
+                    g = s(f, p, m, u),
+                    y = r(t(n.find(`.postInfo > span`).first().text(), `YYYY-MM-DD HH:mm`), 8);
+                return { title: i(l).text(), author: o, link: g, description: l, pubDate: y, guid: u };
+            });
+    return { title: v ? `NGA ${v} ${g}` : `NGA ${g}`, link: s(f, p, m), item: y };
+}
+export { o as route };

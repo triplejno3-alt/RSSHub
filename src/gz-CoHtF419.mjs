@@ -1,0 +1,22 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = { gzyw: `gzyw`, jrtt: `jrtt`, tzgg: `tzgg`, zcjd: `zcjd/zcjd` },
+    i = { path: `/gz/:channel/:category`, name: `Unknown`, maintainers: [], handler: a };
+async function a(i) {
+    let a = `https://www.gz.gov.cn/${i.req.param(`channel`)}/${r[i.req.param(`category`)]}/`,
+        o = n((await t(a)).data),
+        s = o(`.news_list li`)
+            .toArray()
+            .map((t) => {
+                t = o(t);
+                let n = t.find(`a`).attr(`href`);
+                return { title: t.find(`a`).attr(`title`), link: n, pubDate: e(t.find(`span`).text()) };
+            });
+    return { title: `广州市人民政府 - ${o(`.main_title`).text()}`, link: a, item: s };
+}
+export { i as route };

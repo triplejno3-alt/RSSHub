@@ -1,0 +1,4 @@
+var e = class extends Error {
+    name = `NotFoundError`;
+};
+export { e as t };

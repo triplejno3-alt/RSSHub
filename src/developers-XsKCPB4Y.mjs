@@ -1,0 +1,50 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { load as n } from 'cheerio';
+const r = `https://developers.googleblog.com`,
+    i = {
+        path: `/developers/:locale?`,
+        name: `Developers Blog`,
+        url: `developers.googleblog.com`,
+        maintainers: [`Loongphy`],
+        handler: a,
+        example: `/google/developers/en`,
+        parameters: {
+            locale: {
+                description: `language`,
+                default: `en`,
+                options: [
+                    { value: `en`, label: `English` },
+                    { value: `es`, label: `Español (Latam)` },
+                    { value: `id`, label: `Bahasa Indonesia` },
+                    { value: `ja`, label: `日本語` },
+                    { value: `ko`, label: `한국어` },
+                    { value: `pt-br`, label: `Português (Brasil)` },
+                    { value: `zh-hans`, label: `简体中文` },
+                ],
+            },
+        },
+        description: `Google Developers Blog`,
+        categories: [`blog`],
+        radar: [{ source: [`developers.googleblog.com`] }],
+    };
+async function a(i) {
+    let a = n(await e(`${r}/${i.req.param(`locale`) ?? `en`}/search`));
+    return {
+        title: `Google Developers Blog`,
+        link: r,
+        item: a(`.search-result`)
+            .toArray()
+            .map((e) => {
+                let [n, i] = a(e).find(`.search-result__eyebrow`).text().trim().split(` / `),
+                    o = a(e).find(`.search-result__title a`),
+                    s = o.text().trim(),
+                    c = o.attr(`href`),
+                    l = a(e).find(`.search-result__summary`).text().trim();
+                return { title: s, link: `${r}${c}`, pubDate: t(n), description: l, author: `Google`, category: [i] };
+            }),
+    };
+}
+export { i as route };

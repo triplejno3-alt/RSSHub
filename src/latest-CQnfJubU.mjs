@@ -1,0 +1,63 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { load as r } from 'cheerio';
+import i from 'dayjs';
+const a = {
+    path: `/latest`,
+    categories: [`reading`],
+    view: n.Articles,
+    example: `/yilinzazhi/latest`,
+    radar: [{ source: [`www.yilinzazhi.com`], target: `/` }],
+    name: `近期文章汇总`,
+    maintainers: [`g0ngjie`],
+    handler: o,
+    url: `www.yilinzazhi.com`,
+    description: `最近一期的文章汇总`,
+};
+async function o() {
+    let n = `https://www.yilinzazhi.com/`,
+        a = r((await t(n)).data),
+        o = i().year(),
+        s = a(
+            a(`.year-section`)
+                .toArray()
+                .find((e) =>
+                    a(e)
+                        .find(`.year-title`)
+                        .text()
+                        .includes(o + ``)
+                )
+        )
+            .find(`a`)
+            .toArray()
+            .map((e) => {
+                let t = a(e);
+                return { link: n + t.attr(`href`), title: t.text() };
+            })[0],
+        c = (
+            await e.tryGet(s.link, async () => {
+                let e = r((await t(s.link)).data);
+                return e(`.maglistbox dl`)
+                    .toArray()
+                    .map((t) => ({
+                        title: e(t).find(`dt span`).text(),
+                        tables: e(t)
+                            .find(`a`)
+                            .toArray()
+                            .map((t) => {
+                                let r = e(t).attr(`href`),
+                                    i = o + r.slice(4, 5);
+                                return { title: e(t).text(), link: `${n}${o}/yl${i}/${r}` };
+                            }),
+                    }));
+            })
+        ).flatMap((e) => e.tables),
+        l = await Promise.all(c.map(async (n) => await e.tryGet(n.link, async () => ((n.description = r((await t(n.link)).data)(`.blkContainerSblk.collectionContainer`).html()), n))));
+    return { title: `意林 - 近期文章汇总`, link: s.link, item: l };
+}
+export { a as route };

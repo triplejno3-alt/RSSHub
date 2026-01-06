@@ -1,0 +1,37 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/:id?`,
+    categories: [`study`],
+    example: `/camchina`,
+    parameters: { id: `分类，见下表，默认为 1，即新闻` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`cste.org.cn/categories/:id`, `cste.org.cn/`] }],
+    name: `栏目`,
+    maintainers: [`nczitzk`],
+    handler: i,
+    description: `| 新闻 | 通告栏 |
+| ---- | ------ |
+| 1    | 2      |`,
+};
+async function i(r) {
+    let i = r.req.param(`id`) ?? `1`,
+        a = r.req.query(`limit`) ? Number.parseInt(r.req.query(`limit`)) : 50,
+        o = `http://www.camchina.org.cn`,
+        s = `${o}/categories/${i}`,
+        c = n((await t({ method: `get`, url: s })).data),
+        l = c(`.M-main-l p a`)
+            .slice(0, a)
+            .toArray()
+            .map((e) => ((e = c(e)), { title: e.text(), link: `${o}${e.attr(`href`)}` }));
+    return (
+        (l = await Promise.all(l.map((r) => e.tryGet(r.link, async () => ((r.description = n((await t({ method: `get`, url: r.link })).data)(`.content`).html()), r))))),
+        { title: `中国管理现代化研究会 - ${c(`.title_red`).text()}`, link: s, item: l }
+    );
+}
+export { r as route };

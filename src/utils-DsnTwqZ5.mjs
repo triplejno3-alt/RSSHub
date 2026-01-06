@@ -1,0 +1,13 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+const r = `https://www.wellcee.com`,
+    i = () =>
+        n.tryGet(
+            `wellcee:citys`,
+            async () => (await e(`${r}/api/home/index`, { method: `POST`, headers: { 'content-type': `application/x-www-form-urlencoded` }, body: new URLSearchParams({ lang: `1`, userId: ``, type: `1` }).toString() })).data.citys,
+            t.cache.routeExpire,
+            !1
+        ),
+    a = (i) => n.tryGet(`wellcee:city:${i}`, async () => (await e(`${r}/api/house/filterType`, { query: { cityId: i, lang: `1` } })).data.district, t.cache.routeExpire, !1);
+export { i as n, a as r, r as t };

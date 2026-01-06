@@ -1,0 +1,88 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+import { raw as l } from 'hono/html';
+const u = {
+    path: `/programs`,
+    categories: [`shopping`],
+    example: `/shcstheatre/programs`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.shcstheatre.com/Program/programList.aspx`] }],
+    name: `节目列表`,
+    maintainers: [`fuzy112`],
+    handler: d,
+    url: `www.shcstheatre.com/Program/programList.aspx`,
+};
+async function d() {
+    let u = `https://www.shcstheatre.com/Program/programList.aspx`,
+        d = s((await n.get(u)).data),
+        f = `https://www.shcstheatre.com`,
+        p = (e) =>
+            e
+                ?.split(`;`)
+                .map((e) => e.trim())
+                .filter(Boolean) ?? [],
+        m = (e) => {
+            let {
+                SCS_PC_YMXQ_PIC: t,
+                SCS_WEBPERCYCLE: n,
+                SCS_EINLASSNAME: r,
+                SCS_PERFORMANCE_TYPENAME: s,
+                SCS_LENGTH: u,
+                SCS_PERLANGUAGENAME: d,
+                SCS_PC_LUNBO_YCJS_EDITOR: m,
+                SCS_PC_LUNBO_YCJS_PIC: h,
+                SCS_PC_LUNBO_ZCTD_EDITOR: g,
+                SCS_PC_LUNBO_ZCTD_PIC: _,
+                SCS_PC_LUNBO_JQGG_EDITOR: v,
+                SCS_PC_LUNBO_JQGG_PIC: y,
+                SCS_PC_LUNBO_HJJL_EDITOR: b,
+                SCS_PC_LUNBO_HJJL_PIC: x,
+                SCS_PC_LUNBO_MTPL_EDITOR: S,
+                SCS_PC_LUNBO_MTPL_PIC: C,
+            } = e;
+            return c(
+                o(`div`, {
+                    children: [
+                        p(t).map((e) => a(`img`, { src: `${f}${e}` })),
+                        o(`ul`, {
+                            children: [
+                                o(`li`, { children: [`演出日期：`, n] }),
+                                o(`li`, { children: [`入场时间：`, r] }),
+                                o(`li`, { children: [`演出类型：`, s] }),
+                                o(`li`, { children: [`演出时长：`, u, `分钟`] }),
+                                o(`li`, { children: [`演出语言：`, d] }),
+                            ],
+                        }),
+                        m ? o(i, { children: [a(`h1`, { children: `演出介绍` }), p(h).map((e) => a(`img`, { src: `${f}${e}` })), a(`div`, { children: l(m) })] }) : null,
+                        g ? o(i, { children: [a(`h1`, { children: `主创团队` }), p(_).map((e) => a(`img`, { src: `${f}${e}` })), a(`div`, { children: l(g) })] }) : null,
+                        v ? o(i, { children: [a(`h1`, { children: `剧情梗概` }), p(y).map((e) => a(`img`, { src: `${f}${e}` })), a(`div`, { children: l(v) })] }) : null,
+                        b ? o(i, { children: [a(`h1`, { children: `获奖记录` }), p(x).map((e) => a(`img`, { src: `${f}${e}` })), a(`div`, { children: l(b) })] }) : null,
+                        S ? o(i, { children: [a(`h1`, { children: `媒体评论` }), p(C).map((e) => a(`img`, { src: `${f}${e}` })), a(`div`, { children: l(S) })] }) : null,
+                    ],
+                })
+            );
+        },
+        h = await Promise.all(
+            d(`#datarow .program-name a`).map((i, a) => {
+                let o = new URL(d(a).attr(`href`), u);
+                return e.tryGet(o.toString(), async () => {
+                    let e = o.searchParams.get(`id`),
+                        i = (await n.post(`https://www.shcstheatre.com/webapi.ashx?op=GettblprogramCache`, { headers: { 'Content-Type': `application/x-www-form-urlencoded; charset=UTF-8` }, form: { id: e } })).data.data
+                            .tblprogram[0];
+                    return { title: i.SCS_WEB_BRIEFNAME, link: o.toString(), description: m(i), pubDate: r(t(i.SJ_DATE_PC), 8) };
+                });
+            })
+        );
+    return { title: `上海文化广场 - 节目列表`, link: u, image: d(`.menu-logo img`).attr(`src`), item: h };
+}
+export { u as route };

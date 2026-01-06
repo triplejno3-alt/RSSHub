@@ -1,0 +1,49 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { renderToString as o } from 'hono/jsx/dom/server';
+const s = `https://manhua.fffdm.com`,
+    c = async (e) => {
+        let r = (await n(e)).data;
+        return { comicTitle: r.mhinfo.title, chapterTitle: r.title, pics: r.cont, pubDate: t(r.mh.time) };
+    },
+    l = {
+        path: `/manhua/:id/:cdn?`,
+        categories: [`anime`],
+        example: `/fffdm/manhua/93`,
+        parameters: { id: `漫画ID。默认获取全部，建议使用通用参数limit获取指定数量`, cdn: `cdn加速器。默认5，当前可选1-5` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`www.fffdm.com/manhua/:id`, `www.fffdm.com/:id`], target: `/manhua/:id` }],
+        name: `在线漫画`,
+        maintainers: [`zytomorrow`],
+        handler: u,
+    };
+async function u(t) {
+    let l = t.req.param(`id`),
+        u = t.req.query(`limit`) || 99999,
+        d = t.req.param(`cdn`) || 5,
+        f = !Number.isNaN(Number.parseInt(d)) && 1 <= Number.parseInt(d) && Number.parseInt(d) <= 5 ? `https://p${d}.fzacg.com` : `https://p5.fzacg.com`,
+        p = (await n(`${s}/api/manhua/${l}`)).data,
+        m = await Promise.all(
+            p.mhlist.splice(0, u).map((t) => {
+                let n = `${s}/api/manhua/${l}/${t.url}`;
+                return e.tryGet(n, async () => {
+                    let e = await c(n);
+                    return {
+                        title: e.chapterTitle,
+                        description: o(i(`div`, { children: e.pics.map((e) => a(r, { children: [i(`img`, { src: `${f}/${e}` }), i(`br`, {})] })) })),
+                        link: `${s}/${l}/${t.url}/`,
+                        comicTitle: e.comicTitle,
+                        pubDate: e.pubDate,
+                    };
+                });
+            })
+        );
+    return { title: `风之动漫 - ` + m[0].comicTitle, link: `${s}/${l}`, description: `风之动漫`, item: m };
+}
+export { l as route };

@@ -1,0 +1,61 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { load as r } from 'cheerio';
+const i = `https://scai.swjtu.edu.cn`,
+    a = {
+        path: `/scai/:type`,
+        categories: [`university`],
+        example: `/swjtu/scai/bks`,
+        parameters: { type: `通知类型` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`scai.swjtu.edu.cn/`] }],
+        name: `计算机与人工智能学院`,
+        description: `
+| 分区              | 参数         |
+| ----------------- | ----------- |
+| 本科生教育         | bks         |
+| 研究生教育         | yjs         |
+| 学生工作           | xsgz        |
+`,
+        maintainers: [`AzureG03`, `SuperJeason`],
+        handler: c,
+    },
+    o = {
+        bks: { title: `本科生教育`, url: `${i}/web/page-module.html?mid=B730BEB095B31840` },
+        yjs: { title: `研究生教育`, url: `${i}/web/page-module.html?mid=6A69B0E32021446B` },
+        xsgz: { title: `学生工作`, url: `${i}/web/page-module.html?mid=F3D3909EB1861B5D` },
+    },
+    s = (t, a) => {
+        let o = t.find(`a`).text(),
+            s = `${i}${t.find(`a`).attr(`href`).slice(2)}`;
+        return a.tryGet(s, async () => {
+            let i = r(await e(s)),
+                a,
+                c = i(`div.news-info span:nth-of-type(2)`).text();
+            if (((c ||= i(`div.news-top-bar span:nth-of-type(1)`).text()), c)) {
+                let e = c.match(/\d{4}(-|\/|.)\d{1,2}\1\d{1,2}/);
+                if (!e || !e[0]) return null;
+                a = n(e[0]);
+            } else {
+                let e = t.find(`.calendar`),
+                    n = e.find(`.day`).text().trim(),
+                    [r, i] = e.find(`.date`).text().trim().split(`/`),
+                    o = `${r}-${i}-${n.padStart(2, `0`)}`;
+                a = new Date(o);
+            }
+            let l = i(`div.content-main`).html();
+            return ((a ||= new Date(`2025-04-12`)), { title: o, pubDate: a, link: s, description: l });
+        });
+    };
+async function c(n) {
+    let { type: i } = n.req.param(),
+        a = o[i].url,
+        c = r(await e(a)),
+        l = c(`div.list-top-item, div.item-wrapper`),
+        u = await Promise.all(l.toArray().map((e) => s(c(e), t)));
+    return { title: `西南交大计院-${o[i].title}`, link: a, item: u, allowEmpty: !0 };
+}
+export { a as route };

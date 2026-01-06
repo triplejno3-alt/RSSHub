@@ -1,0 +1,48 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/cg/:caty?`,
+    categories: [`university`],
+    example: `/cas/cg/cgzhld`,
+    parameters: { caty: `分类，见下表，默认为工作动态` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.cas.cn/cg/:caty?`] }],
+    name: `成果转化`,
+    maintainers: [`nczitzk`],
+    handler: o,
+    description: `| 工作动态 | 科技成果转移转化亮点工作 |
+| -------- | ------------------------ |
+| zh       | cgzhld                   |`,
+};
+async function o(a) {
+    let o = a.req.param(`caty`) || `zh`,
+        s = `https://www.cas.cn`,
+        c = `${s}/cg/${o}/`,
+        l = i((await n({ method: `get`, url: c })).data),
+        u = l(`#content li`)
+            .not(`.gl_line`)
+            .slice(0, 15)
+            .toArray()
+            .map((e) => {
+                e = l(e);
+                let t = e.find(`a`);
+                return { title: t.text(), link: `${s}/cg/${o}${t.attr(`href`).replace(`.`, ``)}` };
+            }),
+        d = await Promise.all(
+            u.map((a) =>
+                e.tryGet(a.link, async () => {
+                    let e = i((await n({ method: `get`, url: a.link })).data);
+                    return ((a.description = e(`.TRS_Editor`).html()), (a.pubDate = r(t(e(`meta[name="PubDate"]`).attr(`content`)), 8)), a);
+                })
+            )
+        );
+    return { title: l(`title`).text().replace(`----`, ` - `), link: c, item: d };
+}
+export { a as route };

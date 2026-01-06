@@ -1,0 +1,31 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+import r from 'iconv-lite';
+const i = `http://t.imop.com`,
+    a = { path: `/tianshu`, categories: [`game`], example: `/imop/tianshu`, radar: [{ source: [`t.imop.com`], target: `/tianshu` }], name: `全部消息`, maintainers: [`zhkgo`], handler: o };
+async function o() {
+    let { data: a } = await t(`${i}/list/0-1.htm`, { responseType: `buffer` }),
+        o = n(r.decode(a, `gbk`)),
+        s = o(`.right .right_top .right_bot .list2 .ul1 ul`)
+            .toArray()
+            .map((e) => {
+                e = o(e);
+                let t = e.find(`a`).attr(`href`);
+                return { title: e.find(`a`).text(), link: t.startsWith(`http`) ? t : `${i}${t}` };
+            }),
+        c = await Promise.all(
+            s.map((i) =>
+                e.tryGet(i.link, async () => {
+                    let { data: e } = await t(i.link, { responseType: `buffer` });
+                    return ((i.description = n(r.decode(e, `gbk`))(`.right .right_top .right_bot .articlebox`).html()), i);
+                })
+            )
+        );
+    return { title: `天书最新消息`, link: `${i}/list/0-1.htm`, item: c };
+}
+export { a as route };

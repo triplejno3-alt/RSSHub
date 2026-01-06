@@ -1,0 +1,36 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+const n = { 早报: `ifanrnews`, 评测: `review`, 糖纸众测: `tangzhi-evaluation`, 产品: `product` },
+    r = {
+        path: `/category/:name`,
+        categories: [`new-media`],
+        example: `/ifanr/category/早报`,
+        parameters: { name: { description: `分类名称`, options: Object.keys(n).map((e) => ({ value: e, label: e })) } },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`www.ifanr.com/category/:name`] }],
+        name: `分类`,
+        maintainers: [`donghongfei`],
+        handler: i,
+        description: `支持分类：早报、评测、糖纸众测、产品`,
+    };
+async function i(r) {
+    let i = r.req.param(`name`),
+        a = await t({ method: `get`, url: `https://sso.ifanr.com/api/v5/wp/article/?post_category=${encodeURIComponent(decodeURIComponent(i))}&limit=20&offset=0` }),
+        o = await Promise.all(
+            a.data.objects.map((t) => {
+                let n = ``,
+                    r = t.post_cover_image;
+                return (
+                    r && (n = `<img src="${r}" alt="Article Cover Image" style="display: block; margin: 0 auto;"><br>`),
+                    (n += t.post_content),
+                    { title: t.post_title.trim(), description: n, link: t.post_url, pubDate: e(t.published_at * 1e3), author: t.created_by.name }
+                );
+            })
+        );
+    return { title: `#${i} - iFanr 爱范儿`, link: `https://www.ifanr.com/category/${n[i]}`, description: `${i} 更新推送`, item: o };
+}
+export { r as route };

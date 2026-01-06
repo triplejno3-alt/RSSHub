@@ -1,0 +1,85 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { t as i } from './config-not-found-DGyG6Tbz.mjs';
+import { i as a, n as o, r as s, t as c } from './utils-BI_C1viF.mjs';
+import l from 'query-string';
+function u(e, t) {
+    return s(`https://app-api.pixiv.net/v1/search/illust`, { headers: { ...a, Authorization: `Bearer ` + t }, searchParams: l.stringify({ word: e, search_target: `partial_match_for_tags`, sort: `date_desc`, filter: `for_ios` }) });
+}
+function d(e, t) {
+    return s(`https://app-api.pixiv.net/v1/search/popular-preview/illust`, { headers: { ...a, Authorization: `Bearer ` + t }, searchParams: l.stringify({ word: e, search_target: `partial_match_for_tags`, filter: `for_ios` }) });
+}
+const f = {
+    path: `/search/:keyword/:order?/:mode?/:include_ai?`,
+    categories: [`social-media`],
+    view: r.Pictures,
+    example: `/pixiv/search/Nezuko/popular`,
+    parameters: {
+        keyword: `keyword`,
+        order: {
+            description: `rank mode, empty or other for time order, popular for popular order`,
+            default: `date`,
+            options: [
+                { label: `time order`, value: `date` },
+                { label: `popular order`, value: `popular` },
+            ],
+        },
+        mode: {
+            description: `filte R18 content`,
+            default: `no`,
+            options: [
+                { label: `only not R18`, value: `safe` },
+                { label: `only R18`, value: `r18` },
+                { label: `no filter`, value: `no` },
+            ],
+        },
+        include_ai: {
+            description: `whether AI-generated content is included`,
+            default: `yes`,
+            options: [
+                { label: `does not include AI-generated content`, value: `no` },
+                { label: `include AI-generated content`, value: `yes` },
+            ],
+        },
+    },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+    name: `Keyword`,
+    maintainers: [`DIYgod`],
+    handler: p,
+};
+async function p(r) {
+    if (!e.pixiv || !e.pixiv.refreshToken) throw new i(`pixiv RSS is disabled due to the lack of <a href="https://docs.rsshub.app/deploy/config#route-specific-configurations">relevant config</a>`);
+    let a = r.req.param(`keyword`),
+        s = r.req.param(`order`) || `date`,
+        l = r.req.param(`mode`),
+        f = r.req.param(`include_ai`),
+        p = await o(t.tryGet);
+    if (!p) throw new i(`pixiv not login`);
+    let m = (await (s === `popular` ? d(a, p) : u(a, p))).data.illusts;
+    return (
+        l === `safe` || l === `1` ? (m = m.filter((e) => e.x_restrict === 0)) : (l === `r18` || l === `2`) && (m = m.filter((e) => e.x_restrict === 1)),
+        (f === `no` || f === `0`) && (m = m.filter((e) => e.illust_ai_type <= 1)),
+        {
+            title: `${a} 的 pixiv ${s === `popular` ? `热门` : ``}内容`,
+            link: `https://www.pixiv.net/tags/${a}/artworks`,
+            item: m.map((e) => {
+                let t = c.getImgs(e);
+                return {
+                    title: e.title,
+                    author: e.user.name,
+                    pubDate: n(e.create_date),
+                    description: `${e.caption}<br><p>画师：${e.user.name} - 阅览数：${e.total_view} - 收藏数：${e.total_bookmarks}</p>${t.join(``)}`,
+                    link: `https://www.pixiv.net/artworks/${e.id}`,
+                };
+            }),
+            allowEmpty: !0,
+        }
+    );
+}
+export { f as route };

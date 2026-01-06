@@ -1,0 +1,27 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+const t = {
+    path: `/edge/addon/:crxid`,
+    categories: [`program-update`],
+    example: `/microsoft/edge/addon/gangkeiaobmjcjokiofpkfpcobpbmnln`,
+    parameters: { crxid: `Addon id, can be found in addon url` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`microsoftedge.microsoft.com/addons/detail/:name/:crxid`] }],
+    name: `Addons Update`,
+    maintainers: [`hoilc`, `DIYgod`],
+    handler: n,
+};
+async function n(t) {
+    let n = t.req.param(`crxid`),
+        r = `https://microsoftedge.microsoft.com/addons/detail/${n}`,
+        i = await e(`https://microsoftedge.microsoft.com/addons/getproductdetailsbycrxid/${n}?hl=en`, { headers: { Referer: r } });
+    return {
+        title: `${i.name} - Microsoft Edge Addons`,
+        description: i.shortDescription,
+        image: `https:${i.logoUrl}`,
+        link: r,
+        item: [{ title: `v` + i.version, author: i.developer, description: i.description, pubDate: new Date(i.lastUpdateDate * 1e3), guid: `edge::${n}::${i.version}`, link: r }],
+    };
+}
+export { t as route };

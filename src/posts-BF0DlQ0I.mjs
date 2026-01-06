@@ -1,0 +1,45 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './config-not-found-DGyG6Tbz.mjs';
+import { i as r, t as i } from './readable-social--hCfpJhv.mjs';
+import { t as a } from './utils-B4OQ_Kb9.mjs';
+const o = {
+    path: `/posts/:blog`,
+    categories: [`blog`],
+    example: `/tumblr/posts/biketouring-nearby`,
+    parameters: { blog: 'Blog identifier (see `https://www.tumblr.com/docs/en/api/v2#blog-identifiers`)' },
+    radar: [],
+    features: {
+        requireConfig: [
+            { name: `TUMBLR_CLIENT_ID`, description: `Please see above for details.` },
+            { name: `TUMBLR_CLIENT_SECRET`, description: `Please see above for details.` },
+            { name: `TUMBLR_REFRESH_TOKEN`, description: `Please see above for details.` },
+        ],
+        requirePuppeteer: !1,
+        antiCrawler: !1,
+        supportBT: !1,
+        supportPodcast: !1,
+        supportScihub: !1,
+    },
+    name: `Posts`,
+    maintainers: [`Rakambda`, `PolarisStarnor`],
+    description: `::: tip
+Tumblr provides official RSS feeds for non "dashboard only" blogs, for instance [https://biketouring-nearby.tumblr.com](https://biketouring-nearby.tumblr.com/rss).
+:::`,
+    handler: s,
+};
+async function s(o) {
+    if (!e.tumblr || !e.tumblr.clientId) throw new n(`Tumblr RSS is disabled due to the lack of <a href="https://docs.rsshub.app/deploy/config#route-specific-configurations">relevant config</a>`);
+    let s = o.req.param(`blog`),
+        c = i(void 0, r(o.req.query(`limit`)), 20),
+        l = await t.get(`https://api.tumblr.com/v2/blog/${s}/posts`, { searchParams: { api_key: a.generateAuthParams(), limit: c }, headers: await a.generateAuthHeaders() }),
+        u = l.data.response.blog,
+        d = l.data.response.posts.map((e) => a.processPost(e));
+    return { title: `Tumblr - ${s} - Posts`, author: u?.name, link: u?.url ?? `https://${s}/`, item: d, allowEmpty: !0, image: u?.avatar?.slice(-1)?.url, description: u?.description };
+}
+export { o as route };

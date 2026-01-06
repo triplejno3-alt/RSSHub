@@ -1,0 +1,132 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { Fragment as i, jsx as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+import { raw as c } from 'hono/html';
+const l = {
+    ggtz: { url: `https://www.hafu.edu.cn/index/ggtz.htm`, root: `https://www.hafu.edu.cn/`, title: `河南财院 - 公告通知`, parseFn: m },
+    jwc: { url: `https://jwc.hafu.edu.cn/tzgg.htm`, root: `https://jwc.hafu.edu.cn/`, title: `河南财院 教务处 - 公告通知`, parseFn: h },
+    zsjyc: { url: `https://zsjyc.hafu.edu.cn/tztg.htm`, root: `https://zsjyc.hafu.edu.cn/`, title: `河南财院 招生就业处 - 公告通知`, parseFn: g },
+};
+let u = 10;
+var d = async (e, t) => {
+    let r = l[t].url,
+        i = l[t].title,
+        a = o((await n(r)).data);
+    return ((u = e.req.query(`limit`) || u), { title: i, link: r, resultList: await l[t].parseFn(e, a) });
+};
+async function f(e, t, r) {
+    let l = ``,
+        u = ``;
+    try {
+        l = o((await n(t)).data);
+        let e = l(`div[class=v_news_content]`).html();
+        (l(`[id^=nattach]`).length !== 0 && (e = p(l, e, r)), (u = e ? s(a(i, { children: c(e) })) : ``));
+    } catch {
+        u = e;
+    }
+    return { articleData: l, description: u };
+}
+function p(e, t, n) {
+    return (
+        n === `ggtz`
+            ? e(`[id^=nattach]`)
+                  .prev()
+                  .map((n, r) => {
+                      let i = e(r).attr(`href`).slice(1),
+                          a = l.ggtz.root + i,
+                          o = e(r).text();
+                      return ((t += `<br/>`), (t += `<a href=${a}>${o}</a>`), null);
+                  })
+            : e(`[id^=nattach]`)
+                  .parent()
+                  .prev()
+                  .map((r, i) => {
+                      let a = e(i).find(`a`).attr(`href`).slice(1),
+                          o = l[n].root + a,
+                          s = e(i).find(`a`).find(`span`).text();
+                      return ((t += `<br/>`), (t += `<a href=${o}> ${s} </a>`), null);
+                  }),
+        t
+    );
+}
+async function m(n, i) {
+    let a = i(`a[class=c269582]`).parent().slice(0, u);
+    return await Promise.all(
+        a.toArray().map(async (n) => {
+            let a = i(n).find(`a[class=c269582]`).attr(`href`).slice(3),
+                o = l.ggtz.root + a,
+                s = i(n).find(`a[class=c269582]`).attr(`title`);
+            return await e.tryGet(o, async () => {
+                let { articleData: e, description: c } = await f(a, o, `ggtz`),
+                    l = ``,
+                    u = ``;
+                if (typeof e == `function`) {
+                    let n = e(`h1`).next().text(),
+                        r = n.indexOf(`日期`);
+                    ((l = n.slice(0, r - 2) || ``), (u = t(n.substring(r + 3, r + 19), `YYYY-MM-DD HH:mm`)));
+                } else u = t(i(n).find(`a[class=c269582_date]`).text(), `YYYY-MM-DD`);
+                return { title: s, description: c, pubDate: r(u, 8), link: o, author: l };
+            });
+        })
+    );
+}
+async function h(n, i) {
+    let a = i(`a[class=c259713]`).parent().parent().slice(0, u);
+    return await Promise.all(
+        a.toArray().map(async (n) => {
+            let a = i(n).find(`a[class=c259713]`).attr(`href`),
+                o = l.jwc.root + a,
+                s = i(n).find(`a[class=c259713]`).attr(`title`),
+                c = t(i(n).find(`span[class=timestyle259713]`).text(), `YYYY/MM/DD`);
+            return await e.tryGet(o, async () => {
+                let { articleData: e, description: t } = await f(a, o, `jwc`),
+                    n = ``;
+                return (typeof e == `function` && (n = e(`span[class=authorstyle259690]`).text()), { title: s, description: t, pubDate: r(c, 8), link: o, author: `供稿单位：` + n });
+            });
+        })
+    );
+}
+async function g(n, i) {
+    let a = i(`a[class=c127701]`).parent().parent().slice(0, u);
+    return await Promise.all(
+        a.toArray().map(async (n) => {
+            let a = i(n).find(`a[class=c127701]`).attr(`href`),
+                o = l.zsjyc.root + a,
+                s = i(n).find(`a[class=c127701]`).attr(`title`);
+            return await e.tryGet(o, async () => {
+                let { articleData: e, description: c } = await f(a, o, `zsjyc`),
+                    l = ``;
+                return (
+                    (l = typeof e == `function` ? t(e(`span[class=timestyle127702]`).text(), `YYYY-MM-DD HH:mm`) : t(i(n).find(`a[class=c269582_date]`).text(), `YYYY-MM-DD`)),
+                    { title: s, description: c, pubDate: r(l, 8), link: o, author: `供稿单位：招生就业处` }
+                );
+            });
+        })
+    );
+}
+const _ = {
+    path: `/news/:type?`,
+    categories: [`university`],
+    example: `/hafu/news/ggtz`,
+    parameters: { type: '分类，见下表（默认为 `ggtz`)' },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `河南财政金融学院`,
+    maintainers: [],
+    handler: v,
+    description: `| 校内公告通知 | 教务处公告通知 | 招生就业处公告通知 |
+| ------------ | -------------- | ------------------ |
+| ggtz         | jwc            | zsjyc              |`,
+};
+async function v(e) {
+    let { link: t, title: n, resultList: r } = await d(e, e.req.param(`type`) ?? `ggtz`);
+    return { title: n, link: t, description: `河南财政金融学院 - 公告通知`, item: r };
+}
+export { _ as route };

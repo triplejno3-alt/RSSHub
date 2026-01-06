@@ -1,0 +1,56 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/:id?`,
+    categories: [`new-media`],
+    example: `/cdi`,
+    parameters: { id: `分类，见下表，默认为综研国策` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `栏目`,
+    maintainers: [`nczitzk`],
+    handler: o,
+    description: `| 樊纲观点 | 综研国策 | 综研观察 | 综研专访 | 综研视点 | 银湖新能源 |
+| -------- | -------- | -------- | -------- | -------- | ---------- |
+| 102      | 152      | 150      | 153      | 154      | 151        |`,
+};
+async function o(a) {
+    let o = a.req.param(`id`) ?? `152`,
+        s = `http://www.cdi.com.cn`,
+        c = `${s}/Article/List?ColumnId=${o}`,
+        l = i((await n({ method: `get`, url: c })).data),
+        u = l(`.a-full`)
+            .toArray()
+            .map((e) => ((e = l(e)), { link: `${s}${e.attr(`href`)}` }));
+    return (
+        (u = await Promise.all(
+            u.map((a) =>
+                e.tryGet(a.link, async () => {
+                    let e = i((await n({ method: `get`, url: a.link })).data);
+                    return (
+                        (a.title = e(`h1`).text()),
+                        (a.description = e(`#info`).html()),
+                        (a.pubDate = r(
+                            t(
+                                e(`.head p`)
+                                    .text()
+                                    .match(/时间：(.*)/)[1]
+                                    .replaceAll(/年|月/g, `-`)
+                            ),
+                            8
+                        )),
+                        a
+                    );
+                })
+            )
+        )),
+        { title: `${l(`h1`).text()} - 国家高端智库/综合开发研究院`, link: c, item: u }
+    );
+}
+export { a as route };

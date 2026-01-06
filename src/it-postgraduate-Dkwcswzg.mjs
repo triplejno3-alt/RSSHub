@@ -1,0 +1,37 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/it/postgraduate`,
+    categories: [`university`],
+    example: `/ouc/it/postgraduate`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`it.ouc.edu.cn/_s381/16619/list.psp`, `it.ouc.edu.cn/16619/list.htm`, `it.ouc.edu.cn/`] }],
+    name: `信息科学与工程学院研究生招生通知公告`,
+    maintainers: [`shengmaosu`],
+    handler: i,
+    url: `it.ouc.edu.cn/_s381/16619/list.psp`,
+};
+async function i() {
+    let r = `https://it.ouc.edu.cn/_s381/16619/list.psp`,
+        i = n((await t(r)).data),
+        a = i(`.col_news_list .news_list li`);
+    return {
+        title: `中国海洋大学信息科学与工程学院`,
+        link: r,
+        description: `中国海洋大学信息科学与工程学院研究生招生通知公告`,
+        item:
+            a &&
+            a.toArray().map((t) => {
+                t = i(t);
+                let n = t.find(`a`);
+                return { title: n.attr(`title`), link: new URL(n.attr(`href`), r).href, pubDate: e(t.find(`span`).text(), `YYYY-MM-DD`) };
+            }),
+    };
+}
+export { r as route };

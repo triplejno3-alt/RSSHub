@@ -1,0 +1,96 @@
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { load as i } from 'cheerio';
+import { connect as a } from 'puppeteer-real-browser';
+const o = { args: [`--start-maximized`], turnstile: !0, headless: !1, customConfig: { chromePath: e.chromiumExecutablePath }, connectOption: { defaultViewport: null }, plugins: [] };
+async function s(t, n, r) {
+    try {
+        if (r) {
+            let e = r.page;
+            await e.goto(t, { timeout: 3e4 });
+            let i = null,
+                a = Date.now();
+            for (; !i && Date.now() - a < 3e4; ) ((i = await e.evaluate((e) => (document.querySelector(e) ? !0 : null), n).catch(() => null)), await new Promise((e) => setTimeout(e, 1e3)));
+            return await e.content();
+        } else return (await (await fetch(`${e.puppeteerRealBrowserService}?url=${encodeURIComponent(t)}&selector=${encodeURIComponent(n)}`)).json()).data?.at(0) || ``;
+    } catch {
+        return ``;
+    }
+}
+const c = {
+    path: `/user/:id/:type?`,
+    categories: [`social-media`],
+    example: `/picnob/user/xlisa_olivex`,
+    parameters: { id: `Instagram id`, type: `Type of profile page (profile or tagged)` },
+    features: { requireConfig: !1, requirePuppeteer: !0, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [
+        { source: [`www.pixnoy.com/profile/:id`], target: `/user/:id` },
+        { source: [`www.pixnoy.com/profile/:id/tagged`], target: `/user/:id/tagged` },
+    ],
+    name: `User Profile - Pixnoy`,
+    maintainers: [`TonyRL`, `micheal-death`, `AiraNadih`, `DIYgod`, `hyoban`, `Rongronggg9`],
+    handler: l,
+    view: r.Pictures,
+};
+async function l(r) {
+    if (!e.puppeteerRealBrowserService && !e.chromiumExecutablePath) throw Error(`PUPPETEER_REAL_BROWSER_SERVICE or CHROMIUM_EXECUTABLE_PATH is required to use this route.`);
+    let c = `https://www.pixnoy.com`,
+        l = r.req.param(`id`),
+        u = r.req.param(`type`) ?? `profile`,
+        d = `${c}/profile/${l}/${u === `tagged` ? `tagged/` : ``}`,
+        f = null;
+    e.puppeteerRealBrowserService ||
+        ((f = await a(o)),
+        setTimeout(async () => {
+            f && (await f.browser.close());
+        }, 6e4));
+    let p = await s(d, `.post_box`, f);
+    if (!p) throw ((f &&= (await f.browser.close(), null)), Error(`Failed to fetch user profile page. User may not exist or there are no posts available.`));
+    let m = i(p),
+        h = m(`.post_box`)
+            .toArray()
+            .map((e) => {
+                let t = m(e),
+                    r = t.find(`.cover_link`).attr(`href`),
+                    i = r?.split(`/`)?.[2],
+                    a = t.find(`.cover .cover_link img`),
+                    o = a.attr(`alt`) || ``;
+                return { title: o, description: `<img src="${a.attr(`data-src`)}" /><br />${o}`, link: `${c}${r}`, guid: i, pubDate: n(t.find(`.time .txt`).text()) };
+            }),
+        g = h.map((e) => t.tryGet(`picnob:user:${l}:${e.guid}:html`, async () => await s(e.link, `.view`, f))),
+        _ = [];
+    if (f)
+        try {
+            for (let e of g) {
+                let t = await e;
+                _.push(t);
+            }
+        } finally {
+            (await f.browser.close(), (f = null));
+        }
+    else _ = await Promise.all(g);
+    let v = _.map((e) => {
+        if (!e) return ``;
+        let t = i(e);
+        if (t(`.video_img`).length > 0) return `<video src="${t(`.video_img a`).attr(`href`)}" poster="${t(`.video_img img`).attr(`data-src`)}"></video><br />${t(`.sum_full`).text()}`;
+        {
+            let e = ``;
+            for (let n of t(`.pic img`).toArray()) {
+                let r = t(n).attr(`data-src`);
+                r && (e += `<img src="${r}" /><br />`);
+            }
+            return ((e += t(`.sum_full`).text()), e);
+        }
+    });
+    return {
+        title: `${m(`h1.fullname`).text()} (@${l}) ${u === `tagged` ? `tagged` : `public`} posts - Picnob`,
+        description: m(`.info .sum`).text(),
+        link: d,
+        image: m(`.ava .pic img`).attr(`src`),
+        item: h.map((e, t) => ({ ...e, description: v[t] || e.description })),
+    };
+}
+export { c as route };

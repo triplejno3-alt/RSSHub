@@ -1,0 +1,47 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = `https://zhaopin.ucas.ac.cn`,
+    a = { jxkyrc: 3, glzcrc: 4, ktxmpy: 5, bsh: 6 },
+    o = { jxkyrc: `教学科研人才`, glzcrc: `管理支撑人才`, ktxmpy: `课题项目聘用`, bsh: `博士后` },
+    s = {
+        path: `/job/:type?`,
+        categories: [`university`],
+        example: `/ucas/job`,
+        parameters: { type: `招聘类型，默认为博士后` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `招聘信息`,
+        maintainers: [`Fatpandac`],
+        handler: c,
+        description: `| 招聘类型 | 博士后 | 课题项目聘用 | 管理支撑人才 | 教学科研人才 |
+| :------: | :----: | :----------: | :----------: | :----------: |
+|   参数   |   bsh  |    ktxmpy    |    glzcrc    |    jxkyrc    |`,
+    };
+async function c(s) {
+    let c = s.req.param(`type`) ?? `bsh`,
+        l = `${i}/gjob/login.do?method=contentList&t=zhaopin&c=${a[c]}`,
+        u = r((await n.get(l)).data),
+        d = u(`#col1_content > div.list > ul > li`).toArray(),
+        f = await Promise.all(
+            d.map(async (a) => {
+                let o = u(a).find(`a`).attr(`title`),
+                    s = i + u(a).find(`a`).attr(`href`);
+                return {
+                    title: o,
+                    link: s,
+                    pubDate: t(u(a).find(`span`).text()),
+                    description: await e.tryGet(s, async () => {
+                        let e = r((await n.get(s)).data);
+                        return e(`#col1_content > div.content_head > div.top`).html() + e(`#col1_content > div.entry`).html();
+                    }),
+                };
+            })
+        );
+    return { title: `中国科学院大学招聘 - ${o[c]}`, link: l, item: f };
+}
+export { s as route };

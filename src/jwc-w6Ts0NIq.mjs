@@ -1,0 +1,80 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = `https://jwc.njit.edu.cn`,
+    a = {
+        path: `/jwc/:type?`,
+        categories: [`university`],
+        example: `/njit/jwc/jx`,
+        parameters: { type: '默认为 `jx`' },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `南京工程学院教务处`,
+        maintainers: [`zefengdaguo`],
+        handler: o,
+        description: `| 教学 | 考试 | 信息 | 实践 |
+| ---- | ---- | ---- | ---- |
+| jx   | ks   | xx   | sj   |`,
+    };
+async function o(a) {
+    let o = a.req.param(`type`) ?? `jx`,
+        s = i + `/index/` + o + `.htm`,
+        c = r((await n({ method: `get`, url: s, https: { rejectUnauthorized: !1 } })).body),
+        l = c(`body`)
+            .find(`ul li span a`)
+            .map((e) => c(e).attr(`href`)),
+        u = c(`body`)
+            .find(`ul li span a`)
+            .toArray()
+            .map((e) => c(e).attr(`title`)),
+        d = c(`body`)
+            .find(`span.date`)
+            .toArray()
+            .map((e) => c(e).text()),
+        f = await Promise.all(
+            l.map(
+                (a, o) => (
+                    (a = new URL(a, i).href),
+                    a.includes(`.htm`)
+                        ? e.tryGet(a, async () => {
+                              let e = await n({ method: `get`, url: a, https: { rejectUnauthorized: !1 } });
+                              if (e.redirectUrls.length !== 0) return { title: u[o], link: a, description: `该通知无法直接预览, 请点击原文链接↑查看`, pubDate: t(d[o]) };
+                              let s = r(e.body);
+                              return {
+                                  title: s(`title`).text(),
+                                  link: a,
+                                  description: s(`.v_news_content`)
+                                      .html()
+                                      .replaceAll(`src="/`, `src="${new URL(`.`, i).href}`)
+                                      .replaceAll(`href="/`, `href="${new URL(`.`, i).href}`)
+                                      .trim(),
+                                  pubDate: s(`.author p`).eq(1).text().replace(`时间:`, ``),
+                              };
+                          })
+                        : { title: u[o], link: a, description: `该通知为文件，请点击原文链接↑下载`, pubDate: t(d[o]) }
+                )
+            )
+        ),
+        p;
+    switch (o) {
+        case `ks`:
+            p = `考试`;
+            break;
+        case `xx`:
+            p = `信息`;
+            break;
+        case `sj`:
+            p = `实践`;
+            break;
+        case `jx`:
+        default:
+            p = `教学`;
+            break;
+    }
+    return { title: `南京工程学院教务处 -- ` + p, link: s, item: f };
+}
+export { a as route };

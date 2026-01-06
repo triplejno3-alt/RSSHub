@@ -1,0 +1,46 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { URL as r } from 'node:url';
+import { load as i } from 'cheerio';
+const a = `http://www.wzu.edu.cn/index/`,
+    o = { wdxw: `温大新闻`, mtwd: `媒体温大`, xswd: `学术温大`, tzgg: `通知公告`, zbxx: `招标信息`, xsgg: `学术公告` };
+async function s(e) {
+    let t = ``,
+        o = i((await n.get(e)).data, { decodeEntities: !1 });
+    return (
+        o(`img`).attr(`src`, (e, t) => new r(t, a).href),
+        o(`.vsbcontent_video`).each(function () {
+            return (
+                (t = new r(o(this).find(`script`).attr(`vurl`), a).href),
+                o(this)
+                    .html(`<video width="100%" src="` + t + `"></video>`)
+                    .html()
+            );
+        }),
+        o(`div[id^=vsb_content]`).html()
+    );
+}
+const c = { path: `/news/:type?`, name: `Unknown`, maintainers: [`Chandler-Lu`], handler: l };
+async function l(c) {
+    let l = Number.parseInt(c.req.param(`type`)) || 0,
+        [u, d] = Object.entries(o)[l],
+        f = new r(u + `.htm`, a).href,
+        p = i((await n.get(f)).data)(`#News-sidebar-b-nav`).find(`li`);
+    return {
+        title: d,
+        link: f,
+        description: `温州大学 - ` + d,
+        item: p.toArray().map(async (n) => {
+            let o = i(n),
+                c = o(`li>a`),
+                l = new r(c.attr(`href`), a).href;
+            return { title: c.attr(`title`), description: await e.tryGet(l, () => s(l)), pubDate: t(o(`li>samp`).text(), `YYYY-MM-DD`), link: l };
+        }),
+    };
+}
+export { c as route };

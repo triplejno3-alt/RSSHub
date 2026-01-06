@@ -1,0 +1,32 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { i as n, n as r, r as i, t as a } from './utils-d1vF_dke.mjs';
+const o = {
+    path: `/user/:id`,
+    categories: [`social-media`],
+    example: `/vocus/user/tsetyan`,
+    parameters: { id: `用户 id，可在用户主页的 URL 找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `用户个人文章`,
+    maintainers: [`LogicJake`],
+    handler: s,
+};
+async function s(o) {
+    let s = o.req.param(`id`),
+        c = `${i}/user/@${s}`,
+        l = await e.tryGet(`vocus:user:${s}`, async () => {
+            let { data: e } = await t(`${r}/api/users/${s}`, { headers: { referer: c } });
+            return { _id: e._id, fullname: e.fullname, avatarUrl: e.avatarUrl, intro: e.intro };
+        }),
+        {
+            data: { articles: u },
+        } = await t(`${r}/api/articles`, { headers: { referer: c }, searchParams: { userId: l._id } }),
+        d = await a(n(u), e.tryGet);
+    return { title: `${l.fullname}｜方格子 vocus`, link: c, description: l.intro, image: l.avatarUrl, item: d };
+}
+export { o as route };

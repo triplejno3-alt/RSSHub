@@ -1,0 +1,36 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+const t = {
+    path: `/room/:id`,
+    categories: [`live`],
+    example: `/douyu/room/24422`,
+    parameters: { id: `直播间 id, 可在主播直播间页 URL 中找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.douyu.com/:id`, `www.douyu.com/`] }],
+    name: `直播间开播`,
+    maintainers: [`DIYgod`, `ChaosTong`],
+    handler: n,
+};
+async function n(t) {
+    let n = t.req.param(`id`),
+        r,
+        i,
+        a;
+    try {
+        let t = await e(`https://www.douyu.com/betard/${n}`);
+        if (!t.room) throw Error(`Invalid response`);
+        ((r = t.room),
+            (a = r.room_pic),
+            r.show_status === 1 &&
+                (i = [
+                    { title: `${r.videoLoop === 1 ? `视频轮播` : `开播`}: ${r.room_name}`, pubDate: new Date(r.show_time * 1e3).toUTCString(), guid: r.show_time, link: `https://www.douyu.com/${n}`, description: `<img src="${a}">` },
+                ]));
+    } catch {
+        ((r = (await e(`http://open.douyucdn.cn/api/RoomApi/room/${n}`, { headers: { Referer: `https://www.douyu.com/${n}` } })).data),
+            (a = r.room_thumb),
+            r.online !== 0 && (i = [{ title: `开播: ${r.room_name}`, pubDate: new Date(r.start_time).toUTCString(), guid: r.start_time, link: `https://www.douyu.com/${n}` }]));
+    }
+    return { title: `${r.owner_name}的斗鱼直播间`, image: a, link: `https://www.douyu.com/${n}`, item: i, allowEmpty: !0 };
+}
+export { t as route };

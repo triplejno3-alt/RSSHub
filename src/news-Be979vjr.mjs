@@ -1,0 +1,90 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+import { raw as l } from 'hono/html';
+const u = ({ images: e, description: t }) => c(o(i, { children: [e?.map((e) => (e?.src ? a(`figure`, { children: a(`img`, { src: e.src, alt: e.alt }) }) : null)), t ? l(t) : null] })),
+    d = async (r) => {
+        let i = Number.parseInt(r.req.query(`limit`) ?? `30`, 10),
+            a = `https://x410.dev`,
+            o = new URL(`news`, a).href,
+            c = s(await e(o)),
+            l = c(`html`).attr(`lang`) ?? `en`,
+            d = [];
+        return (
+            (d = c(`article.post`)
+                .slice(0, i)
+                .toArray()
+                .map((e) => {
+                    let t = c(e),
+                        r = t.find(`h4 a`),
+                        i = r.text(),
+                        a = u({ description: t.find(`div#cookbook`).html() }),
+                        o = t.find(`span.updated`).text(),
+                        s = r.attr(`href`),
+                        d = t
+                            .find(`ul.slides li a img`)
+                            .attr(`src`)
+                            ?.replace(/-\d+x\d+/, ``),
+                        f = o;
+                    return { title: i, description: a, pubDate: o ? n(o) : void 0, link: s, content: { html: a, text: a }, image: d, banner: d, updated: f ? n(f) : void 0, language: l };
+                })),
+            (d = await Promise.all(
+                d.map((r) =>
+                    r.link
+                        ? t.tryGet(r.link, async () => {
+                              let t = s(await e(r.link));
+                              t(`img`).each((e, n) => {
+                                  let r = t(n),
+                                      i = r.attr(`data-orig-src`);
+                                  i && i.startsWith(`/`) && r.attr(`src`, new URL(i, a).href);
+                              });
+                              let i = t(`.title`).text(),
+                                  o = u({ description: t(`div#cookbook`).html() }),
+                                  c = t(`meta[property="article:published_time"]`).attr(`content`),
+                                  d = t(`div.post-header-text-cat p a`).toArray(),
+                                  f = [...new Set(d.map((e) => t(e).text()).filter(Boolean))],
+                                  p = t(`meta[name="author"]`)
+                                      .toArray()
+                                      .map((e) => ({ name: t(e).attr(`content`) || ``, url: void 0, avatar: void 0 })),
+                                  m = t(`meta[property="og:image"]`).attr(`content`),
+                                  h = t(`.time`).text() || c,
+                                  g = { title: i, description: o, pubDate: c ? n(c) : r.pubDate, category: f, author: p, content: { html: o, text: o }, image: m, banner: m, updated: h ? n(h) : r.updated, language: l };
+                              return { ...r, ...g };
+                          })
+                        : r
+                )
+            )),
+            {
+                title: c(`title`).text(),
+                description: c(`meta[property="og:description"]`).attr(`content`),
+                link: o,
+                item: d,
+                allowEmpty: !0,
+                image: c(`meta[name="msapplication-TileImage"]`).attr(`content`) ? new URL(c(`meta[name="msapplication-TileImage"]`).attr(`content`), a).href : void 0,
+                author: c(`meta[property="og:site_name"]`).attr(`content`),
+                language: l,
+                id: o,
+            }
+        );
+    },
+    f = {
+        path: `/news`,
+        name: `News`,
+        url: `x410.dev`,
+        maintainers: [`nczitzk`],
+        handler: d,
+        example: `/x410/news`,
+        parameters: void 0,
+        description: void 0,
+        categories: [`new-media`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`x410.dev`], target: `/news` }],
+        view: r.Articles,
+    };
+export { d as handler, f as route };

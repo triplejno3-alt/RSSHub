@@ -1,0 +1,41 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/news`,
+    categories: [`program-update`],
+    example: `/qbittorrent/news`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`qbittorrent.org/news.php`, `qbittorrent.org/`] }],
+    name: `News`,
+    maintainers: [`TonyRL`],
+    handler: o,
+    url: `qbittorrent.org/news.php`,
+};
+async function o(a) {
+    let o = `https://www.qbittorrent.org`,
+        s = i(await t.tryGet(`${o}/news.php`, async () => (await r(`${o}/news.php`, { headers: { Referer: o } })).data, e.cache.routeExpire, !1)),
+        c = s(`.stretcher`)
+            .find(`h3`)
+            .toArray()
+            .map((e) => {
+                e = s(e);
+                let t = e
+                        .text()
+                        .split(` - `)[0]
+                        .replace(/\w{3,6}day/, ``),
+                    r = e.text().split(` - `)[1],
+                    i = ``;
+                for (; e.next().length && e.next().get(0).tagName !== `h3`; ) ((e = e.next()), (i += e.html()));
+                return { title: r, description: i, pubDate: n(t, `MMMM D YYYY`) };
+            }),
+        l = { title: `qBittorrent News`, link: `${o}/news.php`, item: c };
+    return (a.set(`json`, l), l);
+}
+export { a as route };

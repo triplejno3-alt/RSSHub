@@ -1,0 +1,33 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+const n = {
+    path: `/viz-of-the-day`,
+    categories: [`study`],
+    example: `/tableau/viz-of-the-day`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `Viz of the day`,
+    maintainers: [],
+    handler: r,
+};
+async function r() {
+    let { data: n } = await t(`https://public.tableau.com/api/gallery?page=0&count=20&galleryType=viz-of-the-day`);
+    return {
+        title: `Tableau Viz of the Day`,
+        link: `https://public.tableau.com/app/discover/viz-of-the-day`,
+        image: `https://help.tableau.com/current/pro/desktop/en-us/Resources/tableau-logo.png`,
+        item: n.items.map((t) => ({
+            title: t.title,
+            link: t.sourceUrl,
+            pubDate: e(t.galleryItemPublicationDate),
+            author: t.authorName,
+            description: `<div><p>${t.description}</p><img src='${t.screenshot}'></div>`,
+            itunes_item_image: t.screenshot,
+        })),
+    };
+}
+export { n as route };

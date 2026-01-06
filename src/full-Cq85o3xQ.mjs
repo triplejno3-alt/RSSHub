@@ -1,0 +1,42 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { t as r } from './rss-parser-CKuAfhVS.mjs';
+import { load as i } from 'cheerio';
+const a = (n) =>
+        e.tryGet(n, async () => {
+            let e = i((await t(n)).data);
+            e(`div.article-audio-player__center-tooltip`).remove();
+            let r = JSON.parse(e(`head script[type="application/ld+json"]`).first().text());
+            return { article: (e(`figure[class^=css-]`).first().parent().parent().html() || ``) + e(`p[data-component="paragraph"]`).parent().parent().html(), categories: r.keywords?.map((e) => e) };
+        }),
+    o = {
+        path: `/:endpoint`,
+        categories: [`traditional-media`],
+        view: n.Articles,
+        example: `/economist/latest`,
+        parameters: { endpoint: `Category name, can be found on the [official page](https://www.economist.com/rss). For example, https://www.economist.com/china/rss.xml to china` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`economist.com/:endpoint`] }],
+        name: `Category`,
+        maintainers: [`ImSingee`],
+        handler: s,
+    };
+async function s(e) {
+    let t = e.req.param(`endpoint`),
+        n = await r.parseURL(`https://www.economist.com/${t}/rss.xml`),
+        i = await Promise.all(
+            n.items.slice(0, e.req.query(`limit`) ? Number.parseInt(e.req.query(`limit`), 10) : 30).map(async (e) => {
+                let t = e.link.slice(e.link.lastIndexOf(`/`) + 1),
+                    n = !/^\d{4}-\d{2}-\d{2}$/.test(t),
+                    r = n ? await a(e.link) : null;
+                return { title: e.title, description: n ? r.article : e.content, link: e.link, guid: e.guid, pubDate: e.pubDate, category: n ? r.categories : null };
+            })
+        );
+    return { title: n.title, link: n.link, description: n.description, item: i };
+}
+export { o as route };

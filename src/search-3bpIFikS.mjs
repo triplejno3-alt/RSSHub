@@ -1,0 +1,62 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import { a as n, i as r, n as i, o as a, r as o, s } from './utils-BDg5Lhsa.mjs';
+const c = {
+    path: `/search/:option?/:category?/:keyword?/:time?/:order?`,
+    categories: [`anime`],
+    example: `/18comic/search/photos/all/NTR`,
+    parameters: {
+        option: '选项，可选 `video` 和 `photos`，默认为 `photos`',
+        category: '分类，同上表，默认为 `all` 即全部',
+        keyword: `关键字，同上表，默认为空`,
+        time: '时间范围，同上表，默认为 `a` 即全部',
+        order: '排列顺序，同上表，默认为 `mr` 即最新',
+    },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+    radar: [{ source: [`jmcomic.group/`], target: `/:category?/:time?/:order?/:keyword?` }],
+    name: `搜索`,
+    maintainers: [],
+    handler: l,
+    url: `jmcomic.group/`,
+    description: `::: tip
+  关键字必须超过两个字，这是来自网站的限制。
+:::`,
+};
+async function l(c) {
+    let l = c.req.param(`option`) ?? `photos`,
+        u = c.req.param(`category`) ?? `all`,
+        d = c.req.param(`keyword`) ?? ``,
+        f = c.req.param(`time`) ?? `a`,
+        { domain: p = o } = c.req.query(),
+        m = n(p),
+        h = c.req.param(`order`) ?? `mr`,
+        g = `${m}/search/${l}${u === `all` ? `` : `/${u}`}${d ? `?search_query=${d}` : `?`}${f === `a` ? `` : `&t=${f}`}${h === `mr` ? `` : `&o=${h}`}`,
+        _ = c.req.query(`limit`) ? Number.parseInt(c.req.query(`limit`)) : 20,
+        v = r();
+    ((h = f === `a` ? h : `${h}_${f}`), (v = `${v}/search?search_query=${d}&o=${h}`));
+    let y = await a(v),
+        b = y.content;
+    (u !== `all` && (b = y.content.filter((e) => e.category.title === i(u))), (b = b.slice(0, _)));
+    let x = await Promise.all(
+        b.map((n) =>
+            e.tryGet(`18comic:search:${n.id}`, async () => {
+                let e = { title: n.name, link: `${m}/album/${n.id}`, guid: `18comic:/album/${n.id}`, updated: t(n.update_at) },
+                    i = await a(`${r()}/album?id=${n.id}`);
+                return (
+                    (e.pubDate = new Date(i.addtime * 1e3)),
+                    (e.category = i.tags.map((e) => e)),
+                    (e.author = i.author.map((e) => e).join(`, `)),
+                    (e.description = s({ introduction: i.description, images: [`https://cdn-msp3.${p}/media/albums/${n.id}_3x4.jpg`], cover: `https://cdn-msp3.${p}/media/albums/${n.id}_3x4.jpg`, category: e.category })),
+                    e
+                );
+            })
+        )
+    );
+    return { title: `Search Results For '${d}' - 禁漫天堂`, link: g.replace(/\?$/, ``), item: x, allowEmpty: !0 };
+}
+export { c as route };

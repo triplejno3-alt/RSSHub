@@ -1,0 +1,83 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './description-BF5qJI9E.mjs';
+import { load as i } from 'cheerio';
+const a = { zhengce: `政策`, fenxishishuo: `行情`, defi: `DeFi`, kuang: `矿业`, '以太坊2.0': `以太坊 2.0`, industry: `产业`, IPFS: `IPFS`, tech: `技术`, baike: `百科`, capitalmarket: `研报` },
+    o = {
+        path: `/:category?`,
+        categories: [`finance`],
+        example: `/jinse/zhengce`,
+        parameters: { category: `分类，见下表，默认为政策` },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `分类`,
+        maintainers: [`nczitzk`],
+        handler: s,
+        description: `| 政策    | 行情         | DeFi | 矿业  | 以太坊 2.0 |
+| ------- | ------------ | ---- | ----- | ---------- |
+| zhengce | fenxishishuo | defi | kuang | 以太坊 2.0 |
+
+| 产业     | IPFS | 技术 | 百科  | 研报          |
+| -------- | ---- | ---- | ----- | ------------- |
+| industry | IPFS | tech | baike | capitalmarket |`,
+    };
+async function s(o) {
+    let { category: s = `zhengce` } = o.req.param(),
+        c = o.req.query(`limit`) ? Number.parseInt(o.req.query(`limit`), 10) : 50,
+        l = `https://www.jinse.cn`,
+        u = new URL(`v6/www/information/list`, `https://api.jinse.cn`).href,
+        d = l,
+        { data: f } = await n(u, { searchParams: { catelogue_key: s, limit: c, flag: `up` } }),
+        p = f.list
+            .slice(0, c)
+            .map((e) => ({
+                title: e.title,
+                link: e.extra.topic_url,
+                description: r({ images: e.extra.thumbnails_pics.length > 0 ? e.extra.thumbnails_pics.map((e) => ({ src: e.replace(/_[^\W_]+(\.\w+)$/, `_true$1`) })) : void 0, intro: e.extra.summary }),
+                author: e.extra.nickname,
+                guid: `jinse${/\/lives\//.test(e.extra.topic_url) ? `-lives` : ``}-${e.extra.topic_id}`,
+                pubDate: t(e.extra.published_at, `X`),
+                upvotes: e.extra.up_counts ?? 0,
+                downvotes: e.extra.down_counts ?? 0,
+                comments: e.extra.comment_count ?? 0,
+            }));
+    p = await Promise.all(
+        p.map((t) =>
+            e.tryGet(t.link, async () => {
+                if (/\/lives\//.test(t.link)) return t;
+                let { data: e } = await n(t.link),
+                    a = i(e);
+                return (
+                    (t.description += r({ description: a(`section.js-article-content`).html() || a(`div.js-article`).html() })),
+                    (t.category = a(`section.js-article-tag_state_1 a span`)
+                        .toArray()
+                        .map((e) => a(e).text())),
+                    t
+                );
+            })
+        )
+    );
+    let { data: m } = await n(d),
+        h = i(m),
+        g = h(`meta[name="author"]`).prop(`content`),
+        _ = h(`a.js-logoBox img`).prop(`src`),
+        v = new URL(h(`link[rel="favicon"]`).prop(`href`), l).href;
+    return {
+        item: p,
+        title: `${g} - ${Object.hasOwn(a, s) ? a[s] : s}`,
+        link: d,
+        description: h(`meta[name="description"]`).prop(`content`),
+        language: h(`html`).prop(`lang`),
+        image: _,
+        icon: v,
+        logo: v,
+        subtitle: h(`meta[name="keywords"]`).prop(`content`),
+        author: g,
+        allowEmpty: !0,
+    };
+}
+export { o as route };

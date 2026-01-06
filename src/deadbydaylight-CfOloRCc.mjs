@@ -1,0 +1,37 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import r from 'markdown-it';
+const i = r({ html: !0, linkify: !0 }),
+    a = `https://deadbydaylight.com`,
+    o = {
+        path: `/blog`,
+        categories: [`game`],
+        example: `/deadbydaylight/blog`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`deadbydaylight.com/news`], target: `/news` }],
+        name: `Latest News`,
+        maintainers: [`NeverBehave`],
+        handler: s,
+    };
+async function s() {
+    let r = (await e(`${a}/page-data/news/page-data.json`)).result.pageContext.postsData.articles.edges;
+    return {
+        title: `Latest News`,
+        link: `https://deadbydaylight.com/news`,
+        item: await Promise.all(
+            Object.keys(r).map((o) => {
+                let s = `${a}/page-data/news/${r[o].node.slug}/page-data.json`;
+                return t.tryGet(s, async () => {
+                    let t = await e(s),
+                        r = t.result.data.pageData;
+                    return { title: r.title, link: `${a}${t.path}`, description: i.render(r.content), pubDate: n(r.published_at), category: r.article_category.name };
+                });
+            })
+        ),
+    };
+}
+export { o as route };

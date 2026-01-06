@@ -1,0 +1,68 @@
+import './ofetch-uhy-qh6X.mjs';
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { renderToString as s } from 'hono/jsx/dom/server';
+import c from 'crypto-js';
+const l = `https://api.wfdata.club`,
+    u = `https://www.feng.com`,
+    d = (e) => {
+        let t = new URL(e).pathname,
+            n = c.enc.Utf8.parse(`url=` + t + `$time=` + Date.now() + `000000`),
+            r = c.enc.Utf8.parse(`2b7e151628aed2a6`);
+        return c.AES.encrypt(n, r, { iv: r, mode: c.mode.CBC, padding: c.pad.Pkcs7 }).toString();
+    },
+    f = (n) => {
+        let i = `${l}/v1/topic/category`;
+        return t.tryGet(i, async () => (await r(i, { headers: { Referer: `${u}/forum/${n}`, 'X-Request-Id': d(i) } })).data, e.cache.routeExpire, !1);
+    },
+    p = async (e) => {
+        let t = await f(e);
+        return Object.values(t.data.dataList).find((t) => t.dataList.find((t) => t.topicId === e));
+    },
+    m = (n, i) => {
+        let a = `${l}/v1/topic/${n}/thread?topicId=${n}&type=${i}&pageCount=50&order=${i === `newest` ? `replyTime` : `postTime`}&page=1`;
+        return t.tryGet(a, async () => (await r(a, { headers: { Referer: `${u}/forum/${n}`, 'X-Request-Id': d(a) } })).data, e.cache.routeExpire, !1);
+    },
+    h = (e, n) => {
+        let i = `${l}/v1/thread/${e}`;
+        return t.tryGet(i, async () => (await r(i, { headers: { Referer: `${u}/forum/${n}`, 'X-Request-Id': d(i) } })).data);
+    },
+    g = (e) => s(a(i, { children: e?.length ? o(i, { children: [a(`br`, {}), e.map((e) => a(`img`, { src: e.split(`?`)[0], alt: `` }))] }) : null })),
+    _ = s(o(i, { children: [a(`img`, { src: `https://www.feng.com/_nuxt/img/yishanchu.368ead2.png`, alt: `威锋` }), a(`div`, { align: `center`, children: `帖子已被删除` })] })),
+    v = {
+        path: `/forum/:id/:type?`,
+        categories: [`bbs`],
+        example: `/feng/forum/1`,
+        parameters: { id: `版块 ID，可在版块 URL 找到`, type: '排序，见下表，默认为 `all`' },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`feng.com/forum/photo/:id`, `feng.com/forum/:id`], target: `/forum/:id` }],
+        name: `社区`,
+        maintainers: [`TonyRL`],
+        handler: y,
+        description: `| 最新回复 | 最新发布 | 热门 | 精华    |
+| -------- | -------- | ---- | ------- |
+| newest   | all      | hot  | essence |`,
+    };
+async function y(e) {
+    let t = Number(e.req.param(`id`)),
+        { type: r = `all` } = e.req.param(),
+        i = (await p(t)).dataList.find((e) => e.topicId === t),
+        a = (await m(t, r)).data.dataList.map((e) => ({ title: e.title, pubDate: n(e.dateline * 1e3), author: e.userBaseInfo.userName, link: `${u}/post/${e.tid}`, tid: e.tid })),
+        o = await Promise.all(
+            a.map(async (e) => {
+                let n = await h(e.tid, t);
+                if (n.status.code === 0) {
+                    let t = g(n.data.thread.fengTalkImage.length ? n.data.thread.fengTalkImage : void 0);
+                    e.description = n.data.thread.message + t;
+                } else e.description = _;
+                return (delete e.tid, e);
+            })
+        );
+    return { title: `${i.topicName} - 社区 - 威锋 - 千万果粉大本营`, description: i.topicDescription, link: `${u}/forum/${t}`, item: o };
+}
+export { v as route };

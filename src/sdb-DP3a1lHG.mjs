@@ -1,0 +1,32 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './common-utils-uYpL50sT.mjs';
+import './got-CKQ7C9HX.mjs';
+import './timezone-CrV-DT8S.mjs';
+import './wechat-mp-HNgcLN2K.mjs';
+import { t as e } from './general-C-fBY1um.mjs';
+const t = { path: `/sdb/*`, name: `Unknown`, maintainers: [], handler: n };
+async function n(t) {
+    await e(
+        {
+            defaultPath: `zwgk/zcjd/`,
+            list_element: `.art-list li a`,
+            list_include: `site`,
+            title_element: `.title`,
+            title_match: `(.*)`,
+            description_element: `.text`,
+            author_element: `.source`,
+            author_match: `来源：(.*)发布时间`,
+            authorisme: `广东省茂名水东湾新城建设管理委员会网站`,
+            pubDate_element: `.source`,
+            pubDate_match: `发布时间：(.*)`,
+            pubDate_format: void 0,
+        },
+        t
+    );
+}
+export { t as route };

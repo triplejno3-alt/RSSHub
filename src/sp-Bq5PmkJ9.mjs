@@ -1,0 +1,34 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { load as n } from 'cheerio';
+const r = `https://www.ieee-security.org/`,
+    i = {
+        path: `/security-privacy`,
+        categories: [`journal`],
+        example: `/ieee-security/security-privacy`,
+        radar: [{ source: [`ieee-security.org/TC/SP-Index.html`, `ieee-security.org/`] }],
+        name: `IEEE Symposium on Security and Privacy`,
+        maintainers: [`ZeddYu`],
+        handler: a,
+        url: `ieee-security.org/TC/SP-Index.html`,
+        description: `Return results from 2020`,
+    };
+async function a() {
+    let i = new Date().getFullYear() + 1,
+        a = Array.from({ length: i - 2020 }, (e, t) => `${r}TC/SP${t + 2020}/program-papers.html`),
+        o = (await Promise.allSettled(a.map((t) => e(t)))).flatMap((e, r) => {
+            let i = n(e.value);
+            return i(`div.panel-body > div.list-group-item`)
+                .toArray()
+                .map((e) => {
+                    e = i(e);
+                    let n = e.find(`b`).text().trim(),
+                        o = a[r];
+                    return { title: n, author: e.html().trim().split(`<br>`)[1].trim(), link: `${o}#${n}`, pubDate: t(o.match(/SP(\d{4})/)[1], `YYYY`) };
+                });
+        });
+    return { title: `S&P`, link: `${r}TC/SP-Index.html`, description: `IEEE Symposium on Security and Privacy Accepted Papers`, allowEmpty: !0, item: o };
+}
+export { i as route };

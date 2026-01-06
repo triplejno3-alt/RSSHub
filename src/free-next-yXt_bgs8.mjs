@@ -1,0 +1,35 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { load as t } from 'cheerio';
+const n = {
+    path: `/free-next/:type?`,
+    categories: [`reading`],
+    example: `/qidian/free-next`,
+    parameters: { type: `默认不填为起点中文网，填 mm 为起点女生网` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`www.qidian.com/free`], target: `/free` }],
+    name: `限时免费下期预告`,
+    maintainers: [`LogicJake`],
+    handler: r,
+    url: `www.qidian.com/free`,
+};
+async function r(n) {
+    let r = n.req.param(`type`),
+        i,
+        a;
+    r === `mm` ? ((i = `https://www.qidian.com/mm/free`), (a = `起点女生网`)) : ((i = `https://www.qidian.com/free`), (a = `起点中文网`));
+    let o = t((await e(i)).data),
+        s = o(`div.other-rec-wrap li`)
+            .toArray()
+            .map((e) => {
+                e = o(e);
+                let t = `<img src="https:${e.find(`.img-box img`).attr(`src`)}">`,
+                    n = `<p>评分：${e.find(`.img-box span`).text()}</p>`;
+                return { title: e.find(`.book-info h4 a`).text(), description: t + n + e.find(`p.intro`).html(), link: `https:` + e.find(`.book-info h4 a`).attr(`href`), author: e.find(`p.author a`).text() };
+            });
+    return { title: a, description: `限时免费下期预告-${a}`, link: i, item: s };
+}
+export { n as route };

@@ -1,0 +1,48 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import { n as e, r as t, t as n } from './utils-DDrkpyJN.mjs';
+const r = {
+    path: `/latest/:category?`,
+    categories: [`programming`],
+    example: `/joshwcomeau/latest/css`,
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    parameters: {
+        category: {
+            description: `Category`,
+            options: [
+                { value: `css`, label: `CSS` },
+                { value: `react`, label: `React` },
+                { value: `animation`, label: `Animation` },
+                { value: `javascript`, label: `JavaScript` },
+                { value: `career`, label: `Career` },
+                { value: `blog`, label: `Blog` },
+            ],
+        },
+    },
+    radar: [
+        { source: [`joshwcomeau.com/`], target: `/latest` },
+        { source: [`joshwcomeau.com/:category`], target: `/latest/:category` },
+    ],
+    name: `Articles and Tutorials`,
+    maintainers: [`Rjnishant530`],
+    handler: i,
+};
+async function i(r) {
+    let i = r.req.param(`category`) || ``,
+        a = i ? `${t}/${i}` : t,
+        { heading: o, urls: s } = await n(a, i ? `div > article > a:first-child` : `article[data-include-enter-animation="false"] > a:first-child`),
+        c = await e(s),
+        l = i ? `${o} | ` : ``;
+    return {
+        title: `${l}Articles and Tutorials | Josh W. Comeau`,
+        description: `Friendly tutorials for developers. Focus on ${i ? l : `React, CSS, Animation, and more!`}`,
+        link: a,
+        item: c,
+        icon: `${t}/favicon.png`,
+        logo: `${t}/favicon.png`,
+    };
+}
+export { r as route };

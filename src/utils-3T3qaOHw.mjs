@@ -1,0 +1,43 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import { t as n } from './cache-DLkCV5c7.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { renderToString as o } from 'hono/jsx/dom/server';
+import { raw as s } from 'hono/html';
+const c = (t) => n.tryGet(`nicovideo:user:${t}`, () => e(`https://embed.nicovideo.jp/users/${t}`)),
+    l = (r) =>
+        n.tryGet(
+            `nicovideo:user:${r}:videos`,
+            async () => {
+                let { data: t } = await e(`https://nvapi.nicovideo.jp/v3/users/${r}/videos`, {
+                    headers: { 'X-Frontend-Id': `6` },
+                    query: { sortKey: `registeredAt`, sortOrder: `desc`, sensitiveContents: `mask`, pageSize: 100, page: 1 },
+                });
+                return t.items;
+            },
+            t.cache.routeExpire,
+            !1
+        ),
+    u = (r) =>
+        n.tryGet(
+            `nicovideo:mylist:${r}`,
+            async () => {
+                let { data: t } = await e(`https://nvapi.nicovideo.jp/v2/mylists/${r}`, { headers: { 'X-Frontend-Id': `6` }, query: { sortKey: `addedAt`, sortOrder: `desc`, pageSize: 500, page: 1 } });
+                return t.mylist;
+            },
+            t.cache.routeExpire,
+            !1
+        ),
+    d = (e, t) =>
+        o(
+            a(r, {
+                children: [
+                    t
+                        ? i(`iframe`, { src: `https://embed.nicovideo.jp/watch/${e.id}`, style: `top: 0; left: 0; width: 100%; height: 100%; position: absolute; border: 0;`, allowfullscreen: !0 })
+                        : i(`img`, { src: e.thumbnail.nHdUrl || e.thumbnail.largeUrl || e.thumbnail.middleUrl }),
+                    i(`br`, {}),
+                    e.shortDescription ? i(r, { children: s(e.shortDescription) }) : null,
+                ],
+            })
+        );
+export { d as i, c as n, l as r, u as t };

@@ -1,0 +1,45 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { n as e, t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+const l = {
+    path: `/author/:id`,
+    categories: [`reading`],
+    example: `/qidian/author/9639927`,
+    parameters: { id: `作者 id, 可在作者页面 URL 找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`my.qidian.com/author/:id`] }],
+    name: `作者`,
+    maintainers: [`miles170`],
+    handler: u,
+};
+async function u(i) {
+    let a = `https://my.qidian.com/author/${i.req.param(`id`)}/`,
+        o = s((await n(a)).data),
+        c = o(`.header-msg h1`).contents().first().text().trim(),
+        l = o(`.author-work .author-item`)
+            .toArray()
+            .map((n) => {
+                n = o(n);
+                let i = n.find(`.author-item-msg`),
+                    a = i.find(`.author-item-update span`).text().replace(`·`, ``).trim();
+                return {
+                    title: i.find(`.author-item-title`).text().trim(),
+                    author: c,
+                    category: i.find(`.author-item-exp a`).first().text().trim(),
+                    description: d(i.find(`.author-item-update a`).attr(`title`), n.find(`a img`).attr(`src`)),
+                    pubDate: r(/(今|昨)/.test(a) ? e(a) : t(a, `YYYY-MM-DD HH:mm`), 8),
+                    link: i.find(`.author-item-update a`).attr(`href`),
+                };
+            });
+    return { title: `${c} - 起点中文网`, description: o(`.header-msg-desc`).text().trim(), link: a, item: l };
+}
+const d = (e, t, n) => c(a(f, { description: e, image: t, author: n })),
+    f = ({ description: e, image: t, author: n }) => o(i, { children: [a(`p`, { children: e }), t ? a(`img`, { src: t }) : null, n ?? null] });
+export { l as route };

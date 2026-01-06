@@ -1,0 +1,34 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './description-ygTOi2bK.mjs';
+import { load as r } from 'cheerio';
+const i = `https://techcrunch.com`,
+    a = {
+        path: `/category/:categoryId`,
+        categories: [`new-media`],
+        example: `/techcrunch/category/577047203`,
+        parameters: { categoryId: `分类id` },
+        name: `Category`,
+        maintainers: [`MilliumOrion`],
+        handler: o,
+        description:
+            'Use the category ID to retrieve a list of articles, category ID.  \nFrom the page source of `https://techcrunch.com/category/***`, locate the `{category_id}`  \nExample:  \n`html` -> `head` -> `<link rel="alternate" title="JSON" type="application/json" href="https://techcrunch.com/wp-json/wp/v2/categories/{category_id}">`',
+    };
+async function o(a) {
+    let { data: o } = await t(`${i}/wp-json/wp/v2/posts?categories=${a.req.param(`categoryId`)}`);
+    return {
+        title: `TechCrunch`,
+        link: i,
+        description: `Reporting on the business of technology, startups, venture capital funding, and Silicon Valley.`,
+        item: o.map((t) => {
+            let i = t.yoast_head_json,
+                a = r(t.content.rendered, null, !1);
+            return { title: t.title.rendered, description: n({ head: i, rendered: a.html() }), link: t.link, pubDate: e(t.date_gmt) };
+        }),
+    };
+}
+export { a as route };

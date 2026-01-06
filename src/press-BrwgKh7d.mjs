@@ -1,0 +1,41 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = {
+    path: `/press/:keyword?`,
+    categories: [`government`],
+    example: `/verfghbw/press`,
+    parameters: { keyword: `Keyword` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`verfgh.baden-wuerttemberg.de/de/presse-und-service/pressemitteilungen/`], target: `/press` }],
+    name: `Press releases`,
+    maintainers: [`quinn-dev`],
+    handler: i,
+    url: `verfgh.baden-wuerttemberg.de/de/presse-und-service/pressemitteilungen/`,
+};
+async function i(r) {
+    let i = r.req.param(`keyword`),
+        a = `https://verfgh.baden-wuerttemberg.de`,
+        o = { url: `${a}/de/presse-und-service/pressemitteilungen/`, headers: { Referer: `${a}/de/presse-und-service/pressemitteilungen/` } };
+    o = i ? { method: `post`, form: { 'tx_bwlistheader_list[search][keywords]': i }, ...o } : { method: `get`, ...o };
+    let s = (await t(o)).data,
+        c = n(s),
+        l = c(`.pressListItem`)
+            .toArray()
+            .map((t) => {
+                t = c(t);
+                let n = t.find(`.pressListItemTeaser > h3`).text().trim(),
+                    r = a + `/` + t.find(`.link-download`).attr(`href`);
+                return (
+                    t.find(`.pressListItemTeaser > h3`).replaceWith((e, t) => `<p>${c(t).html()}</p>`),
+                    t.find(`a`).each((e, t) => c(t).attr(`href`, a + `/` + c(t).attr(`href`))),
+                    { title: n, link: r, description: t.find(`.pressListItemTeaser`).html(), pubDate: e(t.find(`.pressListItemDate > span`).text(), `DD.MM.YYYY`) }
+                );
+            });
+    return { title: `Verfassungsgerichtshof Baden-Württemberg - Pressemitteilungen`, link: o.url, description: `Pressemitteilungen des Verfassungsgerichtshof für das Land Baden-Württemberg`, item: l };
+}
+export { r as route };

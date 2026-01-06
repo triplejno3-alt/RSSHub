@@ -1,0 +1,23 @@
+import { t as e } from './config-Cc-zZ5p-.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { n } from './puppeteer-BbZGb8cd.mjs';
+import { t as r } from './puppeteer-utils-BhPB3ohS.mjs';
+const i = (i) =>
+    t.tryGet(
+        `xueqiu:token`,
+        async () => {
+            let e = await (await n()).newPage();
+            return (
+                await e.setRequestInterception(!0),
+                e.on(`request`, (e) => {
+                    e.resourceType() === `document` ? e.continue() : e.abort();
+                }),
+                await e.goto(i, { waitUntil: `domcontentloaded` }),
+                await e.evaluate(() => document.documentElement.innerHTML),
+                await r(e)
+            );
+        },
+        e.cache.routeExpire,
+        !1
+    );
+export { i as t };

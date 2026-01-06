@@ -1,0 +1,19 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = { desktop: `releasenotes`, beta: `beta/notes`, nightly: `nightly/notes`, android: `android/releasenotes`, ios: `ios/notes` },
+    i = { path: `/release/:platform?`, name: `Unknown`, maintainers: [], handler: a };
+async function a(i) {
+    let { platform: a = `desktop` } = i.req.param(),
+        o = a.replace(`-`, `/`),
+        s = [`https://www.mozilla.org/en-US/firefox`, Object.hasOwn(r, o) ? r[o] : o].filter(Boolean).join(`/`),
+        c = n((await t.get(s)).data),
+        l = c(`.c-release-version`).text(),
+        u = e(c(`.c-release-date`).text(), `MMMM D, YYYY`);
+    return { title: `Firefox ${a} release notes`, link: s, item: [{ title: `Firefox ${a} ${l} release notes`, link: s, description: c(`.c-release-notes`).html(), guid: `${a} ${l}`, pubDate: u }] };
+}
+export { i as route };

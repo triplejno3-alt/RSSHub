@@ -1,0 +1,33 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { load as t } from 'cheerio';
+const n = {
+    name: `Angebote`,
+    example: `/wogem/angebote?filter=Graz`,
+    path: `/:page?`,
+    maintainers: [`sk22`],
+    categories: [`other`],
+    description: 'Pass in the name of the php file, e.g. `angebote` for `/de/angebote.php``.',
+    parameters: { page: 'Page name, e.g. `angebote` for `angebote.php. Defaults to `angebote`' },
+    async handler(n) {
+        let r = `https://www.wogem.at/de/${n.req.param(`page`) || `angebote`}.php`,
+            i = t(await e(r)),
+            a = i(`h1`)
+                .text()
+                .split(
+                    `
+`
+                )[0]
+                .trim(),
+            o = i(`.col-md-12 > h3 > a`)
+                .toArray()
+                .map((e) => {
+                    let t = i(e),
+                        n = t.attr(`href`);
+                    return { title: t.text(), link: n?.startsWith(`?`) ? r + n : n };
+                });
+        return { title: `${a} - WOGEM`, language: `de`, logo: `https://www.wogem.at/de/favicon.ico`, allowEmpty: !0, item: o, link: r };
+    },
+};
+export { n as route };

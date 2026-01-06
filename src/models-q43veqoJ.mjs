@@ -1,0 +1,23 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { n as t } from './parse-date-DjdQS_Nt.mjs';
+import { load as n } from 'cheerio';
+const r = { path: `/library`, categories: [`programming`], example: `/ollama/library`, radar: [{ source: [`ollama.com/library`] }], name: `Models`, maintainers: [`Nick22nd`, `gavrilov`], handler: i };
+async function i() {
+    let r = n(await e(`https://ollama.com/library?sort=newest`));
+    return {
+        title: `ollama library`,
+        link: `https://ollama.com/library`,
+        item: r(`#repo > ul > li > a`)
+            .toArray()
+            .map((e) => {
+                let n = r(e).find(`h2 span`).first(),
+                    i = r(e).attr(`href`),
+                    a = r(e).find(`div p.break-words`).first(),
+                    o = r(e).find(`span:contains("Updated")`).first();
+                return { title: n.text(), link: i, description: a.text(), pubDate: t(o.text()) };
+            }),
+    };
+}
+export { r as route };

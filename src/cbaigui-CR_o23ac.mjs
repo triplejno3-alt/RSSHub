@@ -1,0 +1,80 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { r as t } from './common-utils-uYpL50sT.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { jsx as r } from 'hono/jsx/jsx-runtime';
+import { load as i } from 'cheerio';
+import { renderToString as a } from 'hono/jsx/dom/server';
+const o = ({ src: e, width: t, height: n }) => r(`figure`, { children: r(`img`, { src: e, width: t, height: n }) }),
+    s = (e) => a(r(o, { ...e })),
+    c = `https://cbaigui.com`,
+    l = `wp-json/wp/v2`,
+    u = async (e, t) => {
+        let r = new URL(`${l}/${e}?search=${t}`, c).href,
+            { data: i } = await n(r);
+        return i.findLast((e) => e.name === t)?.id ?? void 0;
+    },
+    d = { path: `*`, name: `Unknown`, maintainers: [], handler: f };
+async function f(r) {
+    let a = r.req.query(`limit`) ? Number.parseInt(r.req.query(`limit`), 10) : 50,
+        o,
+        d = new URL(t(r).replace(/^\/cbaigui/, ``), c).href,
+        f = new URL(`${l}/posts?_embed=true&per_page=${a}`, c).href,
+        p = t(r).match(/^\/post-(tag|category)\/(.*)$/);
+    if (p) {
+        o = decodeURI(p[2].split(`/`).pop());
+        let e = p[1] === `tag` ? `tags` : `categories`,
+            t = await u(e, o);
+        t && (f = new URL(`${l}/posts?_embed=true&per_page=${a}&${e}=${t}`, c).href);
+    }
+    let { data: m } = await n(f),
+        h = m.slice(0, a).map((t) => {
+            let n = t._embedded[`wp:term`],
+                r = i(t.content?.rendered ?? t.content);
+            return (
+                r(`figure`).each(function () {
+                    let e = r(this).find(`img`),
+                        t = e.prop(`data-actualsrc`) ?? e.prop(`data-original`),
+                        n = e.prop(`data-rawwidth`),
+                        i = e.prop(`data-rawheight`);
+                    r(this).replaceWith(s({ src: t, width: n, height: i }));
+                }),
+                r(`p img`).each(function () {
+                    let e = r(this),
+                        t = e.prop(`src`).split(`!`)[0],
+                        n = e.prop(`width`),
+                        i = e.prop(`height`);
+                    r(this).replaceWith(s({ src: t, width: n, height: i }));
+                }),
+                {
+                    title: t.title?.rendered ?? t.title,
+                    link: t.link,
+                    description: r.html(),
+                    author: t._embedded.author.map((e) => e.name).join(`/`),
+                    category: [...n[0], ...n[1]].map((e) => e.name),
+                    guid: t.guid?.rendered ?? t.guid,
+                    pubDate: e(t.date_gmt),
+                    updated: e(t.modified_gmt),
+                }
+            );
+        }),
+        { data: g } = await n(d),
+        _ = i(g),
+        v = _(`link[rel="apple-touch-icon"]`).first().prop(`href`);
+    return {
+        item: h,
+        title: `纪妖${o ? ` - ${o}` : ``}`,
+        link: d,
+        description: _(`meta[name="description"]`).prop(`content`),
+        language: `zh-cn`,
+        image: _(`meta[name="msapplication-TileImage"]`).prop(`content`),
+        icon: v,
+        logo: v,
+        subtitle: _(`p.site-description`).text(),
+        author: _(`p.site-title`).text(),
+    };
+}
+export { d as route };

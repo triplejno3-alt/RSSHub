@@ -1,0 +1,36 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { load as t } from 'cheerio';
+const n = `https://jwc.wfu.edu.cn/3742/list.htm`,
+    r = {
+        path: `/jwc`,
+        categories: [`university`],
+        example: `/wfu/jwc`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`jwc.wfu.edu.cn/`] }],
+        name: `教务处通知`,
+        maintainers: [`cccht`],
+        handler: i,
+        url: `jwc.wfu.edu.cn/`,
+    };
+async function i() {
+    let r = t((await e({ method: `get`, url: n, headers: { Referer: `https://jwc.wfu.edu.cn/` } })).data)(`ul.wp_article_list>li`);
+    return {
+        title: `潍坊学院教务处新闻`,
+        link: n,
+        description: `潍坊学院教务处通知（通知为文件需下载）`,
+        item: await Promise.all(
+            r.toArray().map((e) => {
+                let n = t(e),
+                    r = n(`div.pr_fields>span.Article_Title>a`),
+                    i = `https://jwc.wfu.edu.cn/` + r.attr(`href`);
+                return { title: r.text(), link: i, guid: i, description: n(`div.pr_fields>span.Article_Title`).html() };
+            })
+        ),
+    };
+}
+export { r as route };

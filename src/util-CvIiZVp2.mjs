@@ -1,0 +1,68 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = `https://www.jisilu.cn`,
+    o = async (a, o, s) => {
+        let c = o
+            .find(`div.aw-item`)
+            .toArray()
+            .map((e) => {
+                let t = a(e),
+                    i = t.find(`h4 a`),
+                    o = i.text(),
+                    s = i.prop(`href`),
+                    c = t
+                        .find(`.aw-text-color-999`)
+                        .text()
+                        .match(/(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2})/)?.[1],
+                    l = t.find(`a.aw-user-name`),
+                    u = l.prop(`href`) ? [{ name: l.text(), url: l.prop(`href`) }] : l.text();
+                return {
+                    title: o,
+                    pubDate: c ? r(n(c), 8) : void 0,
+                    link: s,
+                    category: t
+                        .find(`span.aw-question-tags a, a.aw-topic-name`)
+                        .toArray()
+                        .map((e) => a(e).text()),
+                    author: u,
+                };
+            });
+        return (
+            await Promise.all(
+                c.map((a) =>
+                    !a.link && typeof a.link != `string`
+                        ? a
+                        : t.tryGet(a.link, async () => {
+                              let t = i(await e(a.link)),
+                                  o = t(`div.aw-mod-head h1`).text();
+                              if (!o) return a;
+                              let s = a.link ? /answer_id/.test(a.link) : !1,
+                                  c = (s ? t(`div.markitup-box`).last() : t(`div.markitup-box`).first()).html() ?? ``,
+                                  l = t(s ? `div.aw-dynamic-topic-meta` : `div.aw-question-detail-meta`)
+                                      .find(`span.aw-text-color-999`)
+                                      .text(),
+                                  u = l.match(s ? /(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2})/ : /发表时间\s(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2})/)?.[1],
+                                  d = l.match(/最后修改时间\s(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2})/)?.[1],
+                                  f = t(s ? `p.publisher a.aw-user-name` : `div.aw-side-bar-mod-body a.aw-user-name`).first(),
+                                  p = f.prop(`href`) ? [{ name: f.text(), url: f.prop(`href`), avatar: f.parent().parent().find(`img`).first().prop(`src`) }] : f.text();
+                              return {
+                                  title: o,
+                                  description: c,
+                                  pubDate: u ? r(n(u), 8) : a.pubDate,
+                                  link: a.link,
+                                  category: a.category,
+                                  author: p,
+                                  content: { html: c, text: t(`div.aw-question-detail-txt`).first().text() },
+                                  updated: d ? r(n(d), 8) : a.updated,
+                              };
+                          })
+                )
+            )
+        )
+            .filter((e) => !0)
+            .slice(0, s);
+    };
+export { a as n, o as t };

@@ -1,0 +1,84 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { Fragment as r, jsx as i } from 'hono/jsx/jsx-runtime';
+import { load as a } from 'cheerio';
+import { renderToString as o } from 'hono/jsx/dom/server';
+const s = {
+    path: `/manga/:id`,
+    categories: [`anime`],
+    example: `/rawkuma/manga/tensei-shitara-dai-nana-ouji-dattanode-kimamani-majutsu-o-kiwamemasu`,
+    parameters: { id: `Manga ID, can be found in URL` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+    radar: [{ source: [`rawkuma.com/manga/:id`, `rawkuma.com/`] }],
+    name: `Manga`,
+    maintainers: [`nczitzk`],
+    handler: c,
+};
+async function c(s) {
+    let c = s.req.param(`id`),
+        l = s.req.query(`limit`) ? Number.parseInt(s.req.query(`limit`), 10) : 50,
+        u = new URL(`/manga/${c}`, `https://rawkuma.com`).href,
+        { data: d } = await n(u),
+        f = a(d),
+        p = f(`div.fmed span`).eq(1).text().trim(),
+        m = f(`div.wd-full span.mgen a[rel="tag"]`)
+            .toArray()
+            .map((e) => f(e).text()),
+        h = f(`div.eph-num`)
+            .slice(0, l)
+            .toArray()
+            .map(
+                (e) => (
+                    (e = f(e)),
+                    {
+                        title: e.find(`span.chapternum`).text(),
+                        link: e.find(`a`).prop(`href`),
+                        author: p,
+                        category: m,
+                        pubDate: t(e.find(`span.chapterdate`).text(), `MMMM DD`),
+                        enclosure_url: e.next().find(`a.dload`).prop(`href`),
+                        enclosure_type: `application/zip`,
+                    }
+                )
+            );
+    h = await Promise.all(
+        h.map((s) =>
+            e.tryGet(s.link, async () => {
+                let { data: e } = await n(s.link),
+                    c = a(e),
+                    l = e.match(/"images":(\[.*?])}],"lazyload"/),
+                    u = l ? JSON.parse(l[1]) : [];
+                return (
+                    (s.title = c(`div.chpnw`).text().trim()),
+                    (s.description = o(i(r, { children: u.map((e) => i(`img`, { src: e })) }))),
+                    (s.author = p),
+                    (s.category = m),
+                    (s.pubDate = t(c(`time.entry-date`).prop(`datetime`).replace(/WIB/, `T`))),
+                    (s.enclosure_url = c(`span.dlx a`).prop(`href`)),
+                    (s.enclosure_type = `application/zip`),
+                    s
+                );
+            })
+        )
+    );
+    let g = f(`link[rel="apple-touch-icon"]`)
+        .prop(`href`)
+        .replace(/-\d+x\d+/, ``);
+    return {
+        item: h,
+        title: f(`title`).text(),
+        link: u,
+        description: f(`div[itemprop="description"]`).text(),
+        image: f(`meta[property="og:image"]`).prop(`content`),
+        icon: g,
+        logo: g,
+        subtitle: f(`div.wd-full span`).text(),
+        author: p,
+    };
+}
+export { s as route };

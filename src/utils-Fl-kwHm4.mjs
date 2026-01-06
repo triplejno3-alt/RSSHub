@@ -1,0 +1,67 @@
+import { t as e } from './cache-DLkCV5c7.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { Fragment as r, jsx as i, jsxs as a } from 'hono/jsx/jsx-runtime';
+import { load as o } from 'cheerio';
+import { renderToString as s } from 'hono/jsx/dom/server';
+const c = (e) => {
+        let t = o(e),
+            n = t(`h2`).first().text(),
+            r = t(`h2.author`).first().text(),
+            i = t(`.desc`).first().text(),
+            a = t(`img.cover__backcover`).attr(`src`),
+            s = t(`img.cover__backcover`).attr(`alt`);
+        return (a || ((a = t(`img.img-responsive`).attr(`data-src`)), (s = t(`img.img-responsive`).attr(`alt`))), p(a, s, n, r, i));
+    },
+    l = (e) => {
+        let n = e(`script`)
+            .toArray()
+            .find((e) => {
+                let t = e.children[0];
+                return !t || !t.data ? !1 : t.data.includes(`post_date`);
+            });
+        if (n.length === 0) return;
+        let r = n.children[0].data.match(/(?<="post_date":").*?(?=")/);
+        if (r) return t(r[0]);
+    },
+    u = (e) => {
+        let t = o(e),
+            n = t(`h2.read-down-text`).first().html(),
+            r = ``;
+        return (
+            t(`.awesome-list>li`).map((e, t) => {
+                let n = c(t);
+                return ((r += n), n);
+            }),
+            { description: n, content: r, pubDate: l(t) }
+        );
+    },
+    d = (e) => {
+        let t = o(e),
+            n = t(`h2.hdr-smalltxt`).first().html(),
+            r = t(`div.img-block>img`).first().attr(`src`),
+            i = t(`div.img-block>img`).first().attr(`alt`),
+            a = ``,
+            s = m(r, i, n);
+        return (
+            t(`div.main-content>p,div.main-content>ul`).map((e, t) => {
+                let n = o(t);
+                return ((a += n.html()), n);
+            }),
+            { description: s, content: a, pubDate: l(t) }
+        );
+    },
+    f = (t, r, i) =>
+        Promise.all(
+            t.map((t) =>
+                e.tryGet(t.url, async () => {
+                    let e = (await n(t.url)).data,
+                        r = i(e);
+                    return { title: t.title, description: r.description + `<br>` + r.content, pubDate: r.pubDate, link: t.url };
+                })
+            )
+        ),
+    p = (e, t, n, o, c) => s(a(r, { children: [i(`img`, { src: e, alt: t }), i(`h1`, { children: n }), i(`h3`, { children: o }), i(`p`, { children: c })] })),
+    m = (e, t, n) => s(a(`p`, { children: [i(`img`, { src: e, alt: t }), i(`br`, {}), n] }));
+var h = { parseList: f, parseBooks: u, parseArticle: d };
+export { h as t };

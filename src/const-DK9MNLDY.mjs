@@ -1,0 +1,17 @@
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { load as t } from 'cheerio';
+const n = (e) => {
+    e(`a`).each((t, n) => {
+        let r = e(n),
+            i = r.attr(`href`)?.replace(`i0.wp.com`, ``).replace(`pic.4khd.com`, `yt4.googleusercontent.com`).replace(`AsHYQ`, `AsYHQ`).replace(`l/AAA`, `I/AAA`);
+        i && (r.attr(`href`, i), r.find(`img`).attr(`src`, i));
+    });
+};
+function r(r) {
+    let i = t(r.content.rendered);
+    return (n(i), { title: r.title.rendered, description: i.html() ?? ``, pubDate: e(r.date_gmt), link: r.link });
+}
+var i = r;
+const a = `4KHD`,
+    o = `https://www.4khd.com/`;
+export { o as n, i as r, a as t };

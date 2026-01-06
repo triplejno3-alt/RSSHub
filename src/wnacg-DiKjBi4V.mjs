@@ -1,0 +1,10 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import './parse-date-DjdQS_Nt.mjs';
+import './got-CKQ7C9HX.mjs';
+import { t as e } from './common-M_oPEFjF.mjs';
+const t = { name: `最新`, maintainers: [`KenMizz`], path: `/`, example: `/wnacg`, radar: [{ source: [`wnacg.com/albums.html`, `wnacg.com/`] }], handler: e, url: `wnacg.com/albums.html`, features: { nsfw: !0 } };
+export { t as route };

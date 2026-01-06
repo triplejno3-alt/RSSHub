@@ -1,0 +1,47 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './invalid-parameter-DGZgOgO2.mjs';
+import { jsx as r, jsxs as i } from 'hono/jsx/jsx-runtime';
+import { renderToString as a } from 'hono/jsx/dom/server';
+const o = {
+    path: `/drive/:selName`,
+    categories: [`program-update`],
+    example: `/lenovo/drive/PF3WRD2G`,
+    parameters: { selName: `产品序列号` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`lenovo.com.cn`], target: `/drive/:selName` }],
+    name: `驱动`,
+    maintainers: [`cscnk52`],
+    handler: s,
+};
+async function s(i) {
+    let o = await e(`https://newsupport.lenovo.com.cn/api/drive/drive_listnew?searchKey=${i.req.param(`selName`)}`);
+    if (o.statusCode !== 200) throw new n(`无效序列号, 请检查你的序列号是否正确.`);
+    let s = o.data.partList
+        .flatMap((e) => e.drivelist)
+        .map((e) => ({
+            title: `${e.DriverName} ${e.Version}`,
+            link: `https://newsupport.lenovo.com.cn/driveDownloads_detail.html?driveId=${e.DriverEdtionId}`,
+            description: a(r(c, { driveName: e.DriverName, driveCode: e.DriverCode, driveVersion: e.Version, downloadFileName: e.FileName, downloadFilePath: e.FilePath })),
+            pubDate: t(e.CreateTime, 8),
+        }));
+    return { title: `${o.data.driverSerious[0].NodeCode} 驱动`, item: s, language: `zh-CN` };
+}
+const c = ({ driveName: e, driveCode: t, driveVersion: n, downloadFileName: a, downloadFilePath: o }) =>
+    i(`div`, {
+        class: `driver-info`,
+        children: [
+            r(`h2`, { children: `驱动信息` }),
+            i(`ul`, {
+                children: [
+                    i(`li`, { children: [r(`strong`, { children: `驱动名称：` }), e] }),
+                    i(`li`, { children: [r(`strong`, { children: `驱动编码：` }), t] }),
+                    i(`li`, { children: [r(`strong`, { children: `驱动版本：` }), n] }),
+                    i(`li`, { children: [r(`strong`, { children: `下载地址：` }), r(`a`, { href: o, download: !0, children: a })] }),
+                ],
+            }),
+        ],
+    });
+export { s as handler, o as route };

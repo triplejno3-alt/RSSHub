@@ -1,0 +1,26 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import './timezone-CrV-DT8S.mjs';
+import { t as r } from './utils-C9eTQXzw.mjs';
+import { load as i } from 'cheerio';
+const a = { path: `/games/:name/:type?`, radar: [{ source: [`3dmgame.com/games/:name/:type`] }], name: `游戏资讯`, categories: [`game`], maintainers: [`sinchang`, `jacky2001114`, `HenryQW`, `lyqluis`], handler: o };
+async function o(a) {
+    let { name: o, type: s = `news` } = a.req.param(),
+        c = `https://www.3dmgame.com/games/${o}/${s}/`,
+        { data: l } = await n(c),
+        u = i(l),
+        d = (s === `resource` ? u(`.ZQ_Left .Llis_4 .lis li, .zq_left .rigtbox7 li`).toArray() : u(`.ZQ_Left .lis, .zq_left .newsleft li`).toArray()).map((e) => {
+            e = u(e);
+            let n = e.find(`a[href]`).last(),
+                r = e.find(`.time`);
+            return { title: n.text(), description: e.find(`.miaoshu`).text(), link: n.attr(`href`), pubDate: r.length ? t(r.text().trim()) : null };
+        }),
+        f = await Promise.all(d.map((t) => r(t, e.tryGet)));
+    return { title: u(`head title`).text().split(`_`)[0], description: u(`head meta[name="Description"]`).attr(`content`), link: c, item: f };
+}
+export { a as route };

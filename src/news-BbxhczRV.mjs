@@ -1,0 +1,68 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/news/:type?`,
+    categories: [`university`],
+    example: `/gmu/news/gyyw`,
+    parameters: {
+        type: {
+            description: `新闻类型，见下表，默认为 gyyw`,
+            options: [
+                { value: `gyyw`, label: `赣医要闻` },
+                { value: `ybdt`, label: `院部动态` },
+                { value: `mtgy`, label: `媒体赣医` },
+                { value: `xsjz`, label: `学术讲座` },
+            ],
+            default: `gyyw`,
+        },
+    },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [
+        { source: [`gmu.cn/xwzx/gyyw.htm`, `gmu.cn/`], target: `/news/gyyw` },
+        { source: [`gmu.cn/xwzx/ybdt.htm`], target: `/news/ybdt` },
+        { source: [`gmu.cn/xwzx/mtgy.htm`], target: `/news/mtgy` },
+        { source: [`gmu.cn/xwzx/xsjz.htm`], target: `/news/xsjz` },
+    ],
+    name: `新闻中心`,
+    maintainers: [`FrankFahey`],
+    url: `gmu.cn/xwzx/gyyw.htm`,
+    handler: a,
+};
+async function a(i) {
+    let a = { gyyw: { title: `赣医要闻`, url: `/xwzx/gyyw.htm` }, ybdt: { title: `院部动态`, url: `/xwzx/ybdt.htm` }, mtgy: { title: `媒体赣医`, url: `/xwzx/mtgy.htm` }, xsjz: { title: `学术讲座`, url: `/xwzx/xsjz.htm` } }[
+            i.req.param?.(`type`) || `gyyw`
+        ] || { title: `赣医要闻`, url: `/xwzx/gyyw.htm` },
+        o = `https://gmu.cn${a.url}`,
+        s = r((await n(o, { https: { rejectUnauthorized: !1 } })).data),
+        c = s(`.list ul li`),
+        l = (
+            await Promise.all(
+                c.toArray().map(async (i) => {
+                    let a = s(i),
+                        c = a.find(`a`),
+                        l = a.find(`i`).text(),
+                        u = c.attr(`href`),
+                        d = c.text().trim();
+                    if (!u || !d) return null;
+                    let f = t(l);
+                    if (!f) return null;
+                    let p = new URL(u, o).href;
+                    return await e.tryGet(`gmu:news:${p}`, async () => {
+                        try {
+                            return { title: d, link: p, pubDate: f, description: r((await n(p, { https: { rejectUnauthorized: !1 } })).data)(`.v_news_content`).html() || `暂无详细内容` };
+                        } catch {
+                            return { title: d, link: p, pubDate: f, description: `暂无详细内容` };
+                        }
+                    });
+                })
+            )
+        ).filter((e) => e !== null);
+    return { title: `赣南医科大学 - ${a.title}`, link: o, description: `赣南医科大学${a.title}`, item: l };
+}
+export { a as handler, i as route };

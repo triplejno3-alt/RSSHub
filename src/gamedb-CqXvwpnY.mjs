@@ -1,0 +1,50 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = { path: `/gamedb/recent`, name: `Unknown`, maintainers: [`TonyRL`], handler: o };
+async function o(a) {
+    let { platform: o = `all` } = a.req.param(),
+        s = `https://indienova.com`,
+        { data: c, url: l } = await n(`${s}/gamedb/recent/${o}/p/1`),
+        u = i(c),
+        d = u(`.related-game`)
+            .toArray()
+            .map(
+                (e) => (
+                    (e = u(e)),
+                    {
+                        title: e
+                            .find(`span`)
+                            .contents()
+                            .filter((e, t) => t.nodeType === 3)
+                            .text(),
+                        link: new URL(e.find(`a`).attr(`href`), s).href,
+                    }
+                )
+            ),
+        f = await Promise.all(
+            d.map((a) =>
+                e.tryGet(a.link, async () => {
+                    let { data: e } = await n(a.link),
+                        o = i(e),
+                        s = o(`.feature-box`);
+                    if (s.length) return ((a.description = s.find(`p`).first().text()), a);
+                    let c = o(`.row article`);
+                    return (
+                        c.find(`#showHiddenText`).remove(),
+                        (a.description = o(`.cover-image`).prop(`outerHTML`) + o(`.tab-container`).html() + c.html()),
+                        (a.pubDate = o(`.gamedb-release`).length ? r(t(o(`.gamedb-release`).text().replaceAll(/[()]/g, ``)), 8) : null),
+                        a
+                    );
+                })
+            )
+        );
+    return { title: u(`head title`).text(), link: l, item: f };
+}
+export { a as route };

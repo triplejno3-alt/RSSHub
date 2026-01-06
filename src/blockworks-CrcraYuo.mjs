@@ -1,0 +1,75 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import { t } from './config-Cc-zZ5p-.mjs';
+import { t as n } from './logger-_vmdpChp.mjs';
+import { t as r } from './cache-DLkCV5c7.mjs';
+import { t as i } from './parse-date-DjdQS_Nt.mjs';
+import { t as a } from './rss-parser-CKuAfhVS.mjs';
+import { load as o } from 'cheerio';
+const s = {
+    path: `/`,
+    categories: [`finance`],
+    example: `/blockworks`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`blockworks.co/`], target: `/` }],
+    name: `News`,
+    maintainers: [`pseudoyu`],
+    handler: c,
+    description: `Blockworks news with full text support.`,
+};
+async function c(e) {
+    let t = await a.parseURL(`https://blockworks.co/feed`),
+        n = e.req.query(`limit`) ? Number.parseInt(e.req.query(`limit`), 10) : 20,
+        o = t.items.slice(0, n),
+        s = await u(),
+        c = await Promise.all(
+            o
+                .map((e) => ({ ...e, link: e.link?.split(`?`)[0] }))
+                .map((e) =>
+                    r.tryGet(e.link, async () => {
+                        let t = await l(e.link.split(`/`).pop(), s);
+                        return {
+                            title: e.title || `Untitled`,
+                            pubDate: e.isoDate ? i(e.isoDate) : void 0,
+                            link: e.link,
+                            description: t.description || e.content || e.contentSnippet || e.summary || ``,
+                            author: e.author,
+                            category: t.category,
+                            media: t.imageUrl ? { content: { url: t.imageUrl } } : void 0,
+                        };
+                    })
+                )
+        );
+    return { title: t.title || `Blockworks News`, link: t.link || `https://blockworks.co`, description: t.description || `Latest news from Blockworks`, item: c, language: t.language || `en` };
+}
+async function l(t, r) {
+    try {
+        let n = (await e(`https://blockworks.co/_next/data/${r}/news/${t}.json?slug=${t}`)).pageProps.article,
+            i = o(n.content, null, !1);
+        return (
+            i(`hr`).remove(),
+            i(`p > em, p > strong`).each((e, t) => {
+                let n = i(t);
+                (n.text().includes(`To read full editions`) || n.text().includes(`Get the news in your inbox`)) && n.parent().remove();
+            }),
+            i(`ul.wp-block-list > li > a`).each((e, t) => {
+                let n = i(t);
+                n.attr(`href`) === `https://blockworks.co/newsletter/daily` && n.parent().parent().remove();
+            }),
+            { description: i.html(), imageUrl: n.imageUrl, category: [...new Set([...n.categories, ...n.tags])] }
+        );
+    } catch (e) {
+        return (n.error(`Error extracting full text from Blockworks:`, e), { description: ``, imageUrl: ``, category: [] });
+    }
+}
+const u = () =>
+    r.tryGet(
+        `blockworks:buildId`,
+        async () =>
+            o(await e(`https://blockworks.co`))(`script#__NEXT_DATA__`)
+                .text()
+                ?.match(/"buildId":"(.*?)",/)?.[1] || ``,
+        t.cache.routeExpire,
+        !1
+    );
+export { s as route };

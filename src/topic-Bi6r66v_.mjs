@@ -1,0 +1,54 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { n as t, t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './got-CKQ7C9HX.mjs';
+import { t as i } from './timezone-CrV-DT8S.mjs';
+import { load as a } from 'cheerio';
+async function o(e) {
+    return a((await r(e)).data);
+}
+const s = {
+    path: `/topic/:topic`,
+    categories: [`programming`],
+    example: `/oschina/topic/weekly-news`,
+    parameters: { topic: `主题名，可从 [全部主题](https://www.oschina.net/question/topics) 进入主题页，在 URL 中找到` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    radar: [{ source: [`oschina.net/question/topic/:topic`] }],
+    name: `问答主题`,
+    maintainers: [`loveely7`],
+    handler: c,
+};
+async function c(r) {
+    let a = `https://www.oschina.net/question/topic/${r.req.param(`topic`)}?show=time`,
+        s = await o(a),
+        c = s(`.topic-info > .topic-header > h3`).text(),
+        l = s(`#questionList .question-item`)
+            .toArray()
+            .map((e) => {
+                e = s(e);
+                let r = e.find(`.extra > .list > .item:nth-of-type(2)`).text();
+                return {
+                    title: e.find(`.header`).text(),
+                    description: e.find(`.description`).html(),
+                    link: e.find(`.header`).attr(`href`),
+                    author: e.find(`.extra > .list > .item:nth-of-type(1)`).text(),
+                    pubDate: i(/\//.test(r) ? n(r, [`YYYY/MM/DD HH:mm`, `MM/DD HH:mm`]) : t(r), 8),
+                };
+            }),
+        u = await Promise.all(
+            l.map((t) =>
+                e.tryGet(t.link, async () => {
+                    try {
+                        let e = await o(t.link);
+                        (e(`.ad-wrap`).remove(), (t.description = e(`#articleContent`).html()));
+                    } catch {}
+                    return t;
+                })
+            )
+        );
+    return { title: `开源中国-${c}`, description: s(`.topic-introduction`).text(), link: a, item: u };
+}
+export { s as route };

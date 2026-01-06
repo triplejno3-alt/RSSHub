@@ -1,0 +1,55 @@
+import './config-Cc-zZ5p-.mjs';
+import { t as e } from './logger-_vmdpChp.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './rss-parser-CKuAfhVS.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/`,
+    categories: [`finance`],
+    example: `/cryptoslate`,
+    parameters: {},
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+    name: `News`,
+    maintainers: [`pseudoyu`],
+    handler: a,
+    radar: [{ source: [`cryptoslate.com/`], target: `/` }],
+    description: `Get latest news from CryptoSlate.`,
+};
+async function a(r) {
+    let i = r.req.query(`limit`) ? Number.parseInt(r.req.query(`limit`)) : 20,
+        a = await n.parseURL(`https://cryptoslate.com/feed/`),
+        s = a.items
+            .filter((e) => !e.link?.includes(`/feed`) && !e.link?.includes(`#respond`))
+            .slice(0, i)
+            .map((n) => {
+                if (!n.link) return {};
+                try {
+                    let e = n.link.split(`?`)[0];
+                    return {
+                        title: n.title || `Untitled`,
+                        link: e,
+                        pubDate: n.pubDate ? t(n.pubDate) : void 0,
+                        description: o(n),
+                        author: n.creator || `CryptoSlate`,
+                        category: n.categories || [],
+                        guid: n.guid || n.link,
+                        image: n.enclosure?.url,
+                    };
+                } catch (t) {
+                    return (e.warn(`Couldn't process article from CryptoSlate: ${n.link}: ${t.message}`), {});
+                }
+            })
+            .filter((e) => e && Object.keys(e).length > 0);
+    return { title: a.title || `CryptoSlate`, link: a.link || `https://cryptoslate.com`, description: a.description || `Latest news from CryptoSlate`, item: s, language: a.language || `en`, image: a.image?.url };
+}
+function o(t) {
+    try {
+        let e = t[`content:encoded`] || t[`content:encodedSnippet`] || t.content || t.contentSnippet;
+        if (!e) return null;
+        let n = r(e);
+        return (n(`img`).remove(), n(`figure`).remove(), n.html() || null);
+    } catch (t) {
+        return (e.error(`Error extracting full text from RSS: ${t}`), null);
+    }
+}
+export { i as route };

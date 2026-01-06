@@ -1,0 +1,59 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = [`通知公告`, `院所新闻`, `教学信息`, `学术动态`, `学院简报`],
+    o = [`xwdt/tzgg.htm`, `xwdt/ysxw.htm`, `xwdt/jxxx.htm`, `xwdt/xsdt.htm`, `xwdt/xyjb.htm`],
+    s = `https://www.mech.sdu.edu.cn/`,
+    c = {
+        path: `/mech/:type?`,
+        categories: [`university`],
+        example: `/sdu/mech/0`,
+        parameters: { type: '默认为 `0`' },
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        name: `机械工程学院通知`,
+        maintainers: [`Ji4n1ng`],
+        handler: l,
+        description: `| 通知公告 | 院所新闻 | 教学信息 | 学术动态 | 学院简报 |
+| -------- | -------- | -------- | -------- | -------- |
+| 0        | 1        | 2        | 3        | 4        |`,
+    };
+async function l(c) {
+    let l = c.req.param(`type`) ? Number.parseInt(c.req.param(`type`)) : 0,
+        u = new URL(o[l], s).href,
+        d = i((await n(u)).data),
+        f = d(`#page_list li a`)
+            .toArray()
+            .map((e) => ((e = d(e)), { title: e.attr(`title`), link: e.attr(`href`) }));
+    return (
+        (f = await Promise.all(
+            f
+                .filter((e) => e.link.startsWith(`../info`) || e.link.startsWith(`https://www.rd.sdu.edu.cn/`))
+                .map(
+                    (a) => (
+                        a.link.startsWith(`../info`) && (a.link = new URL(a.link.slice(`3`), s).href),
+                        e.tryGet(a.link, async () => {
+                            let e = i((await n(a.link)).data),
+                                o = e(`#show_info`).text().split(/\s{4}/),
+                                s = o[0].split(`：`)[1];
+                            return (
+                                (a.title = e(`#show_title`).text().trim()),
+                                (a.author = o[1].replace(`作者：`, ``) || `山东大学机械工程学院`),
+                                e(`#show_title, #show_info`).remove(),
+                                (a.description = e(`form[name=_newscontent_fromname] div`).html()),
+                                (a.pubDate = r(t(s), 8)),
+                                a
+                            );
+                        })
+                    )
+                )
+        )),
+        { title: `山东大学机械工程学院${a[l]}`, description: d(`title`).text(), link: u, item: f }
+    );
+}
+export { c as route };

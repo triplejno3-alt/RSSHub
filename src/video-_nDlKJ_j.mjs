@@ -1,0 +1,45 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { t as n } from './types-Bl_lnefZ.mjs';
+import { load as r } from 'cheerio';
+const i = {
+    path: `/user/video/:uid`,
+    radar: [{ source: [`www.acfun.cn/u/:id`], target: `/user/video/:id` }],
+    name: `用户投稿`,
+    parameters: { uid: `用户 UID` },
+    categories: [`anime`],
+    example: `/acfun/user/video/6102`,
+    view: n.Videos,
+    maintainers: [`wdssmq`],
+    handler: a,
+};
+async function a(n) {
+    let i = `https://www.acfun.cn/u/${n.req.param(`uid`)}`,
+        a = `https://www.acfun.cn`,
+        o = (await t(i, { headers: { Referer: a } })).data,
+        s = r(o),
+        c = s(`title`).text(),
+        l = s(`.signature .complete`).text(),
+        u = s(`#ac-space-video-list a`).toArray();
+    return {
+        title: c,
+        link: i,
+        description: l,
+        image: s(`head style`)
+            .text()
+            .match(/.user-photo{\n\s*background:url\((.*)\) 0% 0% \/ 100% no-repeat;/)[1],
+        item: u.map((t) => {
+            t = s(t);
+            let n = t.find(`p.title`).text(),
+                r = t.find(`figure img`).attr(`src`),
+                i = t.attr(`href`),
+                o = t.find(`.date`).text();
+            return { title: n, description: `<img src="${r.split(`?`)[0]}">`, link: a + i, pubDate: e(o, `YYYY/MM/DD`) };
+        }),
+    };
+}
+export { i as route };

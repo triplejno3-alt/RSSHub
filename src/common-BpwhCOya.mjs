@@ -1,0 +1,41 @@
+import { t as e } from './cache-DLkCV5c7.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = `https://www.cnbeta.com.tw`,
+    o = (e, a, o) =>
+        Promise.all(
+            e.slice(0, a ? Number.parseInt(a) : 60).map((e) =>
+                o(e.link, async () => {
+                    let a = i((await n(e.link)).data);
+                    return (
+                        a(`.topic, .article-topic, .article-global`).remove(),
+                        (e.description = a(`.article-summary`).html() + a(`.article-content`).html()),
+                        (e.author = a(`header.title div.meta span.source`).text()),
+                        (e.pubDate ??= r(t(a(`.meta span`).first().text(), `YYYY年MM月DD日 HH:mm`), 8)),
+                        e
+                    );
+                })
+            )
+        );
+async function s(s) {
+    let { type: c, id: l } = s.req.param(),
+        u = c ? `${a}/${c}/${l}.htm` : a,
+        d = await n(u),
+        f = i(d.data),
+        p = encodeURI(f(`meta[name="csrf-token"]`).attr(`content`));
+    d = await n(`${a}/home/more?&type=${f(`div[data-type]`).data(`type`)}&page=1&_csrf=${p}&_=${Date.now()}`);
+    let m = c
+        ? d.data.result.list.map((e) => ({
+              title: e.title,
+              description: e.hometext,
+              author: e.source.split(`@http`)[0],
+              pubDate: r(t(e.inputtime), 8),
+              link: e.url_show.startsWith(`//`) ? `https:${e.url_show}` : e.url_show.replace(`http:`, `https:`),
+              category: e.label.name,
+          }))
+        : d.data.result.map((e) => ({ title: e.title, link: e.url_show.startsWith(`//`) ? `https:${e.url_show}` : e.url_show.replace(`http:`, `https:`), category: e.label.name }));
+    return { title: f(`title`).text(), link: u, item: await o(m, s.req.query(`limit`), e.tryGet) };
+}
+export { s as t };

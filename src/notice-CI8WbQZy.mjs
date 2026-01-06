@@ -1,0 +1,38 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './parse-date-DjdQS_Nt.mjs';
+import { t } from './got-CKQ7C9HX.mjs';
+import { load as n } from 'cheerio';
+const r = `https://www.ncwu.edu.cn/xxtz.htm`,
+    i = {
+        path: `/notice`,
+        categories: [`university`],
+        example: `/ncwu/notice`,
+        parameters: {},
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [{ source: [`ncwu.edu.cn/xxtz.htm`] }],
+        name: `学校通知`,
+        maintainers: [],
+        handler: a,
+        url: `ncwu.edu.cn/xxtz.htm`,
+    };
+async function a() {
+    let i = n((await t(r)).data),
+        a = i(`div.news-item`)
+            .toArray()
+            .map(
+                (t) => (
+                    (t = i(t)),
+                    {
+                        title: `「` + t.find(`a.dw`).text() + `」` + t.find(`a.dw`).next().text(),
+                        description: t.find(`div.detail`).text(),
+                        pubDate: e(t.find(`div.month`).text() + `-` + t.find(`div.day`).text(), `YYYY-MM-DD`),
+                        link: t.find(`a.dw`).next().attr(`href`),
+                    }
+                )
+            );
+    return { title: i(`title`).text(), link: r, item: a };
+}
+export { i as route };

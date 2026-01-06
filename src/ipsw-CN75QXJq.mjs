@@ -1,0 +1,44 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t as e } from './got-CKQ7C9HX.mjs';
+import { jsx as t, jsxs as n } from 'hono/jsx/jsx-runtime';
+import { load as r } from 'cheerio';
+import { renderToString as i } from 'hono/jsx/dom/server';
+const a = { path: `/index/:productID`, categories: [`program-update`], example: `/ipsw.dev/index/iPhone16,1`, parameters: { productID: `Product ID` }, name: `Apple latest beta firmware`, maintainers: [`RieN7`], handler: o };
+async function o(a) {
+    let { productID: o } = a.req.param(),
+        s = `https://ipsw.dev/product/version/${o}`,
+        c = r((await e({ method: `get`, url: s, headers: { Referer: `https://ipsw.dev/` } })).data),
+        l = c(`#IdentifierModal > div > div > div.modal-body > p:nth-child(1) > em`).text(),
+        u = c(`.firmware`)
+            .toArray()
+            .map((e) => {
+                let r = c(e),
+                    a = r.find(`td:nth-child(1) > div > div > strong`).text(),
+                    s = r.find(`td:nth-child(1) > div > div > div > code`).text(),
+                    u = r.find(`td:nth-child(3)`).text(),
+                    d = r.find(`td:nth-child(4)`).text();
+                return {
+                    title: `${l} - ${a}`,
+                    link: `https://ipsw.dev/download/${o}/${s}`,
+                    pubDate: new Date(u).toLocaleDateString(),
+                    guid: s,
+                    description: i(
+                        t(`table`, {
+                            children: n(`tbody`, {
+                                children: [
+                                    n(`tr`, { children: [t(`th`, { children: `Version` }), t(`td`, { children: a })] }),
+                                    n(`tr`, { children: [t(`th`, { children: `Build` }), t(`td`, { children: s })] }),
+                                    n(`tr`, { children: [t(`th`, { children: `Released` }), t(`td`, { children: u })] }),
+                                    n(`tr`, { children: [t(`th`, { children: `Size` }), t(`td`, { children: d })] }),
+                                ],
+                            }),
+                        })
+                    ),
+                };
+            });
+    return { title: `${l} Released`, link: s, item: u };
+}
+export { a as route };

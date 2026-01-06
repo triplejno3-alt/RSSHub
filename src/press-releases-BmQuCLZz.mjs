@@ -1,0 +1,73 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { load as i } from 'cheerio';
+const a = async (r) => {
+        let { filter: a } = r.req.param(),
+            o = Number.parseInt(r.req.query(`limit`) ?? `10`, 10),
+            s = new URL(`products/benchmark/resources/press-releases${a ? `?${a}` : ``}`, `https://www.costar.com`).href,
+            c = i(await e(s)),
+            l = c(`html`).attr(`lang`) ?? `en`,
+            u = [];
+        return (
+            (u = c(`div.views-row article`)
+                .slice(0, o)
+                .toArray()
+                .map((e) => {
+                    let t = c(e),
+                        r = t.find(`a.coh-link`).first(),
+                        i = r.text(),
+                        a = t.find(`div.coh-container`).eq(3).html() ?? void 0,
+                        o = t.find(`div.coh-container`).eq(4).text(),
+                        s = r.attr(`href`),
+                        u = t.find(`div.coh-style-tags a`).toArray(),
+                        d = [...new Set(u.map((e) => c(e).text()).filter(Boolean))],
+                        f = o;
+                    return { title: i, description: a, pubDate: o ? n(o) : void 0, link: s, category: d, content: { html: a, text: a }, updated: f ? n(f) : void 0, language: l };
+                })),
+            (u = await Promise.all(
+                u.map((r) =>
+                    r.link
+                        ? t.tryGet(r.link, async () => {
+                              let t = await e(r.link),
+                                  a = i(t),
+                                  o = a(`h1.coh-heading`).text(),
+                                  s = a(`div.coh-body`).html() ?? r.description,
+                                  c = t.match(/"datePublished": "(.*?)",/)?.[1],
+                                  u = t.match(/"dateModified": "(.*?)",/)?.[1],
+                                  d = { title: o, description: s, pubDate: c ? n(c) : r.pubDate, content: { html: s, text: s }, updated: u ? n(u) : r.updated, language: l };
+                              return { ...r, ...d };
+                          })
+                        : r
+                )
+            )),
+            { title: c(`title`).text(), description: c(`meta[property="og:title"]`).attr(`content`), link: s, item: u, allowEmpty: !0, author: c(`meta[property="og:site_name"]`).attr(`content`), language: l, id: s }
+        );
+    },
+    o = {
+        path: `/press-releases/:filter{.+}?`,
+        name: `Press Releases`,
+        url: `www.costar.com`,
+        maintainers: [`nczitzk`],
+        handler: a,
+        example: `/costar/press-releases`,
+        parameters: { filter: { description: `Filter` } },
+        description:
+            ':::tip\nTo subscribe to [Press Releases - Asia Pacific - Preliminary](https://www.costar.com/products/benchmark/resources/press-releases?region=406&tag=581), where the source URL is `https://www.costar.com/products/benchmark/resources/press-releases?region=406&tag=581`, extract the certain parts from this URL to be used as parameters, resulting in the route as [`/costar/press-releases/region=406&tag=581`](https://rsshub.app/costar/press-releases/region=406&tag=581).\n:::\n',
+        categories: [`new-media`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            {
+                source: [`www.costar.com`],
+                target: (e, t) => {
+                    let n = new URL(t).search?.replace(/\?/, ``);
+                    return `/costar/press-releases${n ? `/${n}` : ``}`;
+                },
+            },
+        ],
+        view: r.Articles,
+    };
+export { a as handler, o as route };

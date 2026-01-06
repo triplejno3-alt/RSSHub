@@ -1,0 +1,39 @@
+import './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t as e } from './cache-DLkCV5c7.mjs';
+import './helpers-C9wXLK0V.mjs';
+import { t } from './parse-date-DjdQS_Nt.mjs';
+import { t as n } from './got-CKQ7C9HX.mjs';
+import { t as r } from './timezone-CrV-DT8S.mjs';
+import { load as i } from 'cheerio';
+const a = {
+    path: `/news/:type_id`,
+    categories: [`university`],
+    example: `/byau/news/3674`,
+    parameters: { type_id: `栏目类型(从菜单栏获取对应 ID)` },
+    radar: [{ source: [`xinwen.byau.edu.cn/:type_id/list.htm`], target: `/news/:type_id` }],
+    name: `新闻网`,
+    maintainers: [`ueiu`],
+    handler: o,
+    url: `xinwen.byau.edu.cn`,
+    description: `| 学校要闻 | 校园动态 |
+| ---- | ----------- |
+| 3674 | 3676 |`,
+};
+async function o(a) {
+    let o = `http://xinwen.byau.edu.cn/`,
+        s = `${o}${a.req.param(`type_id`)}/list.htm`,
+        c = i((await n(s)).data),
+        l = c(`.news`)
+            .toArray()
+            .map((e) => {
+                let n = i(e),
+                    a = n(`a`).attr(`href`),
+                    s = a.startsWith(`http`) ? a : new URL(a, o).href;
+                return { title: n(`a`).text(), link: s, pubDate: r(t(n(`.news_meta`).text()), 8) };
+            }),
+        u = await Promise.all(l.map((t) => e.tryGet(t.link, async () => ((t.description = i((await n(t.link)).data)(`.col_news_con`).html()), t))));
+    return { title: c(`title`).text(), link: s, item: u };
+}
+export { a as route };

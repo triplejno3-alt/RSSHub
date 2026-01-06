@@ -1,0 +1,122 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+import { t } from './cache-DLkCV5c7.mjs';
+import { t as n } from './parse-date-DjdQS_Nt.mjs';
+import { t as r } from './types-Bl_lnefZ.mjs';
+import { Fragment as i, jsx as a, jsxs as o } from 'hono/jsx/jsx-runtime';
+import { load as s } from 'cheerio';
+import { renderToString as c } from 'hono/jsx/dom/server';
+import { raw as l } from 'hono/html';
+const u = ({ headers: e, infos: t, description: n }) =>
+        o(i, {
+            children: [
+                e && t
+                    ? a(`table`, {
+                          children: o(`tbody`, {
+                              children: [e.length > 0 ? a(`tr`, { children: e.map((e) => a(`th`, { children: e })) }) : null, t.length > 0 ? a(`tr`, { children: t.map((e) => a(`td`, { children: e ? l(e) : null })) }) : null],
+                          }),
+                      })
+                    : null,
+                n ? l(n) : null,
+            ],
+        }),
+    d = (e) => c(a(u, { ...e })),
+    f = async (r) => {
+        let { language: i = `en-us` } = r.req.param(),
+            a = Number.parseInt(r.req.query(`limit`) ?? `30`, 10),
+            o = `https://support.apple.com`,
+            c = new URL(`${i}/100100`, o).href,
+            l = s(await e(c)),
+            u = l(`table.gb-table tbody tr`),
+            f = u
+                .find(`th`)
+                .toArray()
+                .map((e) => l(e).text()),
+            p = [];
+        return (
+            (p = u
+                .slice(1, a)
+                .toArray()
+                .map((e) => {
+                    let t = l(e),
+                        r = t.find(`td`).first(),
+                        a = r.contents().first().text(),
+                        s = d({
+                            headers: f,
+                            infos: t
+                                .find(`td`)
+                                .toArray()
+                                .map((e) => l(e).html() ?? ``),
+                        }),
+                        c = t.find(`td`).last().text(),
+                        u = r.find(`a.gb-anchor`).attr(`href`),
+                        p = t.find(`meta[property="og:site_name"]`).attr(`content`),
+                        m = c;
+                    return {
+                        title: a,
+                        description: s,
+                        pubDate: c ? n(c, [`DD MMM YYYY`, `YYYY 年 MM 月 DD 日`]) : void 0,
+                        link: u ? new URL(u, o).href : void 0,
+                        author: p,
+                        content: { html: s, text: s },
+                        updated: m ? n(m, [`DD MMM YYYY`, `YYYY 年 MM 月 DD 日`]) : void 0,
+                        language: i,
+                    };
+                })),
+            (p = await Promise.all(
+                p.map((r) =>
+                    r.link
+                        ? t.tryGet(r.link, async () => {
+                              let t = await e(r.link),
+                                  a = s(t),
+                                  o = r.title ?? a(`h1.gb-header`).text();
+                              a(`h1.gb-header`).remove();
+                              let c = r.description + d({ description: a(`div#sections`).html() }),
+                                  l = t.match(/publish_date:\s"(\d{8})",/, ``)?.[1],
+                                  u = a(`meta[property="og:site_name"]`).attr(`content`),
+                                  f = a(`.time`).text() || l,
+                                  p = { title: o, description: c, pubDate: l ? n(l, `MMDDYYYY`) : r.pubDate, author: u, content: { html: c, text: c }, updated: f ? n(f, `MMDDYYYY`) : r.updated, language: i };
+                              return { ...r, ...p };
+                          })
+                        : r
+                )
+            )),
+            { title: l(`title`).text(), description: l(`meta[property="og:description"]`).attr(`content`), link: c, item: p, allowEmpty: !0, author: l(`meta[property="og:site_name"]`).attr(`content`), language: i, id: c }
+        );
+    },
+    p = {
+        path: `/security-releases/:language?`,
+        name: `Security releases`,
+        url: `support.apple.com`,
+        maintainers: [`nczitzk`],
+        handler: f,
+        example: `/apple/security-releases`,
+        parameters: { language: { description: 'Language, `en-us` by default' } },
+        description:
+            '::: tip\nTo subscribe to [Apple security releases](https://support.apple.com/en-us/100100), where the source URL is `https://support.apple.com/en-us/100100`, extract the certain parts from this URL to be used as parameters, resulting in the route as [`/apple/security-releases/en-us`](https://rsshub.app/apple/security-releases/en-us).\n:::\n',
+        categories: [`program-update`],
+        features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportRadar: !0, supportBT: !1, supportPodcast: !1, supportScihub: !1 },
+        radar: [
+            {
+                source: [`support.apple.com/:language/100100`],
+                target: (e) => {
+                    let t = e.language;
+                    return `/apple/security-releases${t ? `/${t}` : ``}`;
+                },
+            },
+        ],
+        view: r.Articles,
+        zh: {
+            path: `/security-releases/:language?`,
+            name: `安全性发布`,
+            url: `support.apple.com`,
+            maintainers: [`nczitzk`],
+            handler: f,
+            example: `/apple/security-releases`,
+            parameters: { language: { description: '语言，默认为 `en-us`，可在对应页 URL 中找到' } },
+            description:
+                '::: tip\n若订阅 [Apple 安全性发布](https://support.apple.com/zh-cn/100100)，网址为 `https://support.apple.com/zh-cn/100100`，请截取 `https://support.apple.com/` 到末尾 `/100100` 的部分 `zh-cn` 作为 `language` 参数填入，此时目标路由为 [`/apple/security-releases/zh-cn`](https://rsshub.app/apple/security-releases/zh-cn)。\n:::\n',
+        },
+    };
+export { f as handler, p as route };

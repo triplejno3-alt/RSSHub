@@ -1,0 +1,32 @@
+import { t as e } from './ofetch-uhy-qh6X.mjs';
+import './config-Cc-zZ5p-.mjs';
+import './logger-_vmdpChp.mjs';
+const t = {
+    path: `/search/:query/:mode?/:routeParams?`,
+    name: `Search`,
+    url: `furaffinity.net`,
+    categories: [`social-media`],
+    example: `/furaffinity/search/protogen/nsfw`,
+    maintainers: [`TigerCubDen`, `SkyNetX007`],
+    parameters: { query: `Query value`, mode: `R18 content toggle, default value is sfw, options are sfw, nsfw`, routeParams: `Additional search parameters` },
+    features: { requireConfig: !1, requirePuppeteer: !1, antiCrawler: !1, supportBT: !1, supportPodcast: !1, supportScihub: !1, nsfw: !0 },
+    radar: [{ source: [`furaffinity.net`], target: `/search` }],
+    handler: n,
+    description: `Additional search parameters
+| Parameter       | Description          | Default   | Options                                                        |
+|-----------------|----------------------|-----------|----------------------------------------------------------------|
+| order_by        | Sort by              | relevancy | relevancy, date, popularity                                    |
+| order_direction | Sort order           | desc      | desc, asc                                                      |
+| range           | Date range           | all       | all, 1day, 3days, 7days, 30days, 90days, 1year, 3years, 5years |
+| pattern         | Query match pattern  | extended  | all, any, extended                                             |
+| type            | Category of artworks | all       | art, flash, photo, music, story, poetry                        |
+`,
+};
+async function n(t) {
+    let { query: n, mode: r = `sfw`, routeParams: i = `order_by=relevancy` } = t.req.param(),
+        a = `https://faexport.spangle.org.uk/search.json?sfw=1&full=1&q=${n}&${i}`;
+    r === `nsfw` && (a = `https://faexport.spangle.org.uk/search.json?full=1&q=${n}&${i}`);
+    let o = (await e(a, { method: `GET`, headers: { Referer: `https://faexport.spangle.org.uk/` } })).map((e) => ({ title: e.title, link: e.link, guid: e.id, description: `<img src="${e.thumbnail}">`, author: e.name }));
+    return { allowEmpty: !0, title: `Fur Affinity | Search`, link: `https://www.furaffinity.net/Search/?q=${n}`, description: `Fur Affinity Search`, item: o };
+}
+export { t as route };
