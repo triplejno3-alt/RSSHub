@@ -1,6 +1,6 @@
 import { anonymizeProxy } from 'proxy-chain';
-import type { Browser, Page } from 'rebrowser-puppeteer';
-import puppeteer from 'rebrowser-puppeteer';
+import type { Browser, Page } from 'puppeteer';
+import puppeteer from 'puppeteer';
 
 import { config } from '@/config';
 
